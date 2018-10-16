@@ -102,8 +102,8 @@ classdef bladesection < handle
                 salpha = vr(3)/temp;
                 calpha = vr(1)/temp;
             end
-            L = [Dmag*calpha;0;Dmag*salpha];
-            D = [-Lmag*salpha;0;Lmag*calpha];
+            D = [Dmag*calpha;0;Dmag*salpha];
+            L = [-Lmag*salpha;0;Lmag*calpha];
             M = [0;Mmag;0];
             hobj.lift = Lmag;
             hobj.drag = Dmag;

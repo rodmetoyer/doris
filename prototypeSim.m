@@ -22,7 +22,7 @@ end
 % blade
 bladeMass = 0.02;
 numBlades = 3;
-twist = [64.5594055094881,49.8580923646580,38.6961926928293,30.5118872539666,24.4816365905298,19.9466872454789,16.4526417401128,13.6969839715401,11.4775489339430,9.65678715141286,8.13899598850960,6.85605128091181,5.75839587377552,4.80924979204606,3.98081356768622,3.25172572494670,2.60532504612909,2.02843975982037,1.51052857319779,1.04306107903769];
+twist = -[64.6,49.9,38.7,30.5,24.5,19.95,16.45,13.7,11.5,9.7,8.1,6.9,5.76,4.81,3.98,3.25,2.61,2.03,1.51,1.04];
 b = blade(section,bladeMass,twist);
 for i=1:1:numBlades
     blade(i) = b; % Note that this is a vector of the same handle
@@ -33,7 +33,7 @@ rotor = rotor(blade);
 
 %% Set-up simulation
 
-tspan = 0:0.1:1;
+tspan = 0:0.1:5;
 
 % Initial states
 % State vector
@@ -54,4 +54,5 @@ rotor.angvel = [x0(7);x0(8);x0(9)];
 % Function Handle
 fnhndl = @rotorState;
 
-[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
+%[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
+y = ode4(@(t,y) rotorState(t,y,rotor,water),tspan,x0);

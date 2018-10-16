@@ -130,6 +130,7 @@ classdef blade < handle
     end
     
 end
+% Functions outside of classdef are just local functions
 function t = thinrod(l,m)
     t = [1/3*m*l^2 0 0; 0 0 0; 0 0 1/3*m*l^2];
 end

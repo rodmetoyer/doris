@@ -39,7 +39,7 @@ pause(p)
 bs = bladesection(0.1,0.1,af);
 bs1 = bladesection(0.1,0.1,af);
 bs2 = bladesection(0.1,0.1,2,'SG6040');
-passed = bladesectionUnitTest(bs,f,true);
+passed = bladesectionUnitTest(bs,f,false);
 if ~passed
     error('Bladesection failed unit test');
 end
@@ -52,7 +52,7 @@ bs4 = bladesection(0.1,0.3,af);
 bs5 = bladesection(0.1,0.05,af);
 bsv = [bs, bs1, bs2, bs3, bs4, bs5];
 expectedlength = 3*0.1 + 0.2 + 0.3 + 0.05;
-twist = [64.6,49.9,38.7,30.5,24.5,19.95,16.45,13.7,11.5,9.7,8.1,6.9,5.76,4.81,3.98,3.25,2.61,2.03,1.51,1.04];
+twist = -[64.6,49.9,38.7,30.5,24.5,19.95,16.45,13.7,11.5,9.7,8.1,6.9,5.76,4.81,3.98,3.25,2.61,2.03,1.51,1.04];
 blade1 = blade(bsv,1.1,twist);
 if blade1.length ~= expectedlength
     error('Blade length error');

@@ -5,6 +5,7 @@ function xdot = rotorState(t,x,rotor,fluid)
     % x = state vector
     % rotor = rotor object
     % fluid = fluid object representing the freestream
+    
 mass = rotor.mass;
 I = rotor.inertia;
 Ixx = I(1,1);
@@ -23,9 +24,14 @@ O_C_B = B_C_O.';
 
 % Modify fluid as function of time if you want time-varying flow
 
-% Update object states as needed
+% Update rotor object properites
 rotor.position = [x(4);x(5);x(6)];
 rotor.orientation = [x(1);x(2);x(3)];
+rotor.velocity = [x(10);x(11);x(12)];
+omegax = gamma_dot*cosbeta+theta_dot*cosgamma*sinbeta;
+omegay = theta_dot*cosbeta*cosgamma-gamma_dot*sinbeta;
+omegaz = beta_dot-theta_dot*singamma;
+rotor.angvel = [omegax;omegay;omegaz];
 
 % Compute loads on blade sections
 [rotorforce, rotortorque] = rotor.computeAeroLoadsBasic(fluid); % Rotor is responsible for computing his near-field

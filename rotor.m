@@ -82,9 +82,9 @@ classdef rotor < handle
             for i=1:1:hobj.numblades
                 % Make orientation matrix to rotate blade and section loads to
                 % rotor frame
-                coseta = cosd(hobj.bladeAngls(i));
-                sineta = sind(hobj.bladeAngls(i));
-                B_C_bxi = [coseta, -sineta, 0; sineta, coseta, 0; 0, 0,1];
+                %coseta = cosd(hobj.bladeAngls(i));
+                %sineta = sind(hobj.bladeAngls(i));
+                %B_C_bxi = [coseta, -sineta, 0; sineta, coseta, 0; 0, 0,1];
                 % Get section aero loads
                 for j=1:1:hobj.blades(i).numsects
                     drag = NaN;
@@ -93,7 +93,7 @@ classdef rotor < handle
                     % Rotate coordinates to this section in the rotor
                     % frame. NOTE that this assumes that the blade root is
                     % at the rotor frame origin. Need to generalize.
-                    r_p_b = B_C_bxi*hobj.blades(i).sectionLocs(:,j);
+                    r_p_b = hobj.B_C_bx(:,:,i)*hobj.blades(i).sectionLocs(:,j);
                     % Compute relative velocity in the rotor frame at the
                     % section location.
                     V_p_Bx = cross(hobj.angvel,r_p_b);
@@ -102,14 +102,9 @@ classdef rotor < handle
                     % Rotate the relative velocity into the blade section
                     % frame. First, compute b_this_i_C_a
                     ang = hobj.blades(i).orientations(2,j); % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
-                    % Note that rotating from section to blade frame is
-                    % actually -ang, so below is actually a_C_b_this_i.
-                    % Again, assumes only twist about y axis.
-                    bx_C_a = [cosd(ang),0,-sind(ang);0,1,0;sind(ang),0,cosd(ang)];
+                    bx_C_a = [cosd(-ang),0,-sind(-ang);0,1,0;sind(-ang),0,cosd(-ang)];
+                    
                     U_rel_bs = transpose(bx_C_a)*hobj.bx_C_B(:,:,i)*U_rel;
-                    if U_rel_bs(1) < 0
-                        error('rotor: section x relative velocity component negative.');
-                    end
                     
                     % Get loads from each section of the blade. INFO: The
                     % computeLoads method only uses the x and z components
@@ -149,6 +144,7 @@ classdef rotor < handle
                 % method they will be modeled as loads on a cylinder.                
             end % end blade loop
         end % end computeAeroLoadsBasic
+        
         
         % Setters
         function set.position(hobj,p)
