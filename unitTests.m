@@ -32,13 +32,17 @@ hold off
 movegui(gcf,'northeast')
 afoops = airfoil(1000,'SG6040_35');
 pause(p)
-close all;
+% close all;
 
 % bladesection
 % Building on the previous test. We have airfoil objects.
 bs = bladesection(0.1,0.1,af);
 bs1 = bladesection(0.1,0.1,af);
 bs2 = bladesection(0.1,0.1,2,'SG6040');
+passed = bladesectionUnitTest(bs,f,true);
+if ~passed
+    error('Bladesection failed unit test');
+end
 
 % blade
 % Make a blade out of blade sections
@@ -53,12 +57,14 @@ blade1 = blade(bsv,1.1,twist);
 if blade1.length ~= expectedlength
     error('Blade length error');
 end
-vx = 0:0.1:1;
-vz = vx;
+mag = 1.0;
+angs = 0:10:180;
+vx = cosd(angs);
+vz = sind(angs);
 vy = zeros(size(vx));
 vr = [vx;vy;vz];
 for i=1:1:numel(blade1.sections)
-    [L(:,i),D(:,i),M(:,i)] = computeLoads(blade1.sections(i),vr(:,i),f);
+    [L(:,i),D(:,i),M(:,i)] = computeLoads(blade1.sections(i),vr(:,i),f); % You know this doesn't use twist right.
 end
 Lmag = vecnorm(L);
 Dmag = vecnorm(D);
@@ -70,7 +76,7 @@ plot(Dmag,'*-b');
 plot(Mmag,'*-c');
 hold off
 pause(p)
-close gcf
+%close gcf
 
 % Rotor
 % first need to make a couple more blades (remember that these are handle
