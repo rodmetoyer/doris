@@ -20,8 +20,8 @@ classdef blade < handle
         rootLoc      % Location of the blade root in the blade frame
         tipLoc       % Location of the blade tip in the blade frame
         % todo(rodney) Do we need this? meanChord  % Mean chord of the blade (m)
-        bladeforce   % The force on the blade not due to blade sections
-        blademoment  % The moment on the blade not due to blade sections
+        bladeforce   % The force on the blade not due to blade sections expressed in the blade frame
+        blademoment  % The moment on the blade not due to blade sections expressed in the blade frame
         % id         % Unique integer identifier - maybe don't need
     end
     

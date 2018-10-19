@@ -39,7 +39,7 @@ pause(p)
 bs = bladesection(0.1,0.1,af);
 bs1 = bladesection(0.1,0.1,af);
 bs2 = bladesection(0.1,0.1,2,'SG6040');
-passed = bladesectionUnitTest(bs,f,false);
+passed = bladesectionUnitTest(bs,f,true);
 if ~passed
     error('Bladesection failed unit test');
 end

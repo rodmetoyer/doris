@@ -26,6 +26,9 @@ classdef airfoil < handle
     end
 end
 
+% Functions outside of the classdef block are not class functions. These
+% are just typical sub functions used in the conventional way to execute
+% some routine.
 function [clcurve, cdcurve, cmcurve] = getClCdCmCurve(af)
 % INPUT
 %   af = airfoilID

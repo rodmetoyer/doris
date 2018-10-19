@@ -6,7 +6,7 @@ classdef rotor < handle
         blades     % 1xn vector of blade objects that make up the rotor
         inertia    % 3x3 intertia tensor in the rotor frame
         numblades  % Number of blades in the rotor
-        bladeAngls % 1xn vector angles of rotation of blades in rotor plane
+        bladeAngls % 3xn vector angles of rotation of blades in rotor plane
         B_C_bx     % 3x3xn vector tranformation matrix from blade to rotor
         bx_C_B     % 3x3xn vector tranformation matrix from rotor to blade
         mass       % scalar rotor mass (kg)

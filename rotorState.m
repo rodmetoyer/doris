@@ -5,7 +5,8 @@ function xdot = rotorState(t,x,rotor,fluid)
     % x = state vector
     % rotor = rotor object
     % fluid = fluid object representing the freestream
-    
+
+%% Get useful values
 mass = rotor.mass;
 I = rotor.inertia;
 Ixx = I(1,1);
@@ -18,13 +19,19 @@ cosbeta = cosd(x(3)); sinbeta = sind(x(3)); sin2beta = sind(2*x(3));
 cosgamma = cosd(x(2)); singamma = sind(x(2)); sin2gamma = sind(2*x(2));
 costheta = cosd(x(1)); sintheta = sind(x(1));
 
+%%
+% Compute
+% $\phantom{}^B[C]^O$
+% and
+% $\phantom{}^O[C]^B$
+% matrices.
 B_C_O = [cosbeta*costheta + sinbeta*singamma*sintheta, cosgamma*sinbeta, sinbeta*costheta*singamma - cosbeta*sintheta;cosbeta*singamma*sintheta - sinbeta*costheta, cosbeta*cosgamma, sinbeta*sintheta + cosbeta*costheta*singamma;cosgamma*sintheta,-singamma,cosgamma*costheta];
 O_C_B = B_C_O.';
 
 
-% Modify fluid as function of time if you want time-varying flow
+%% Modify fluid as function of time if you want time-varying flow
 
-% Update rotor object properites
+%% Update rotor object properites
 rotor.position = [x(4);x(5);x(6)];
 rotor.orientation = [x(1);x(2);x(3)];
 rotor.velocity = [x(10);x(11);x(12)];
@@ -33,7 +40,7 @@ omegay = theta_dot*cosbeta*cosgamma-gamma_dot*sinbeta;
 omegaz = beta_dot-theta_dot*singamma;
 rotor.angvel = [omegax;omegay;omegaz];
 
-% Compute loads on blade sections
+%% Compute loads on rotor
 [rotorforce, rotortorque] = rotor.computeAeroLoadsBasic(fluid); % Rotor is responsible for computing his near-field
 % Move to center mass if necessary. By symmetry, loads will be about rotor
 % center mass for any rotor of n>1 blades when the blades are equal. (This
@@ -72,7 +79,7 @@ fx = fx + Fmag*uvec(1);
 fy = fy + Fmag*uvec(2);
 fz = fz + Fmag*uvec(3);
 
-% Equations of motion
+%% Update states
 % fx,y,x = forces in x,y,z direction
 % taux,y,z = torque about x,y,z axis
 xdot(1) = x(7);

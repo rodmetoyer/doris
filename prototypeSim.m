@@ -49,7 +49,10 @@ water.velocity = [0.1;0;0];
 rotor.position = [x0(4);x0(5);x0(6)];
 rotor.orientation = [x0(1);x0(2);x0(3)];
 rotor.velocity = [x0(10);x0(11);x0(12)];
-rotor.angvel = [x0(7);x0(8);x0(9)];
+
+% todo(rodney) change next line to computed angular velocity using initial
+% states rather than hardcode of zeros.
+rotor.angvel = [0;0;0];
 
 % Function Handle
 fnhndl = @rotorState;
