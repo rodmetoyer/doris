@@ -7,12 +7,29 @@ p = 0; % How much time to pause and look at figures
 %% Make sure intantiation gives you the expected objects
 pause on % Turn off if you don't want to pause for figures
 
+runall = false; runfluid = false; runrotor = false;
+answer = questdlg('Which unit tests would you like to run?',...
+    'Unit Tests',...
+    'All','Fluid','Rotor','All');
+switch answer
+    case 'All'
+        runall = true;
+    case 'Fluid'
+        runfluid = true;
+    case 'Rotor'
+        runrotor = true;        
+    otherwise
+        error('Should never hit this. Time to panic.');
+end
+
 % Fluid
 f = fluid;
 f.velocity = [1.0,0.0,0.0];
-passed = fluidUnitTest(f);
-if ~passed
-    error('Fluid failed fluid unit test');
+if runall || runfluid
+    passed = fluidUnitTest(f);
+    if ~passed
+        error('Fluid failed fluid unit test');
+    end
 end
 
 % Airfoil
@@ -31,6 +48,7 @@ plot(af2.cdcurve(1,:),af2.cdcurve(2,:));
 hold off
 movegui(gcf,'northeast')
 afoops = airfoil(1000,'SG6040_35');
+disp('The badID warning is expected');
 pause(p)
 % close all;
 
@@ -91,6 +109,7 @@ r = rotor([blade1,blade1,blade1]);
 % rotation
 f.velocity = [0.0;0.0;0.0];
 r.position = [0,0,0]; % Should get a warning for using a row vector
+disp('Row vector warning is expected');
 r.velocity = [0;0;0];
 r.orientation = [90;0;0];
 r.angvel = [0;0;0];
@@ -101,5 +120,8 @@ r.angvel = [0;0;0];
 % i_O direction.
 f.velocity = [0.5;0.0;0.0];
 [force, torque] = r.computeAeroLoadsBasic(f);
-
+if runall || runrotor
+    test = 'all';
+    %rotorUnitTest(f,test);
+end
 

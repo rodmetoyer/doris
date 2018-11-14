@@ -33,7 +33,7 @@ rotor = rotor(blade);
 
 %% Set-up simulation
 
-tspan = 0:0.1:5;
+tspan = 0:0.1:10;
 
 % Initial states
 % State vector
@@ -41,7 +41,7 @@ tspan = 0:0.1:5;
 % [theta, gamma, beta, x, y, z, theta_dot,
 %     8          9      10      11     12
 % gamma_dot, beta_dot, x_dot, y_dot, z_dot]
-x0 = [90;0;0;0;0;0;0;0;0;0;0;0];
+x0 = [90*pi/180;0;0;0;0;0;0;0;0;0;0;0];
 water.velocity = [0.1;0;0];
 
 % Need to set rotor position. This will happen automatically in the state
@@ -55,7 +55,47 @@ rotor.velocity = [x0(10);x0(11);x0(12)];
 rotor.angvel = [0;0;0];
 
 % Function Handle
-fnhndl = @rotorState;
+fnhndl = @rotorStateSimple;
 
+disp('Running the simulation');
 %[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
-y = ode4(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
+[t, y] = ode45(@(t,y) rotorStateSimple( t,y,rotor,water),tspan,x0);
+figure
+plot(t,y(:,4))
+close gcf
+
+%% Make a movie
+disp('Making a movie of the motion');
+r_Ocm_O = [y(:,4),y(:,5),y(:,6)];
+for i = 1:1:length(t)
+    cthe = cos(y(i,1)); sthe = sin(y(i,1));
+    cgam = cos(y(i,2)); sgam = sin(y(i,2));
+    cbet = cos(y(i,3)); sbet = sin(y(i,3));
+    B_C_O = [cbet*cthe + sbet*sgam*sthe, cgam*sbet, sbet*cthe*sgam - cbet*sthe;...
+        cbet*sgam*sthe - sbet*cthe, cbet*cgam, sbet*sthe + cbet*cthe*sgam;...
+        cgam*sthe,-sgam,cgam*cthe];
+    O_C_B = transpose(B_C_O);
+    r_b1cm_O = O_C_B*rotor.sectPos(:,20,1);
+    r_b2cm_O = O_C_B*rotor.sectPos(:,20,2);
+    r_b3cm_O = O_C_B*rotor.sectPos(:,20,3);
+    
+    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b1cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b1cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b1cm_O(3)],'r');
+    hold on
+    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b2cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b2cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b2cm_O(3)],'b');
+    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b3cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b3cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b3cm_O(3)],'k');
+    axis equal
+    axis([-0.25 0.25 -0.25 0.25 -0.25 0.25]);
+    hold off
+    %view(0,0)
+    xlabel('x'); ylabel('y');
+    F(i) = getframe;    
+end
+disp('Press any key to close figure and end session.');
+pause
+close gcf
+% fps = 15;
+% %movie(F,1,fps);
+% v = VideoWriter('generatorviz.avi');
+% v.Quality = 100;
+% open(v);
+%writeVideo(v,F); close(v);

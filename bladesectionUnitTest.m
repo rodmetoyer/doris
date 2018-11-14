@@ -44,13 +44,13 @@ function passed = bladesectionUnitTest(bs,f,makeplots)
 
     % Try a bunch
     if makeplots
-    figure('Color','white','Units','inches','Position',[1,1,8,6.5]);
-        for i=1:1:20
-            aoa = (i-10)*10;
+    figure('Color','white','Units','inches','Position',[1,1,8,3]);
+        for i=1:1:10
+            aoa = (i-5)*10;
             vr = [vrmag*cosd(aoa),0,vrmag*sind(aoa)];
             [L,D,M] = bs.computeLoads(vr,f);
                 %figure
-                subplot(4,5,i);
+                subplot(2,5,i);
                 plot([0, L(1)],[0, L(3)],'r');
                 hold on
                 plot([0, D(1)],[0, D(3)],'b');
