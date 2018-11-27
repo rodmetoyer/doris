@@ -32,8 +32,9 @@ end
 rotor = rotor(blade);
 
 %% Set-up simulation
-
-tspan = 0:0.1:10;
+tstep = 0.05;
+ttot = 10;
+tspan = 0:tstep:ttot;
 
 % Initial states
 % State vector
@@ -67,6 +68,9 @@ close gcf
 %% Make a movie
 disp('Making a movie of the motion');
 r_Ocm_O = [y(:,4),y(:,5),y(:,6)];
+f1 = figure;
+f1.Position = [100 100 900 550];
+f1.Color = [1 1 1];
 for i = 1:1:length(t)
     cthe = cos(y(i,1)); sthe = sin(y(i,1));
     cgam = cos(y(i,2)); sgam = sin(y(i,2));
@@ -78,24 +82,28 @@ for i = 1:1:length(t)
     r_b1cm_O = O_C_B*rotor.sectPos(:,20,1);
     r_b2cm_O = O_C_B*rotor.sectPos(:,20,2);
     r_b3cm_O = O_C_B*rotor.sectPos(:,20,3);
-    
+    figure(f1);
     plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b1cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b1cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b1cm_O(3)],'r');
     hold on
     plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b2cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b2cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b2cm_O(3)],'b');
     plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b3cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b3cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b3cm_O(3)],'k');
     axis equal
     axis([-0.25 0.25 -0.25 0.25 -0.25 0.25]);
-    hold off
+    
     %view(0,0)
     xlabel('x'); ylabel('y');
-    F(i) = getframe;    
+    F(i) = getframe(f1);    
+    hold off
 end
-disp('Press any key to close figure and end session.');
-pause
-close gcf
-% fps = 15;
-% %movie(F,1,fps);
-% v = VideoWriter('generatorviz.avi');
-% v.Quality = 100;
-% open(v);
-%writeVideo(v,F); close(v);
+sm = input('Do you want to save the movie file? Y/N [Y]: ', 's');
+if isempty(sm)
+    sm = 'Y';
+end
+% todo make an interface for v props
+if strcmp(sm,'Y')
+    v = VideoWriter('figures\generatorviz.avi');
+    v.FrameRate = round(1/tstep);
+    %v.Quality = 100;% v.Width = 800; w.Height = 450;
+    open(v);
+    writeVideo(v,F); close(v);
+end
