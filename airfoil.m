@@ -40,6 +40,7 @@ function [clcurve, cdcurve, cmcurve] = getClCdCmCurve(af)
 cm0 = -0.088;
 % todo(any) change execution to switch? Not sure what is more efficient.
 % todo(any) add airfoils as needed
+% todo(any) we need to get these from file rather than hardcode
 % todo(any) add an airfoilID enumeration class
     if af == 1 % S814
         A = [-1.8000000E+02 -1.4678165E-01 7.9652736E-02;
@@ -790,7 +791,6 @@ cm0 = -0.088;
          -64.00   -0.5005    1.2923;
          -63.00   -0.5112    1.2703;
          -62.00   -0.5214    1.2478;
-         -62.00   -0.5053    0.5187;
          -61.50   -0.5085    0.5168;
          -61.00   -0.5115    0.5142;
          -60.50   -0.5143    0.5115;

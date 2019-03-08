@@ -8,7 +8,7 @@ clearvars; close all; clc;
 water = fluid; % No arguments makes to fluid give the obj water props
 
 % airfoils - same for the entire rotor so we just need one
-af = airfoil(1,'S814');
+af = airfoil(2,'SG6040');
 
 % blade sections
 aspectRatio = 7;
@@ -101,7 +101,7 @@ if isempty(sm)
 end
 % todo make an interface for v props
 if strcmp(sm,'Y')
-    v = VideoWriter('figures\generatorviz.avi');
+    v = VideoWriter('figures\generatorviz2.avi');
     v.FrameRate = round(1/tstep);
     %v.Quality = 100;% v.Width = 800; w.Height = 450;
     open(v);

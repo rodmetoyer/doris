@@ -223,4 +223,8 @@ disp(['Torque x = ' num2str(nettorque2(1)) ' Torque y = ' num2str(nettorque2(2))
 % legend('Force','Moment','Location','East');
 % hold off
 
+%% Now lets look at some yaw
+
+
+
 %% Movie of how the net force varies with rotational velocity

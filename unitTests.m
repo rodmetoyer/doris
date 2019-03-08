@@ -5,7 +5,7 @@ clearvars; close all; clc;
 p = 0; % How much time to pause and look at figures
 
 %% Make sure intantiation gives you the expected objects
-pause on % Turn off if you don't want to pause for figures
+pause off % Turn off if you don't want to pause for figures
 
 runall = false; runfluid = false; runrotor = false;
 answer = questdlg('Which unit tests would you like to run?',...

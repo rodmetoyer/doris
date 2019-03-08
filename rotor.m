@@ -106,7 +106,8 @@ classdef rotor < handle
                     % Get loads from each section of the blade. INFO: The
                     % computeLoads method only uses the x and z components
                     % of the relative velocity vector.
-                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    %[lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
                     % No moments right now so I'm not dealing with them.
                     % Need to add that functionality.                    
                     
@@ -135,7 +136,19 @@ classdef rotor < handle
         % computeAeroLoadArrays computes a force and moment vector in the rotor frame for each
         % bladesection object in the rotor object
         function [force, torque, U_relSections, LiftSections, DragSections] = computeAeroLoadArrays(hobj,fluid)
-            % Get current orientation and make B_C_O matrix
+            % This method computes the loads on a rotor and returns the
+            % loads as arrays of size 3xnxm where n is number of sections
+            % in each blade and m is the number of blades (currently the
+            % number of sections must be equal for each blade).
+            % INPUTS:
+                % hobj = rotor object handle
+                % fluid = fluid object handle
+            % OUTPUTS:
+                % force = 3xnxm array of force vectors at each blade section
+                % torque = 3xnxm array of torque vectors at each section
+                % U_relSections = 3xnxm array of relative velocity vectors at 
+                % LiftSections
+                % DragSections
             beta = hobj.orientation(3);  cb = cosd(beta);  sb = sind(beta);
             gamma = hobj.orientation(2); cg = cosd(gamma); sg = sind(gamma);
             theta = hobj.orientation(1); ct = cosd(theta); st = sind(theta);
@@ -170,7 +183,8 @@ classdef rotor < handle
                     % Get loads from each section of the blade. INFO: The
                     % computeLoads method only uses the x and z components
                     % of the relative velocity vector.
-                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    %[lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
                     % No moments right now so I'm not dealing with them.
                     % Need to add that functionality.                    
                                         
@@ -178,7 +192,7 @@ classdef rotor < handle
                     drag = hobj.B_C_bx(:,:,i)*bx_C_a*drag;
                     lift = hobj.B_C_bx(:,:,i)*bx_C_a*lift;
                     
-                    LiftSections(:,j,i) = lift;
+                    LiftSections(:,j,i) = lift; % This will crap out if the number of sections is differnt in each blade. Make cells to genericize
                     DragSections(:,j,i) = drag;
                     force(:,j,i) = lift + drag;
                     
