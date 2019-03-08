@@ -6,6 +6,9 @@ classdef airfoil < handle
         clcurve     % 2x1..* array defining cl curve (AoA vs. lift coeff.)
         cdcurve     % 2x1..* array defining cd curve (AoA vs. drag coeff.)
         cmcurve     % 2x1..* array defining cm curve (AoA vs. pitching moment coeff.)
+        clpp        % Piecewise polynomial object for the cl alpha curve
+        cdpp        % Piecewise polynomial object for the cl alpha curve
+        cmpp        % Piecewise polynomial object for the cl alpha curve
     end
     
     methods
@@ -22,6 +25,10 @@ classdef airfoil < handle
                     error('airfoil: something went wrong, check code.');
                 end
             end
+            % Make the piecewise polynomial
+            hobj.clpp = pchip(hobj.clcurve(1,:),hobj.clcurve(2,:));
+            hobj.cdpp = pchip(hobj.cdcurve(1,:),hobj.cdcurve(2,:));
+            hobj.cmpp = pchip(hobj.cmcurve(1,:),hobj.cmcurve(2,:));
         end
     end
 end

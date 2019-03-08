@@ -85,12 +85,9 @@ classdef bladesection < handle
             aoa = atan2d(vr(3),vr(1)); % Section aerodynamic loads are due only to in-plane velocity.
             % Out-of-plane component of relative velocity is deal with by
             % the blade (which is the object with physical width).
-            clcurve = hobj.hAirfoil.clcurve;
-            cdcurve = hobj.hAirfoil.cdcurve;
-            cmcurve = hobj.hAirfoil.cmcurve;
-            cl = interp1(clcurve(1,:),clcurve(2,:),aoa);
-            cd = interp1(cdcurve(1,:),cdcurve(2,:),aoa);
-            cm = interp1(cmcurve(1,:),cmcurve(2,:),aoa);
+            cl = ppval(hobj.hAirfoil.clpp,aoa);
+            cd = ppval(hobj.hAirfoil.clpp,aoa);
+            cm = ppval(hobj.hAirfoil.clpp,aoa);
             temp = 0.5*fluid.density*norm([vr(3),vr(1)],2)^2*hobj.chord*hobj.width;
             Lmag = cl*temp;
             Dmag = cd*temp;
