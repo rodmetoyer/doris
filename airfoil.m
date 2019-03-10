@@ -49,7 +49,18 @@ cm0 = -0.088;
 % todo(any) add airfoils as needed
 % todo(any) we need to get these from file rather than hardcode
 % todo(any) add an airfoilID enumeration class
-    if af == 1 % S814
+
+    % Support for string representation. Obviously this needs work.
+    if af == 0 % DU96W180
+        AoA_cl = [-174.9;-167.5;-159.88;-138;-94;-90;-46;-16.18;-12.89;-2.55;0;9.24;21.99;42.24;90;93.26;140.6;160;170.12;180];
+        CL = [0;0.565;0.423;0.815;0;-0.117;-0.9722;-0.3432;-0.7249;0;0.28;1.23;0.777;1.145;0.09;0;-1.015;-0.619;-0.942;-0.373];
+        AoA_cd = [-180;-150;-120;-90;-60;-30;-2.365485014;0;2.55;30;60;90;120;150;180.1452];
+        CD = [0.025;0.565;1.507;1.836;1.48;0.593;0.019574595;0.025;0.01;0.54;1.547;1.9197;1.574;0.667;0.024971]; 
+        clcurve = [AoA_cl';CL'];
+        cdcurve = [AoA_cd';CD'];
+        cmcurve = [AoA_cl';cm0*ones(size(AoA_cl'))]; % todo(rodney) change this when(if) you find cm curve data
+        return
+    elseif af == 1 % S814
         A = [-1.8000000E+02 -1.4678165E-01 7.9652736E-02;
         -1.7800000E+02 -1.4678165E-01 7.9652736E-02;
         -1.7600000E+02 4.2439552E-02 8.2793070E-02;
