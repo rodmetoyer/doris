@@ -2,6 +2,11 @@ classdef rotor < handle
     % A rotor must contain one or more blade. In the current
     % implementation, a rotor must contain 2 or more blades with the mass
     % center located at the origin of the rotor plane.
+% General information:
+% todo(rodney) at a minimum, describe the rotor frame definition
+    
+% vehicle <aggregate-- rotor <compose-- blade <compose-- bladesection
+% --generalize> airfoil
     properties (SetAccess = private)
         blades     % 1xn vector of blade objects that make up the rotor
         inertia    % 3x3 intertia tensor in the rotor frame
@@ -57,7 +62,11 @@ classdef rotor < handle
             hobj.mass = mass;
         end
         
-        %%%%% Class methods %%%%%
+        %% Class methods
+        % todo(rodney) for both compute loads methods make sure that the
+        % loads vary with blade for a rotor in skew. Maybe use the
+        % rotorUnitTest to accomplish this. Actually, that is priority 1.
+        % Task going in Trello.
         
         % computeAeroLoadsBasic
         % Computes the aerodynamic loads on the rotor using simple
@@ -183,8 +192,8 @@ classdef rotor < handle
                     % Get loads from each section of the blade. INFO: The
                     % computeLoads method only uses the x and z components
                     % of the relative velocity vector.
-                    %[lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
-                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
+                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    %[lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
                     % No moments right now so I'm not dealing with them.
                     % Need to add that functionality.                    
                                         

@@ -39,7 +39,7 @@ classdef bladesection < handle
 %     end
     
     methods
-        % Constructor
+        %% Constructor
         function hobj=bladesection(chord,width,af,afname)
             % af may be either an airfoil ID or a handle for an instantiated airfoil object
             if nargin > 3
@@ -69,7 +69,7 @@ classdef bladesection < handle
             hobj.width = width;
         end
         
-        %%%%% Class Methods %%%%%%
+        %% Class Methods
         function [L,D,M] = computeLoads(hobj,vr,fluid)
             % Computes the aerodynamic loads on the section from the airfoil cl
                 % and cd curves. Only the rotor knows the position of the

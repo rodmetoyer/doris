@@ -31,7 +31,7 @@ classdef blade < handle
 %     end
     
     methods
-        % Constructor
+        %% Constructor
         function hobj = blade(section,mass,twist,length,chord,numsects)
             % INPUTS:
                 % section = either a vector of blade section objects
@@ -92,22 +92,24 @@ classdef blade < handle
                         % chord - scalar or vector real    
             end            
         end
-        % Others
+        %% Other class methods
         function bladeforce = computeBladeforce(hobj,vr)
            % Computes the blade force assuming uniform flow and cylindrical
            % blade. Intent is to add more complex methods in the future.
            % INPUTS: object handle and the relative velocit vector
            
-           % todo(rodney) write force computation code
+           % todo(rodney) write force computation code which will be an
+           % adjustment to the blade element method to account for finite
+           % blade length.
            bladeforce = vr*0;
            hobj.bladeforce = bladeforce;
         end
         function blademoment = computeBlademoment(hobj,vr)
            % Computes the blade force assuming uniform flow and cylindrical
            % blade. Intent is to add more complex methods in the future.
-           % INPUTS: object handle and the relative velocit vector
+           % INPUTS: object handle and the relative velocity vector
            
-           % todo(rodney) write force computation code
+           % todo(rodney) write moment computation code (see note above)
            blademoment = vr*0;
            hobj.blademoment = blademoment;
         end

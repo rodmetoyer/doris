@@ -5,8 +5,16 @@ function xdot = rotorState(t,x,rotor,fluid)
     % x = state vector
     % rotor = rotor object
     % fluid = fluid object representing the freestream
+% NOTE: This is the version of the state equations where the math is all in
+% the second-order equations (i.e. the first-order representation of the
+% second order equations). The funciton rotorStateSimple has a more
+% equitable distribution of the math because it is dervied as all
+% first-order equations.
 
 %% Get useful values
+% todo(rodney) look into what is faster. Do we need to allocate and
+% deallocate memory by doing it like this? Would it be faster to use the
+% object property directly? Don't know how matlab implements this.
 mass = rotor.mass;
 I = rotor.inertia;
 Ixx = I(1,1);

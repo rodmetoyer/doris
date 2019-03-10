@@ -7,11 +7,12 @@ classdef airfoil < handle
         cdcurve     % 2x1..* array defining cd curve (AoA vs. drag coeff.)
         cmcurve     % 2x1..* array defining cm curve (AoA vs. pitching moment coeff.)
         clpp        % Piecewise polynomial object for the cl alpha curve
-        cdpp        % Piecewise polynomial object for the cl alpha curve
-        cmpp        % Piecewise polynomial object for the cl alpha curve
+        cdpp        % Piecewise polynomial object for the cd alpha curve
+        cmpp        % Piecewise polynomial object for the cm alpha curve
     end
     
     methods
+        % Constructor
         function hobj=airfoil(id,name)
             hobj.airfoilID = id;
             hobj.airfoilName = name;
@@ -30,6 +31,8 @@ classdef airfoil < handle
             hobj.cdpp = pchip(hobj.cdcurve(1,:),hobj.cdcurve(2,:));
             hobj.cmpp = pchip(hobj.cmcurve(1,:),hobj.cmcurve(2,:));
         end
+        % Other methods
+        % None as of 10MAR2019
     end
 end
 

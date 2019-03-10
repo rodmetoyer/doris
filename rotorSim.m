@@ -1,5 +1,5 @@
-% prototypeSim.m
-% Simualtion script for the protptype single-rotor simulation
+% rotorSim.m
+% Simualtion script for a single-rotor simulation
 
 clearvars; close all; clc;
 
