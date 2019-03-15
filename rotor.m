@@ -1,5 +1,5 @@
 classdef rotor < handle
-    % A rotor must contain one or more blade. In the current
+    % A rotor must contain one or more blades. In the current
     % implementation, a rotor must contain 2 or more blades with the mass
     % center located at the origin of the rotor plane.
 % General information:

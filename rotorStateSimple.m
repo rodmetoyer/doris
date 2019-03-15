@@ -43,6 +43,7 @@ rotor.angvel = [x(7);x(8);x(9)];
 % Move to center mass if necessary. By symmetry, loads will be about rotor
 % center mass for any rotor of n>1 blades when the blades are equal. (This
 % should be done in a rotor class method, not here)
+%rotortorque = O_C_B*rotortorque; % todo(rodney) Verify need to rotate
 taux = rotortorque(1);
 tauy = rotortorque(2);
 tauz = rotortorque(3);
@@ -54,8 +55,8 @@ Fy = rotorforce(2);
 Fz = rotorforce(3);
 
 % For now, single-element elastic tether fixed at the origin of length 1m
-k = 100.0;
-c = 25.0;
+k = 10.0;
+c = 2.50;
 vec = [x(4); x(5); x(6)];
 mag = norm(vec);
 uvec = vec/mag;
