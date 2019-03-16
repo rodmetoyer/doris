@@ -12,7 +12,7 @@ classdef blade < handle
     
     properties (SetAccess = private)
         sections     % 1xn(n=numsects) vector of bladesections
-        orientations % 3xn vector of section orientation angles in the blade frame following 2-1-3
+        orientations % 3xn vector of section orientation angles in the blade frame IN RADIANS 
         numsects     % Number of sections that comprise the blade
         length       % Length of the blade (m)
         mass         % Mass of the blade (kg)

@@ -48,6 +48,7 @@ function [clcurve, cdcurve, cmcurve] = getClCdCmCurve(af)
 % todo(rodney) priority(1) add cmcurves if available
     % For now all cm points are cm0
 cm0 = -0.088;
+%cm0 = 0;
 % todo(any) change execution to switch? Not sure what is more efficient.
 % todo(any) add airfoils as needed
 % todo(any) we need to get these from file rather than hardcode

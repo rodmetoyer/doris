@@ -2,11 +2,18 @@
 % Simualtion script for a single-rotor simulation
 
 clearvars; close all; clc;
-runname = 'sg6040skew30lowerSpringk';
+fluidVelocity = [0.4;0.0;0];
+yawAngle = 12;
+runname = ['test5_' num2str(yawAngle) 'Yaw'];
 makeplots = true;
-makemovie = true; moviefile = ['figures\' runname '.avi'];
+makemovie = true;
+moviefile = ['figures\' runname '.avi'];
+speedfactor = 1; % How much to slow the video by. e.g. 1/8;
+totalSimTime = 60;
+tstep = 0.05;
 
-
+% Tell matlab to look in the src folder for the class files
+addpath('src')
 %% Make objects
 % fluid
 water = fluid; % No arguments to fluid gives the obj water properties
@@ -28,7 +35,7 @@ for i=1:1:numSections
 end
 
 % blade
-bladeMass = 0.25; % kg
+bladeMass = 0.5; % kg
 numBlades = 3;
 bladeDZfrac = 0.05; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
 rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
@@ -40,19 +47,18 @@ TSRopt = 2*pi/numBlades*rtos;
 % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
 locs = linspace(bladeLength*bladeDZfrac,bladeLength,numSections);
 twist = atand(2/3*bladeLength/TSRopt*1./locs)-AoAopt_deg;
+twist_deg = twist; % In case I want to plot later.
+twist = twist*pi/180;
 % twist = -[64.6,49.9,38.7,30.5,24.5,19.95,16.45,13.7,11.5,9.7,8.1,6.9,5.76,4.81,3.98,3.25,2.61,2.03,1.51,1.04];
-b = blade(section,bladeMass,twist);
-for i=1:1:numBlades
-    blade(i) = b; % Note that this is a vector of the same handle
-end
+b1 = blade(section,bladeMass,twist);
+b2 = blade(section,bladeMass,twist);
+b3 = blade(section,bladeMass,twist);
 
 % rotor
-rotor = rotor(blade);
+rotor = rotor([b1,b2,b3]);
 
 %% Set-up simulation
-tstep = 0.05;
-ttot = 60;
-tspan = 0:tstep:ttot;
+tspan = 0:tstep:totalSimTime;
 
 % Initial states
 % State vector
@@ -60,8 +66,8 @@ tspan = 0:tstep:ttot;
 % [theta, gamma, beta, x, y, z, theta_dot,
 %     8          9      10      11     12
 % gamma_dot, beta_dot, x_dot, y_dot, z_dot]
-x0 = [60*pi/180;0.0*pi/180;0;0;0;0;0;0;0;0;0;0];
-water.velocity = [0.1;0.0;0];
+x0 = [(90-yawAngle)*pi/180;0.0*pi/180;0;0;0;-0.46;0;0;0;0;0;0];
+water.velocity = fluidVelocity;
 
 % Need to set rotor position. This will happen automatically in the state
 % file from now on. todo(rodney) fix this when you move ot vehicle.
@@ -78,16 +84,17 @@ fnhndl = @rotorStateSimple;
 
 disp('Running the simulation');
 %[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
-opts = odeset('RelTol',1e-3,'AbsTol',1e-5,'Stats','on','OutputFcn',@odeplot);
+%opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
+opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
 [t, y] = ode45(@(t,y) rotorStateSimple( t,y,rotor,water),tspan,x0,opts);
-figure
-plot(t,y(:,4))
-close gcf
+% figure
+% plot(t,y(:,4))
+% close gcf
 
 %% Make a movie
-
+if makemovie
 disp('Making a movie of the motion');
-r_Ocm_O = [y(:,4),y(:,5),y(:,6)];
+r_cmO_O = [y(:,4),y(:,5),y(:,6)];
 f1 = figure;
 f1.Position = [100 100 900 550];
 f1.Color = [1 1 1];
@@ -103,12 +110,12 @@ for i = 1:1:length(t)
     r_b2cm_O = O_C_B*rotor.sectPos(:,numSections,2);
     r_b3cm_O = O_C_B*rotor.sectPos(:,numSections,3);
     figure(f1);
-    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b1cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b1cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b1cm_O(3)],'r');
+    plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b1cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b1cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b1cm_O(3)],'r');
     hold on
-    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b2cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b2cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b2cm_O(3)],'b');
-    plot3([r_Ocm_O(i,1) r_Ocm_O(i,1)+r_b3cm_O(1)],[r_Ocm_O(i,2) r_Ocm_O(i,2)+r_b3cm_O(2)],[r_Ocm_O(i,3) r_Ocm_O(i,3)+r_b3cm_O(3)],'k');
+    plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b2cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b2cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b2cm_O(3)],'b');
+    plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b3cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b3cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b3cm_O(3)],'k');
     axis equal
-    axis([-0.25 0.25 -0.25 0.25 -0.25 0.25]);
+    axis([-0.25 0.25 -0.25 0.25 -0.75 0.0]);
     
     view(-215,32)
     xlabel('x'); ylabel('y');
@@ -122,9 +129,9 @@ end
 % end
 % todo make an interface for v props
 % if strcmp(sm,'Y')
-if makemovie
+
     v = VideoWriter(moviefile);
-    v.FrameRate = round(1/tstep)*0.125;
+    v.FrameRate = round(1/tstep)*speedfactor;
     %v.Quality = 100;% v.Width = 800; w.Height = 450;
     open(v);
     writeVideo(v,F); close(v);

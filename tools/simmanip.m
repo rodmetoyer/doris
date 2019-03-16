@@ -1,0 +1,19 @@
+% simmanip.m
+% Sympolic manipulation for quick check of EOM math
+
+clearvars; close all; clc;
+
+syms theta gamma beta
+
+R_theta_y = [cos(theta) 0 -sin(theta);...
+             0          1 0;...
+             sin(theta) 0 cos(theta)];
+R_gamma_x = [1 0           0;...
+             0 cos(gamma)  sin(gamma);...
+             0 -sin(gamma) cos(gamma)];
+R_beta_z = [cos(beta)  sin(beta) 0;...
+            -sin(beta) cos(beta) 0;...
+            0          0         1];
+        
+B_C_O = R_beta_z*R_gamma_x*R_theta_y;
+O_C_B = B_C_O.';

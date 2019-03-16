@@ -95,7 +95,7 @@ classdef bladesection < handle
             temp = sqrt(vr(1)^2+vr(3)^2);
             salpha = 0;
             calpha = 0;
-            if temp ~=0
+            if temp > 1.0e-12
                 salpha = vr(3)/temp;
                 calpha = vr(1)/temp;
             end

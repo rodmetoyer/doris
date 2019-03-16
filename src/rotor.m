@@ -8,21 +8,26 @@ classdef rotor < handle
 % vehicle <aggregate-- rotor <compose-- blade <compose-- bladesection
 % --generalize> airfoil
     properties (SetAccess = private)
-        blades     % 1xn vector of blade objects that make up the rotor
-        inertia    % 3x3 intertia tensor in the rotor frame
-        numblades  % Number of blades in the rotor
-        bladeAngls % 3xn vector angles of rotation of blades in rotor plane
-        B_C_bx     % 3x3xn vector tranformation matrix from blade to rotor
-        bx_C_B     % 3x3xn vector tranformation matrix from rotor to blade
+        blades     % 1xn array of blade objects that make up the rotor
+        inertia    % 3x3 array intertia matrix in the rotor frame
+        numblades  % scalar number of blades in the rotor
+        bladeAngls % 3xn array angles of rotation of blades in rotor plane
+        B_C_bx     % 3x3xn array tranformation matrix from blade to rotor
+        bx_C_B     % 3x3xn array tranformation matrix from rotor to blade
         mass       % scalar rotor mass (kg)
         sectPos    % 3xjxn array of position vectors to blade section locations in the rotor frame, j=num blade sections
     end
     
+    properties (Dependent)
+        B_C_O      % 3x3xn array tranformation matrix from blade to rotor
+        O_C_B      % 3x3xn array tranformation matrix from blade to rotor
+    end
+    
     properties
-        position    % 3x1 Position of mass center in the inertial frame
-        orientation % 3x1 orientation following 2-1-3 (theta, gamma, beta)
-        velocity    % 3x1 Velocity of mass center in the inertial frame
-        angvel      % 3x1 Angular Velocity in the rotor frame (omega_x,omega_y,omega_z)
+        position    % 3x1 Position vector of mass center in the inertial frame IN METERS
+        orientation % 3x1 orientation vector following 2-1-3 (theta, gamma, beta) IN RADIANS
+        velocity    % 3x1 Velocity vector of mass center in the inertial frame IN METERS/SEC
+        angvel      % 3x1 Angular velocity vector in the rotor frame (omega_x,omega_y,omega_z)IN RADIANS/SEC
     end
     
     methods
@@ -80,15 +85,10 @@ classdef rotor < handle
             % force and torque in the rotor (B) frame
             netforce = [0;0;0];
             nettorque = [0;0;0];
-            % Get current orientation and make B_C_O matrix
-            beta = hobj.orientation(3);  cb = cos(beta);  sb = sin(beta);
-            gamma = hobj.orientation(2); cg = cos(gamma); sg = sin(gamma);
-            theta = hobj.orientation(1); ct = cos(theta); st = sin(theta);
-            B_C_O = [cb*ct + sb*sg*st, cg*sb, sb*ct*sg - cb*st;cb*sg*st - sb*ct, cb*cg, sb*st + cb*ct*sg;cg*st,-sg,cg*ct]; 
             % Rotate fluid velocity to rotor frame
-            Ufluid_B = B_C_O*fluid.velocity; % Think about how to do this for a vector field for future functionality
+            Ufluid_B = hobj.B_C_O*fluid.velocity; % Think about how to do this for a vector field for future functionality
             % Rotate rotor center mass velocity to rotor frame
-            V_Bx_O_B = B_C_O*hobj.velocity;
+            V_Bx_O_B = hobj.B_C_O*hobj.velocity;
             % Get aero loads for each blade
             for i=1:1:hobj.numblades
                 % Get section aero loads
@@ -102,13 +102,15 @@ classdef rotor < handle
                     % Compute relative velocity in the rotor frame at the
                     % section location.
                     V_p_Bx_B = cross(hobj.angvel,r_p_b);
+                    % Sum for relative velocity of the fluid w.r.t. the
+                    % blade section expressed in the rotor frame
                     U_rel = Ufluid_B - V_Bx_O_B - V_p_Bx_B;
                     
                     % Rotate the relative velocity into the blade section
                     % frame. First, compute bx_C_a (section frame to blade
                     % frame)
                     ang = hobj.blades(i).orientations(2,j); % Note that this assumes only twist about y axis. todo(rodney) make this more general.
-                    bx_C_a = [cosd(-ang),0,-sind(-ang);0,1,0;sind(-ang),0,cosd(-ang)];
+                    bx_C_a = [cos(-ang),0,-sin(-ang);0,1,0;sin(-ang),0,cos(-ang)];
                     
                     U_rel_bs = transpose(bx_C_a)*hobj.bx_C_B(:,:,i)*U_rel;
                     
@@ -157,15 +159,11 @@ classdef rotor < handle
                 % torque = 3xnxm array of torque vectors at each section
                 % U_relSections = 3xnxm array of relative velocity vectors at 
                 % LiftSections
-                % DragSections
-            beta = hobj.orientation(3);  cb = cosd(beta);  sb = sind(beta);
-            gamma = hobj.orientation(2); cg = cosd(gamma); sg = sind(gamma);
-            theta = hobj.orientation(1); ct = cosd(theta); st = sind(theta);
-            B_C_O = [cb*ct + sb*sg*st, cg*sb, sb*ct*sg - cb*st;cb*sg*st - sb*ct, cb*cg, sb*st + cb*ct*sg;cg*st,-sg,cg*ct]; 
+                % DragSections            
             % Rotate fluid velocity to rotor frame
-            Ufluid_B = B_C_O*fluid.velocity; % Think about how to do this for a vector field for future functionality
+            Ufluid_B = hobj.B_C_O*fluid.velocity; % Think about how to do this for a vector field for future functionality
             % Rotate rotor center mass velocity to rotor frame
-            V_Bx_O = B_C_O*hobj.velocity;
+            V_Bx_O = hobj.B_C_O*hobj.velocity;
             
             % Get aero loads for each blade
             for i=1:1:hobj.numblades
@@ -184,7 +182,7 @@ classdef rotor < handle
                     % Rotate the relative velocity into the blade section
                     % frame. First, compute b_this_i_C_a
                     ang = hobj.blades(i).orientations(2,j); % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
-                    bx_C_a = [cosd(-ang),0,-sind(-ang);0,1,0;sind(-ang),0,cosd(-ang)];
+                    bx_C_a = [cos(-ang),0,-sin(-ang);0,1,0;sin(-ang),0,cos(-ang)];
                     % U in section frame =
                     % section_C_blade*blade_C_rotor*U_rotor
                     U_rel_bs = transpose(bx_C_a)*hobj.bx_C_B(:,:,i)*U_rel_B;
@@ -260,6 +258,12 @@ classdef rotor < handle
         end
         
         % Getters
+        function m = get.B_C_O(hobj)
+            beta = hobj.orientation(3);  cb = cos(beta);  sb = sin(beta);
+            gamma = hobj.orientation(2); cg = cos(gamma); sg = sin(gamma);
+            theta = hobj.orientation(1); ct = cos(theta); st = sin(theta);
+            m = [cb*ct + sb*sg*st, cg*sb, sb*ct*sg - cb*st;cb*sg*st - sb*ct, cb*cg, sb*st + cb*ct*sg;cg*st,-sg,cg*ct];
+        end
         
     end % end methods
 end % end classdef
