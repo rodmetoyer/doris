@@ -21,6 +21,8 @@ cosgamma = cos(x(2)); singamma = sin(x(2));
 costheta = cos(x(1)); sintheta = sin(x(1));
 
 %% Modify fluid as function of time if you want time-varying flow
+%fluid.velocity = [0.5*tanh(t/3);0;0];
+%fluid.velocity = [0.5/(1+exp(-0.5*(t-10)));0;0]; 
 
 %% Update rotor object properites with current state info
 rotor.position = [x(4);x(5);x(6)];   % Expressed in O frame
