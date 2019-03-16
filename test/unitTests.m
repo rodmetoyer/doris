@@ -4,6 +4,7 @@
 clearvars; close all; clc;
 p = 0; % How much time to pause and look at figures
 
+
 %% Make sure intantiation gives you the expected objects
 pause off % Turn off if you don't want to pause for figures
 
@@ -34,26 +35,37 @@ end
 
 % Airfoil
 af = airfoil(1,'S814');
-figure
-plot(af.clcurve(1,:),af.clcurve(2,:));
-hold on
-plot(af.cdcurve(1,:),af.cdcurve(2,:));
+% figure
+% plot(af.clcurve(1,:),af.clcurve(2,:));
+% hold on
+% plot(af.cdcurve(1,:),af.cdcurve(2,:));
 af2 = airfoil(2,'SG6040');
-hold off
-movegui(gcf,'northwest');
-figure
-plot(af2.clcurve(1,:),af2.clcurve(2,:));
-hold on
-plot(af2.cdcurve(1,:),af2.cdcurve(2,:));
-hold off
-movegui(gcf,'northeast')
+% hold off
+% movegui(gcf,'northwest');
+% figure
+% plot(af2.clcurve(1,:),af2.clcurve(2,:));
+% hold on
+% plot(af2.cdcurve(1,:),af2.cdcurve(2,:));
+% hold off
+% movegui(gcf,'northeast')
 afoops = airfoil(1000,'SG6040_35');
 disp('The badID warning is expected');
 pause(p)
 % close all;
+clear af af2
 
 % bladesection
-% Building on the previous test. We have airfoil objects.
+% Make new airfoil object
+af = airfoil(0,'SG6040');
+aoa = linspace(-180,180,1000);
+hfig1 = figure('Color','white','Units','inches','Position',[1,1,6.5,4]);
+plot(af.clcurve(1,:),af.clcurve(2,:),'or',af.cdcurve(1,:),af.cdcurve(2,:),'ob','LineWidth',2.0);
+hold on
+plot(aoa,ppval(af.clpp,aoa),'r',aoa,ppval(af.cdpp,aoa),'b','LineWidth',2.0);
+hold off
+title(['Force Coefficients for ' af.airfoilName ' airfoil']);
+xlabel('Angle of Attack (deg)'); ylabel(['\color{red}C_L','\color{black} | ','\color{blue}C_D']);
+saveas(hfig1,['..\figures\',af.airfoilName,'_ClCdplot.png']);
 bs = bladesection(0.1,0.1,af);
 bs1 = bladesection(0.1,0.1,af);
 bs2 = bladesection(0.1,0.1,2,'SG6040');

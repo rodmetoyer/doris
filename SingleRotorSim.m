@@ -1,13 +1,10 @@
-% rotorSim.m
-% Simualtion script for a single-rotor simulation
+% SingleRotorSim.m
+% Simualtion script for a single-rotor plus vehicle body simulation
 
 clearvars; close all; clc;
-fluidVelocity = [0.0;0.0;0];
-yawAngle = 20;
-pitchAngle = 0;
-yOffset = 0;
-bladeMass = 0.1;
-runname = ['Yaw' num2str(yawAngle) '_Pitch' num2str(pitchAngle) '_yOff' num2str(yOffset) '_Uup_lgstfn'];
+fluidVelocity = [0.4;0.0;0];
+yawAngle = 12;
+runname = ['vbR1_test' num2str(yawAngle) 'Yaw'];
 makeplots = true;
 makemovie = true;
 moviefile = ['figures\' runname '.avi'];
@@ -38,7 +35,7 @@ for i=1:1:numSections
 end
 
 % blade
-%bladeMass = 0.1; % kg
+bladeMass = 0.5; % kg
 numBlades = 3;
 bladeDZfrac = 0.05; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
 rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
@@ -69,7 +66,7 @@ tspan = 0:tstep:totalSimTime;
 % [theta, gamma, beta, x, y, z, theta_dot,
 %     8          9      10      11     12
 % gamma_dot, beta_dot, x_dot, y_dot, z_dot]
-x0 = [(90-yawAngle)*pi/180;pitchAngle*pi/180;0;0;yOffset;-0.1;0;0;0;0;0;0];
+x0 = [(90-yawAngle)*pi/180;0.0*pi/180;0;0;0;-0.46;0;0;0;0;0;0];
 water.velocity = fluidVelocity;
 
 % Need to set rotor position. This will happen automatically in the state
@@ -99,7 +96,7 @@ if makemovie
 disp('Making a movie of the motion');
 r_cmO_O = [y(:,4),y(:,5),y(:,6)];
 f1 = figure;
-f1.Position = [100 100 2020 1180];
+f1.Position = [100 100 900 550];
 f1.Color = [1 1 1];
 for i = 1:1:length(t)
     cthe = cos(y(i,1)); sthe = sin(y(i,1));
@@ -118,11 +115,10 @@ for i = 1:1:length(t)
     plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b2cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b2cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b2cm_O(3)],'b');
     plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b3cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b3cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b3cm_O(3)],'k');
     axis equal
-    axis([-0.25 0.25 -0.25 0.25 -0.5 0.25]);
+    axis([-0.25 0.25 -0.25 0.25 -0.75 0.0]);
     
-    view(-80,15)
+    view(-215,32)
     xlabel('x'); ylabel('y');
-    title(['\fontsize{20}U_\infty = ' num2str(0.5/(1+exp(-0.5*(t(i)-10))),2)]);
     F(i) = getframe(f1);    
     hold off
 end

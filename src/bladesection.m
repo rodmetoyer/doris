@@ -86,8 +86,8 @@ classdef bladesection < handle
             % Out-of-plane component of relative velocity is deal with by
             % the blade (which is the object with physical width).
             cl = ppval(hobj.hAirfoil.clpp,aoa);
-            cd = ppval(hobj.hAirfoil.clpp,aoa);
-            cm = ppval(hobj.hAirfoil.clpp,aoa);
+            cd = ppval(hobj.hAirfoil.cdpp,aoa);
+            cm = ppval(hobj.hAirfoil.cmpp,aoa);
             temp = 0.5*fluid.density*norm([vr(3),vr(1)],2)^2*hobj.chord*hobj.width;
             Lmag = cl*temp;
             Dmag = cd*temp;

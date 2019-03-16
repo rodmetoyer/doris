@@ -20,10 +20,11 @@ function passed = bladesectionUnitTest(bs,f,makeplots)
     end
     if makeplots
         figure
-        plot([0, L(1)],[0, L(3)],'r');
+        plot([0, L(1)],[0, L(3)],'r','LineWidth',2.0);
         hold on
-        plot([0, D(1)],[0, D(3)],'b');
+        plot([0, D(1)],[0, D(3)],'b','LineWidth',2.0);
         hold off
+        axis equal
         title(['Lift and Drag | AoA = ' num2str(aoa)]);
         legend('Lift','Drag');
     end
@@ -34,31 +35,41 @@ function passed = bladesectionUnitTest(bs,f,makeplots)
     [L,D,M] = bs.computeLoads(vr,f);
     if makeplots
         figure
-        plot([0, L(1)],[0, L(3)],'r');
+        plot([0, L(1)],[0, L(3)],'r','LineWidth',2.0);
         hold on
-        plot([0, D(1)],[0, D(3)],'b');
+        plot([0, D(1)],[0, D(3)],'b','LineWidth',2.0);
         hold off
+        axis equal
         title(['Lift and Drag | AoA = ' num2str(aoa)]);
         legend('Lift','Drag');
     end
 
     % Try a bunch
     if makeplots
-    figure('Color','white','Units','inches','Position',[1,1,8,3]);
-        for i=1:1:10
-            aoa = (i-5)*10;
+    hfig = figure('Color','white','Units','inches','Position',[1,1,12,12]);
+    axis([-4 4 -4 4]);
+    axis equal
+    numfigs = 36;
+    columns = 6;
+        for i=1:1:numfigs
+            aoa = (i-numfigs/2)*10;
             vr = [vrmag*cosd(aoa),0,vrmag*sind(aoa)];
-            [L,D,M] = bs.computeLoads(vr,f);
+            [L,D,~] = bs.computeLoads(vr,f); % 3rd return is moment. As of 16MAR2019 it is constant. todo(rodney) include moment when functionality is there
                 %figure
-                subplot(2,5,i);
-                plot([0, L(1)],[0, L(3)],'r');
-                hold on
-                plot([0, D(1)],[0, D(3)],'b');
-                hold off
+                subplot(numfigs/columns,columns,i);
+                plot([0, L(1)],[0, L(3)],'r','LineWidth',2.0);
+                axis([-4 4 -4 4]);
                 axis equal
+                hold on
+                plot([0, D(1)],[0, D(3)],'b','LineWidth',2.0);
+                hold off
+                
+                axis equal
+                axis([-4 4 -4 4]);
                 title(['AoA = ' num2str(aoa)]);
-                legend('Lift','Drag','Location','Best');        
+                %legend('Lift','Drag','Location','Best');        
         end
-    saveas(gcf,'figures\bladesections.png');
+        suptitle(['\fontsize{16} \color{red}Lift',' \color{black}and ', '\fontsize{16} \color{blue}Drag',' \color{black}Vectors at Select Angles of Attack (AoA)']);
+    saveas(hfig,'..\figures\bladesectionsLarge.png');
     end
 end
