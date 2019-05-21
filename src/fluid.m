@@ -6,7 +6,12 @@ classdef fluid < handle
         dynVisc     % Dynamic viscosity (Pa*s)
         kinVisc     % Kinematic viscocity (m^2/s)
         temp        % Temperature (degC)
-        pressure    % Pressure (Pa)        
+        pressure    % Pressure (Pa)
+        type        % uint identifier | see typeName get method for list of types
+    end
+    
+    properties (Dependent)
+        typeName
     end
     
     properties
@@ -14,14 +19,18 @@ classdef fluid < handle
     end
     
     methods
+        % Constructor
         function hobj = fluid(density,dynVisc,kinVisc,temp,pressure,velocity)
-            if nargin < 1
+            if nargin == 0
+                % make sure to init
+            elseif nargin == 1
                 hobj.density = 997;
                 hobj.dynVisc = 9.482*10^-4;
                 hobj.kinVisc = 9.504*10^-7;
                 hobj.temp = 23;
                 hobj.pressure = 103421;
                 hobj.velocity = [0;0;0];
+                hobj.type = 1;
             else
                 hobj.density = density;
                 hobj.dynVisc = dynVisc;
@@ -30,6 +39,35 @@ classdef fluid < handle
                 hobj.pressure = pressure;
                 hobj.velocity = velocity;
             end
+        end
+        
+        % Initialization
+        function init(hobj,type)
+                switch type
+                    case 'water'
+                        hobj.density = 997;
+                        hobj.dynVisc = 9.482*10^-4;
+                        hobj.kinVisc = 9.504*10^-7;
+                        hobj.temp = 23;
+                        hobj.pressure = 103421;
+                        hobj.velocity = [0;0;0];
+                        hobj.type = 1;
+                    case 'air'
+                        hobj.density = 1.204;
+                        hobj.dynVisc = 1.825*10^-5;
+                        hobj.kinVisc = 1.516*10^-5;
+                        hobj.temp = 20;
+                        hobj.pressure = 103421;
+                        hobj.velocity = [0;0;0];
+                        hobj.type = 2;
+                    otherwise
+                        error('Unknown fluid type');
+                end
+        end
+        
+        % Other class methods
+        function rampvelocity(hobj,t)
+            hobj.velocity = [0.6/(1+exp(-2.0*(t-4)));0;0]; %todo(rodney) parameterize this
         end
         
         % setters
@@ -44,6 +82,16 @@ classdef fluid < handle
             hobj.velocity = v;
         end
         % getters
+        function n = get.typeName(hobj)
+            switch hobj.type
+                case 1
+                    n = 'water';
+                case 2
+                    n = 'air';
+                otherwise
+                    n = 'unknown';
+            end
+        end
     end
 end
 

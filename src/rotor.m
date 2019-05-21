@@ -19,8 +19,8 @@ classdef rotor < handle
     end
     
     properties (Dependent)
-        B_C_O      % 3x3xn array tranformation matrix from blade to rotor
-        O_C_B      % 3x3xn array tranformation matrix from blade to rotor
+        B_C_O      % 3x3 tranformation matrix from rotor frame to inertial frame
+        O_C_B      % 3x3 tranformation matrix from inertial frame to rotor frame
     end
     
     properties

@@ -1,0 +1,34 @@
+% Simulation input file for a single rotor simualtion
+
+% Environment
+fluidtype = 'water';
+fluidVelocity = [0.2;0.0;0];
+
+% Vehicle
+bladeMass = 0.02;
+airfoiltype = 'SG6040';
+aspectRatio = 7;
+bladeLength = 4*0.0254; % Inches times meters per inch
+bladeChord = bladeLength/aspectRatio;
+numSections = 20;       % Number of sections (whole number)
+bladeWidth = bladeLength/numSections;
+numBlades = 3;
+bladeDZfrac = 0.05; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
+twist = []; % To prescribe a twist make a 1 X numSections array
+
+% Simulation
+totalSimTime = 3;
+tstep = 0.05;
+
+% Initial Conditions
+initialYaw = 0;
+initialPitch = 0;
+%initialRoll
+initialLateral = 0;
+%initialLongitudinal
+%initialVertical
+
+% Products
+makeplots = true;
+makemovie = true;
+speedfactor = 1; % How much to slow the video by. e.g. 1/8;

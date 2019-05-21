@@ -1,23 +1,35 @@
 classdef airfoil < handle
     % An airfoil - generalization of the blade section class
     properties (SetAccess = private)
-        airfoilID   % Unique ID to identify the airfoil of this section
-        airfoilName % Name of the airfoil of this section
+        airfoilID   % Unique ID to identify the airfoil of this section        
         clcurve     % 2x1..* array defining cl curve (AoA vs. lift coeff.)
         cdcurve     % 2x1..* array defining cd curve (AoA vs. drag coeff.)
         cmcurve     % 2x1..* array defining cm curve (AoA vs. pitching moment coeff.)
         clpp        % Piecewise polynomial object for the cl alpha curve
         cdpp        % Piecewise polynomial object for the cd alpha curve
-        cmpp        % Piecewise polynomial object for the cm alpha curve
+        cmpp        % Piecewise polynomial object for the cm alpha curve        
+    end
+    
+    properties (Dependent)
+        aoaopt      % Optimal angle of attack for the airfoil
+        airfoilName % Name of the airfoil of this section
     end
     
     methods
         % Constructor
-        function hobj=airfoil(id,name)
+        function hobj=airfoil(id)
+            if ischar(id)
+                switch id
+                    case 'SG6040'
+                        hobj.airfoilID = 0;
+                    otherwise
+                        error('Unknown aifoil');
+                end % switch
+            else            
             hobj.airfoilID = id;
-            hobj.airfoilName = name;
+            end
             try
-                [hobj.clcurve,hobj.cdcurve,hobj.cmcurve] = getClCdCmCurve(id);
+                [hobj.clcurve,hobj.cdcurve,hobj.cmcurve] = getClCdCmCurve(hobj.airfoilID);
             catch ME
                 if strcmp(ME.identifier,'airfoil:badID')
                 warning([ME.identifier ' - ' ME.message newline 'Using S814 and driving on.']);
@@ -32,7 +44,26 @@ classdef airfoil < handle
             hobj.cmpp = pchip(hobj.cmcurve(1,:),hobj.cmcurve(2,:));
         end
         % Other methods
-        % None as of 10MAR2019
+        
+        % Getters
+        function a = get.aoaopt(hobj)
+            switch hobj.airfoilID
+                case 0
+                    a = 8.0;
+                case 1
+                    a = 10.0; 
+                otherwise
+            end
+        end
+        function n = get.airfoilName(hobj)
+            switch hobj.airfoilID
+                case 0
+                    n = 'SG6040';
+                case 1
+                    n = 'S814'; 
+                otherwise
+            end
+        end
     end
 end
 

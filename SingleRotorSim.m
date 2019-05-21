@@ -1,61 +1,67 @@
-% SingleRotorSim.m
-% Simualtion script for a single-rotor plus vehicle body simulation
+% rotorSim.m
+% Simualtion script for a single-rotor simulation
 
 clearvars; close all; clc;
-fluidVelocity = [0.4;0.0;0];
-yawAngle = 12;
-runname = ['vbR1_test' num2str(yawAngle) 'Yaw'];
-makeplots = true;
-makemovie = true;
-moviefile = ['figures\' runname '.avi'];
-speedfactor = 1; % How much to slow the video by. e.g. 1/8;
-totalSimTime = 60;
-tstep = 0.05;
 
 % Tell matlab to look in the src folder for the class files
 addpath('src')
+
+% Input file
+inputfile = 'singleRotor.txt';
+fid = fopen(['input\' inputfile]);
+% Inputs to workspace
+while true
+    tline = fgetl(fid);            
+    if isnumeric(tline)
+        break;
+    end
+    eval(tline);
+end
+fclose(fid);
+
+runname = ['Yaw' num2str(initialYaw) '_Pitch' num2str(initialPitch) '_yOff' num2str(initialLateral) '_vbttest1'];
+moviefile = ['products\videos\' runname '.avi'];
+
 %% Make objects
 % fluid
 water = fluid; % No arguments to fluid gives the obj water properties
+water.init(fluidtype);
 
 % airfoils - same for the entire rotor so we just need one
-% 0 = SG6040 Improved force coefficient curves
-% 2 = SG6040 Old Force coefficent curves
-% 1 = S814
-af = airfoil(0,'SG6040');
+af = airfoil(airfoiltype);
 
 % blade sections
-aspectRatio = 7;
-bladeLength = 4*0.0254; % Inches times meters per inch
-bladeChord = bladeLength/aspectRatio;
-numSections = 20;       % Number of sections (whole number)
-bs = bladesection(bladeLength/aspectRatio,bladeLength/numSections,af);
+bs = bladesection;
+bs.init(bladeChord,bladeWidth,af);
+
+% blade
+if isempty(twist)
+    AoAopt_deg = 8.0;
+    twist = computeTwist(AoAopt_deg,bladeLength,bladeDZfrac,numSections,numBlades);
+    twist_deg = twist*180/pi; % In case I want to plot later.
+end
+% Make a blade comprised of the same section.
 for i=1:1:numSections
     section(i) = bs;
 end
-
-% blade
-bladeMass = 0.5; % kg
-numBlades = 3;
-bladeDZfrac = 0.05; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
-rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
-% stream length for computing optimal TSR. A good rule-of-thumb value is
-% 2.0 (Ragheb and Ragheb 2011).
-AoAopt_deg = 8.0; % Optimal angle of attack for the airfoil
-% Compute optimal TSR using method described in (Ragheb and Ragheb 2011)
-TSRopt = 2*pi/numBlades*rtos;
-% Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
-locs = linspace(bladeLength*bladeDZfrac,bladeLength,numSections);
-twist = atand(2/3*bladeLength/TSRopt*1./locs)-AoAopt_deg;
-twist_deg = twist; % In case I want to plot later.
-twist = twist*pi/180;
-% twist = -[64.6,49.9,38.7,30.5,24.5,19.95,16.45,13.7,11.5,9.7,8.1,6.9,5.76,4.81,3.98,3.25,2.61,2.03,1.51,1.04];
 b1 = blade(section,bladeMass,twist);
 b2 = blade(section,bladeMass,twist);
 b3 = blade(section,bladeMass,twist);
 
 % rotor
 rotor = rotor([b1,b2,b3]);
+
+% vehicle body
+vbmass = 0.01;
+vbcentermass = [0;0;0];
+vbtetherpoint = [-0.01;0;0];
+vbbuoypoint = [0;0;0];
+vbbuoyforce = 0;
+% todo put the vehicle body properties on the wehicle body
+vbod = vehiclebody(vbmass);
+%v = vehicle(rotor,vbod,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
+v = vehicle;
+v.init(vbod,rotor,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
 
 %% Set-up simulation
 tspan = 0:tstep:totalSimTime;
@@ -66,27 +72,27 @@ tspan = 0:tstep:totalSimTime;
 % [theta, gamma, beta, x, y, z, theta_dot,
 %     8          9      10      11     12
 % gamma_dot, beta_dot, x_dot, y_dot, z_dot]
-x0 = [(90-yawAngle)*pi/180;0.0*pi/180;0;0;0;-0.46;0;0;0;0;0;0];
+x0 = [(90-initialYaw)*pi/180;initialPitch*pi/180;0;-v.tetherpoint(1);-v.tetherpoint(2)+initialLateral;-v.tetherpoint(3)-0.02;0;0;0;0;0;0];
 water.velocity = fluidVelocity;
 
 % Need to set rotor position. This will happen automatically in the state
 % file from now on. todo(rodney) fix this when you move ot vehicle.
-rotor.position = [x0(4);x0(5);x0(6)];
-rotor.orientation = [x0(1);x0(2);x0(3)];
-rotor.velocity = [x0(10);x0(11);x0(12)];
+v.rotors.position = [x0(4);x0(5);x0(6)];
+v.rotors.orientation = [x0(1);x0(2);x0(3)];
+v.rotors.velocity = [x0(10);x0(11);x0(12)];
 
 % todo(rodney) change next line to computed angular velocity using initial
 % states rather than hardcode of zeros.
-rotor.angvel = [0;0;0];
+v.rotors.angvel = [0;0;0];
 
 % Function Handle
 fnhndl = @rotorStateSimple;
 
 disp('Running the simulation');
 %[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
-%opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
-opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
-[t, y] = ode45(@(t,y) rotorStateSimple( t,y,rotor,water),tspan,x0,opts);
+opts = odeset('RelTol',1e-5,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
+%opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
+[t, y] = ode45(@(t,y) singleRotorVehicleState( t,y,v,water),tspan,x0,opts);
 % figure
 % plot(t,y(:,4))
 % close gcf
@@ -96,7 +102,7 @@ if makemovie
 disp('Making a movie of the motion');
 r_cmO_O = [y(:,4),y(:,5),y(:,6)];
 f1 = figure;
-f1.Position = [100 100 900 550];
+f1.Position = [100 100 2020 1180];
 f1.Color = [1 1 1];
 for i = 1:1:length(t)
     cthe = cos(y(i,1)); sthe = sin(y(i,1));
@@ -106,19 +112,22 @@ for i = 1:1:length(t)
         cbet*sgam*sthe - sbet*cthe, cbet*cgam, sbet*sthe + cbet*cthe*sgam;...
         cgam*sthe,-sgam,cgam*cthe];
     O_C_B = transpose(B_C_O);
-    r_b1cm_O = O_C_B*rotor.sectPos(:,numSections,1);
-    r_b2cm_O = O_C_B*rotor.sectPos(:,numSections,2);
-    r_b3cm_O = O_C_B*rotor.sectPos(:,numSections,3);
+    r_b1cm_O = O_C_B*v.rotors.sectPos(:,numSections,1);
+    r_b2cm_O = O_C_B*v.rotors.sectPos(:,numSections,2);
+    r_b3cm_O = O_C_B*v.rotors.sectPos(:,numSections,3);
     figure(f1);
     plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b1cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b1cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b1cm_O(3)],'r');
     hold on
     plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b2cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b2cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b2cm_O(3)],'b');
     plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b3cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b3cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b3cm_O(3)],'k');
     axis equal
-    axis([-0.25 0.25 -0.25 0.25 -0.75 0.0]);
+    axis([-0.25 0.25 -0.25 0.25 -0.5 0.25]);
     
-    view(-215,32)
+    view(-80,15)
     xlabel('x'); ylabel('y');
+    %title(['\fontsize{20}U_\infty = ' num2str(0.5/(1+exp(-0.5*(t(i)-10))),2)]);
+    %water.rampvelocity(t(i));
+    title(['\fontsize{20}RPM = ' num2str(abs(y(i,9)/(2*pi)*60),'%5.2f'), ' U_\infty = ' num2str(water.velocity(1),'%5.2f')]);
     F(i) = getframe(f1);    
     hold off
 end
@@ -130,75 +139,89 @@ end
 % todo make an interface for v props
 % if strcmp(sm,'Y')
 
-    v = VideoWriter(moviefile);
-    v.FrameRate = round(1/tstep)*speedfactor;
+    vw = VideoWriter(moviefile);
+    vw.FrameRate = round(1/tstep)*speedfactor;
     %v.Quality = 100;% v.Width = 800; w.Height = 450;
-    open(v);
-    writeVideo(v,F); close(v);
+    open(vw);
+    writeVideo(vw,F); close(vw);
 end
 
 %% Make some plots
 if makeplots
+    imgfldr = 'products\images\';
     figure
     plot(t,y(:,1)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\theta (Yaw angle, degrees)')
-    saveas(gcf,['figures\' runname '_theta.png'])
+    saveas(gcf,[imgfldr runname '_theta.png'])
     
     figure
     plot(t,y(:,2)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\gamma (Pitch angle, degrees)')
-    saveas(gcf,['figures\' runname '_gamma.png'])
+    saveas(gcf,[imgfldr runname '_gamma.png'])
     
     figure
     plot(t,y(:,3)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\beta (Azimuth angle, degrees)')
-    saveas(gcf,['figures\' runname '_beta.png'])
+    saveas(gcf,[imgfldr runname '_beta.png'])
     
     figure
     plot(t,y(:,4),'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('x Position (m)')
-    saveas(gcf,['figures\' runname '_x.png'])
+    saveas(gcf,[imgfldr runname '_x.png'])
     
     figure
     plot(t,y(:,5),'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('y Position (m)')
-    saveas(gcf,['figures\' runname '_y.png'])
+    saveas(gcf,[imgfldr runname '_y.png'])
         
     figure
     plot(t,y(:,6),'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('z Position (m)')
-    saveas(gcf,['figures\' runname '_z.png'])
+    saveas(gcf,[imgfldr runname '_z.png'])
     
     figure
     plot(t,y(:,7)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\thetaDot (Yaw rate, deg/s)')
-    saveas(gcf,['figures\' runname '_thetadot.png'])
+    saveas(gcf,[imgfldr runname '_thetadot.png'])
     
     figure
     plot(t,y(:,8)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\gammaDot (Pitch rate, deg/s)')
-    saveas(gcf,['figures\' runname '_gammadot.png'])
+    saveas(gcf,[imgfldr runname '_gammadot.png'])
     
     figure
     plot(t,y(:,9)*180/pi,'LineWidth',2.0)
     %title('SG6040 Axis Parallel to Flow')
     xlabel('Time (s)')
     ylabel('\betaDot (Spin rate, deg/s)')
-    saveas(gcf,['figures\' runname '_betadot.png'])
+    saveas(gcf,[imgfldr runname '_betadot.png'])
+end
+
+function twist = computeTwist(aoaopt,bladeLength,bladeDZfrac,numSections,numBlades)
+    rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
+    % stream length for computing optimal TSR. A good rule-of-thumb value is
+    % 2.0 (Ragheb and Ragheb 2011).
+    AoAopt_deg = aoaopt; % Optimal angle of attack for the airfoil todo(rodney) needs to be on the airfoil object
+    % Compute optimal TSR using method described in (Ragheb and Ragheb 2011)
+    TSRopt = 2*pi/numBlades*rtos;
+    % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
+    locs = linspace(bladeLength*bladeDZfrac,bladeLength,numSections);
+    twist = atand(2/3*bladeLength/TSRopt*1./locs)-AoAopt_deg;
+    twist = twist*pi/180;
 end

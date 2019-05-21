@@ -42,7 +42,10 @@ classdef bladesection < handle
         %% Constructor
         function hobj=bladesection(chord,width,af,afname)
             % af may be either an airfoil ID or a handle for an instantiated airfoil object
-            if nargin > 3
+            if nargin == 0
+                chord = NaN;
+                width = NaN;
+            elseif nargin > 3
                 if isnumeric(af)
                     % Create an instance of airfoil to go with the section
                     hobj.hAirfoil = airfoil(af,afname);
@@ -69,7 +72,14 @@ classdef bladesection < handle
             hobj.width = width;
         end
         
-        %% Class Methods
+        %% Initialization Method
+        function init(hobj,chord,width,airfoil)
+            hobj.chord = chord;
+            hobj.width = width;
+            hobj.hAirfoil = airfoil;
+        end
+        
+        %% Other class methods
         function [L,D,M] = computeLoads(hobj,vr,fluid)
             % Computes the aerodynamic loads on the section from the airfoil cl
                 % and cd curves. Only the rotor knows the position of the
@@ -108,44 +118,8 @@ classdef bladesection < handle
         end
         
         function [L,D,M] = computeLoadsFast(hobj,vr,fluid)
+            % This method is obsolete. See GIT history.
             error('Obsolete method');
-%             % Computes the aerodynamic loads on the section from the airfoil cl
-%                 % and cd curves. Only the rotor knows the position of the
-%                 % blade sections in space.
-%             % INPUTS:
-%                 % vr = 3x1 relative velocity vector expressed in the blade
-%                     % section frame (i_a, j_a, k_a).
-%                 % fluid = a fluid object
-%                 
-%             % The blade section only knows his orientation with respect to
-%             % the velocity vector passed into this method. First must
-%             % compute angle of attack.
-%             aoa = atan2d(vr(3),vr(1)); % Section aerodynamic loads are due only to in-plane velocity.
-%             % Out-of-plane component of relative velocity is deal with by
-%             % the blade (which is the object with physical width).
-%             clcurve = hobj.hAirfoil.clcurve;
-%             cdcurve = hobj.hAirfoil.cdcurve;
-%             cmcurve = hobj.hAirfoil.cmcurve;
-%             cl = interp1(clcurve(1,:),clcurve(2,:),round(aoa));
-%             cd = interp1(cdcurve(1,:),cdcurve(2,:),round(aoa));
-%             cm = interp1(cmcurve(1,:),cmcurve(2,:),round(aoa));
-%             temp = 0.5*fluid.density*norm([vr(3),vr(1)],2)^2*hobj.chord*hobj.width;
-%             Lmag = cl*temp;
-%             Dmag = cd*temp;
-%             Mmag = cm*temp*hobj.chord; 
-%             temp = sqrt(vr(1)^2+vr(3)^2);
-%             salpha = 0;
-%             calpha = 0;
-%             if temp ~=0
-%                 salpha = vr(3)/temp;
-%                 calpha = vr(1)/temp;
-%             end
-%             D = [Dmag*calpha;0;Dmag*salpha];
-%             L = [-Lmag*salpha;0;Lmag*calpha];
-%             M = [0;Mmag;0];
-%             hobj.lift = Lmag;
-%             hobj.drag = Dmag;
-%             hobj.momentqc = Mmag;
         end
         % setters
     end    

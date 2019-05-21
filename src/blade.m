@@ -46,7 +46,9 @@ classdef blade < handle
                     % chord (m)
                 % nsects = optional number of sections (only used if
                     % length is scalar.
-            if nargin < 4
+            if nargin == 0
+                % remember to init
+            elseif nargin == 3
                 % This is manual blade creation where a vector of
                     % bladesection objects is passed in
                 if ~isvalid(section)
@@ -92,6 +94,12 @@ classdef blade < handle
                         % chord - scalar or vector real    
             end            
         end
+        
+        % Initialization
+%         function init(hobj,s,m)
+%             
+%         end
+        
         %% Other class methods
         function bladeforce = computeBladeforce(hobj,vr)
            % Computes the blade force assuming uniform flow and cylindrical
@@ -113,6 +121,20 @@ classdef blade < handle
            blademoment = vr*0;
            hobj.blademoment = blademoment;
         end
+        
+%         function twist = computeTwist(hobj,aoaopt,numblds)
+%             rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
+%             % stream length for computing optimal TSR. A good rule-of-thumb value is
+%             % 2.0 (Ragheb and Ragheb 2011).
+%             AoAopt_deg = aoaopt; % Optimal angle of attack for the airfoil
+%             % Compute optimal TSR using method described in (Ragheb and Ragheb 2011)
+%             TSRopt = 2*pi/numblds*rtos;
+%             % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
+%             locs = linspace(bladeLength*bladeDZfrac,bladeLength,numSections);
+%             twist = atand(2/3*bladeLength/TSRopt*1./locs)-AoAopt_deg;
+%             twist_deg = twist; % In case I want to plot later.
+%             twist = twist*pi/180;
+%         end
         
         % Setters
         function set.centermass(hobj,cm)
