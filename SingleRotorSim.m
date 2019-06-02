@@ -105,9 +105,9 @@ if ~exist('products\data\','dir')
 end
 resultsfile = [pwd '\products\data\' inputfile(1:end-4) '_results.txt'];
 fid = fopen(resultsfile,'w');
-fprintf(fid, 'theta gamma beta x1 x2 x3 dtheta dgamma dbeta u1 u2 u3\r\n');
-dat = [t,y];
-fprintf(fid,'%f %f %f %f %f %f %f %f %f %f %f %f\n',dat);
+fprintf(fid, 'time theta gamma beta x1 x2 x3 dtheta dgamma dbeta u1 u2 u3\r\n');
+dat = [t y].';
+fprintf(fid,'%f %f %f %f %f %f %f %f %f %f %f %f %f\r\n',dat);
 fclose(fid);
 
 %% Make a movie
