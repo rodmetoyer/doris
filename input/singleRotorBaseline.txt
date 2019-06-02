@@ -19,8 +19,8 @@ twist = []; % To prescribe a twist make a 1 X numSections array
 vbmass = 0.03;
 vbcentermass = [0;0;0];
 vbtetherpoint = [-0.01;0;0];
-vbbuoypoint = [0;0;0];
-vbbuoyforce = 0;
+vbbuoypoint = [0;0;0]; % Center of buoyancy
+vbreldensity = 0;    % Density of the vehilce body relative to water
 
 % Simulation
 totalSimTime = 10;

@@ -1,13 +1,19 @@
 classdef vehicle < handle
-    % The vehicle 
+    % The vehicle class.
+    % A vehicle may be comprised of a vehicle body and rotors. It does not
+    % include any attached tethers.
+    % A vehicle is the top-level object that is tethered to another
+    % top-level object (typically a mechanical ground).
+    % A vehicle is the only object in the tethered system model that knows
+    % its position and orientation in inertial space.
     
     properties (SetAccess = private)
         body        % the vehicle body object
         rotors      % nx1 vector of rotor objects
-        centermass  % 3x1 vector location of center of mass of the vehicle body
+        centermass  % 3x1 vector location of center of mass of the vehicle
         tetherpoint % 3x1 vector of location of the tether attachment point in the vehicle body frame
         buoypoint   % 3x1 vector of location of the center of buoyancy and/or buoy tether attachment point
-        buoyforce   % scalar buoyant force magnitide (always in inertial z direction)
+        % The buoyforce is a property of some other object. buoyforce   % scalar buoyant force magnitide (always in inertial z direction)
         mass        % scalar total mass of the vehicle
         type        % uint identifier | see typeName get method for list of types
     end
@@ -26,7 +32,7 @@ classdef vehicle < handle
     
     methods
         %% Constructor
-        function hobj = vehicle(bod,rot,cm,tp,bp,bf)
+        function hobj = vehicle(bod,rot,cm,tp,bp)
             if nargin == 0
                 % Make sure to call init
             elseif nargin == 2
@@ -34,7 +40,7 @@ classdef vehicle < handle
                hobj.body = vehiclebody;
                hobj.rotors = rot;
                hobj.mass = rot.mass;
-               hobj.buoyforce = 0;
+               %hobj.buoyforce = 0;
             else
                hobj.rotors = rot;
                hobj.body = bod;
@@ -43,15 +49,15 @@ classdef vehicle < handle
                hobj.buoypoint = bp;
                m = 0;
                for i=1:1:numel(rot)
-                   m = m + rot.mass;
+                   m = m + rot(i).mass;
                end
                hobj.mass = m + bod.mass;
-               hobj.buoyforce = bf;
+               %hobj.buoyforce = bf;
             end
         end
         
         %% Initialization method
-        function init(hobj,bod,rot,cm,tp,bp,bf)
+        function init(hobj,bod,rot,cm,tp,bp)
             if nargin < 3
                 % This is a body-only vehicle (no rotor)
                 error('Body-only vehicle not currently supported');
@@ -61,7 +67,7 @@ classdef vehicle < handle
                 hobj.centermass = cm;
                 hobj.tetherpoint = tp;
                 hobj.buoypoint = bp;
-                hobj.buoyforce = bf;
+                %hobj.buoyforce = bf;
                 m = 0;
                 for i=1:1:numel(rot)
                     m = m + rot.mass;

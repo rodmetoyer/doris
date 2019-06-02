@@ -7,7 +7,7 @@ clearvars; close all; clc;
 addpath('src')
 
 % Input file
-inputfile = 'singleRotor.txt';
+inputfile = 'singleRotorBaseline.txt';
 fid = fopen(['input\' inputfile]);
 % Inputs to workspace
 while true
@@ -34,9 +34,13 @@ af = airfoil(airfoiltype);
 bs = bladesection;
 bs.init(bladeChord,bladeWidth,af);
 
-% blade
+% blade - trying to give the option to specify the twist in the input file.
+% If no twist is specified then compute it using idealized assumptions.
 if isempty(twist)
     AoAopt_deg = 8.0;
+    % TODO put this on the blade.
+    % blade.maketwist(AoAOpt_deg,bladeDZfrac,numBlades) - Or maybe the
+    % rotor? What makes sense?
     twist = computeTwist(AoAopt_deg,bladeLength,bladeDZfrac,numSections,numBlades);
     twist_deg = twist*180/pi; % In case I want to plot later.
 end
@@ -52,16 +56,16 @@ b3 = blade(section,bladeMass,twist);
 rotor = rotor([b1,b2,b3]);
 
 % vehicle body
-vbmass = 0.01;
-vbcentermass = [0;0;0];
-vbtetherpoint = [-0.01;0;0];
-vbbuoypoint = [0;0;0];
-vbbuoyforce = 0;
+% vbmass = 0.01;
+% vbcentermass = [0;0;0];
+% vbtetherpoint = [-0.01;0;0];
+% vbbuoypoint = [0;0;0];
+% vbbuoyforce = 0;
 % todo put the vehicle body properties on the wehicle body
 vbod = vehiclebody(vbmass);
 %v = vehicle(rotor,vbod,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
 v = vehicle;
-v.init(vbod,rotor,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
+v.init(vbod,rotor,vbcentermass,vbtetherpoint,vbbuoypoint);
 
 %% Set-up simulation
 tspan = 0:tstep:totalSimTime;
@@ -80,29 +84,37 @@ water.velocity = fluidVelocity;
 v.rotors.position = [x0(4);x0(5);x0(6)];
 v.rotors.orientation = [x0(1);x0(2);x0(3)];
 v.rotors.velocity = [x0(10);x0(11);x0(12)];
-
-% todo(rodney) change next line to computed angular velocity using initial
-% states rather than hardcode of zeros.
-v.rotors.angvel = [0;0;0];
+v.rotors.angvel = [cos(x0(3)) cos(x0(2))*sin(x0(3)) 0; -sin(x0(3)) cos(x0(2))*cos(x0(3)) 0; 0 -sin(x0(2)) 1]*[x0(7);x0(8);x0(9)];
 
 % Function Handle
 fnhndl = @rotorStateSimple;
 
 disp('Running the simulation');
-%[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
 opts = odeset('RelTol',1e-5,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
-%opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
 [t, y] = ode45(@(t,y) singleRotorVehicleState( t,y,v,water),tspan,x0,opts);
-% figure
-% plot(t,y(:,4))
-% close gcf
+
+% Parse results for processing and saving
+eulerAngs = [y(:,1),y(:,2),y(:,3)];
+r_cmO_O = [y(:,4),y(:,5),y(:,6)];
+eulerAngs_dot = [y(:,7),y(:,8),y(:,9)];
+Ov_cmO_O = [y(:,10),y(:,11),y(:,12)];
+
+%% Send results to file
+if ~exist('products\data\','dir')
+    mkdir('products\data\');
+end
+resultsfile = [pwd '\products\data\' inputfile(1:end-4) '_results.txt'];
+fid = fopen(resultsfile,'w');
+fprintf(fid, 'theta gamma beta x1 x2 x3 dtheta dgamma dbeta u1 u2 u3\r\n');
+dat = [t,y];
+fprintf(fid,'%f %f %f %f %f %f %f %f %f %f %f %f\n',dat);
+fclose(fid);
 
 %% Make a movie
 if makemovie
 disp('Making a movie of the motion');
-r_cmO_O = [y(:,4),y(:,5),y(:,6)];
 f1 = figure;
-f1.Position = [100 100 2020 1180];
+f1.Position = [0 0 0.9*1920 0.9*1080];
 f1.Color = [1 1 1];
 for i = 1:1:length(t)
     cthe = cos(y(i,1)); sthe = sin(y(i,1));

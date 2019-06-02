@@ -3,7 +3,7 @@ function xdot = singleRotorVehicleState(t,x,v,fluid)
 % INPUTS:
     % t = time (s)
     % x = state vector
-    % rotor = rotor object
+    % v = vehicle object
     % fluid = fluid object representing the freestream
 
 %% Get useful values
@@ -90,10 +90,11 @@ taux = rotortorque(1) + tethertorque(1);
 tauy = rotortorque(2) + tethertorque(2);
 tauz = rotortorque(3) + tethertorque(3);
 
+buoyforce = 0; % Temporary hardcode TODO fix this
 % Add forces
 Fx = rotorforce(1) + tetherforce(1);
 Fy = rotorforce(2) + tetherforce(2);
-Fz = rotorforce(3) + tetherforce(3) - m*g + v.buoyforce;
+Fz = rotorforce(3) + tetherforce(3) - m*g + buoyforce;
 
 %% Update states
 % fx,y,x = forces in x,y,z direction
