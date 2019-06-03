@@ -31,8 +31,7 @@ water.init(fluidtype);
 af = airfoil(airfoiltype);
 
 % blade sections
-bs = bladesection;
-bs.init(bladeChord,bladeWidth,af);
+bs = bladesection(secChord,secWidth,af);
 
 % blade - trying to give the option to specify the twist in the input file.
 % If no twist is specified then compute it using idealized assumptions.
@@ -65,7 +64,9 @@ rotor = rotor([b1,b2,b3]);
 vbod = vehiclebody(vbmass);
 %v = vehicle(rotor,vbod,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
 v = vehicle;
-v.init(vbod,rotor,vbcentermass,vbtetherpoint,vbbuoypoint);
+rotpoint = [0;0;0];
+v.init(vbod,rotor,rotpoint,vbcentermass,vbtetherpoint,vbbuoypoint);
+rotor.connectVehicle(v);
 
 %% Set-up simulation
 tspan = 0:tstep:totalSimTime;
@@ -80,11 +81,13 @@ x0 = [(90-initialYaw)*pi/180;initialPitch*pi/180;0;-v.tetherpoint(1);-v.tetherpo
 water.velocity = fluidVelocity;
 
 % Need to set rotor position. This will happen automatically in the state
-% file from now on. todo(rodney) fix this when you move ot vehicle.
-v.rotors.position = [x0(4);x0(5);x0(6)];
-v.rotors.orientation = [x0(1);x0(2);x0(3)];
-v.rotors.velocity = [x0(10);x0(11);x0(12)];
-v.rotors.angvel = [cos(x0(3)) cos(x0(2))*sin(x0(3)) 0; -sin(x0(3)) cos(x0(2))*cos(x0(3)) 0; 0 -sin(x0(2)) 1]*[x0(7);x0(8);x0(9)];
+% file from now on. 
+% todo(rodney) fix this when you move ot vehicle. Specifically need to set
+% the position of the rotor in the vehicle frame.
+v.position = [x0(4);x0(5);x0(6)];
+v.orientation = [x0(1);x0(2);x0(3)];
+v.velocity = [x0(10);x0(11);x0(12)];
+v.angvel = [cos(x0(3)) cos(x0(2))*sin(x0(3)) 0; -sin(x0(3)) cos(x0(2))*cos(x0(3)) 0; 0 -sin(x0(2)) 1]*[x0(7);x0(8);x0(9)];
 
 % Function Handle
 fnhndl = @rotorStateSimple;

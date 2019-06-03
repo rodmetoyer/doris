@@ -24,13 +24,24 @@ classdef fluid < handle
             if nargin == 0
                 % make sure to init
             elseif nargin == 1
+                if ischar(density)
+                    switch lower(density)
+                        case 'water'
+                            hobj.type = 1;
+                        case 'air'
+                            hobj.type = 2;
+                        otherwise
+                            error('Unknown fluid type');
+                    end
+                else
+                    hobj.type = density;
+                end                            
                 hobj.density = 997;
                 hobj.dynVisc = 9.482*10^-4;
                 hobj.kinVisc = 9.504*10^-7;
                 hobj.temp = 23;
                 hobj.pressure = 103421;
                 hobj.velocity = [0;0;0];
-                hobj.type = 1;
             else
                 hobj.density = density;
                 hobj.dynVisc = dynVisc;

@@ -1,6 +1,12 @@
 classdef airfoil < handle
-    % An airfoil - generalization of the blade section class
+    % An airfoil
+    % List of supported airfoils as of 03JUN2019 (git history supercedes this note)
+    % SG6040 | ID = 0
+    % S814   | ID = 1
+    
+    % todo use enumeration and clean up the functionality in this class.
     properties (SetAccess = private)
+        % These properties are set at instantiation and do not change.
         airfoilID   % Unique ID to identify the airfoil of this section        
         clcurve     % 2x1..* array defining cl curve (AoA vs. lift coeff.)
         cdcurve     % 2x1..* array defining cd curve (AoA vs. drag coeff.)
@@ -22,6 +28,8 @@ classdef airfoil < handle
                 switch id
                     case 'SG6040'
                         hobj.airfoilID = 0;
+                    case 'S814'
+                        hobj.airfoilID = 1;
                     otherwise
                         error('Unknown aifoil');
                 end % switch

@@ -46,11 +46,11 @@ function passed = bladesectionUnitTest(bs,f,makeplots)
 
     % Try a bunch
     if makeplots
-    hfig = figure('Color','white','Units','inches','Position',[1,1,12,12]);
+    hfig = figure('Color','white','Units','inches','Position',[1,1,12,9.5]);
     axis([-4 4 -4 4]);
     axis equal
-    numfigs = 36;
-    columns = 6;
+    numfigs = 35;
+    columns = 7;
         for i=1:1:numfigs
             aoa = (i-numfigs/2)*10;
             vr = [vrmag*cosd(aoa),0,vrmag*sind(aoa)];
@@ -70,6 +70,6 @@ function passed = bladesectionUnitTest(bs,f,makeplots)
                 %legend('Lift','Drag','Location','Best');        
         end
         suptitle(['\fontsize{16} \color{red}Lift',' \color{black}and ', '\fontsize{16} \color{blue}Drag',' \color{black}Vectors at Select Angles of Attack (AoA)']);
-    saveas(hfig,'..\figures\bladesectionsLarge.png');
+    %saveas(hfig,'..\figures\bladesectionsLarge.png');
     end
 end

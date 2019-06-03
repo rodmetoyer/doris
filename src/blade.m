@@ -5,20 +5,24 @@ classdef blade < handle
     
     % Public properties
     properties
-        centermass  % 3x1 Location of the center of mass in the blade frame
-        sectionLocs % 3xn Location of sections expressed in the blade frame
+        % Could be public for future aeroelasticity functionality.
+%         centermass  % 3x1 Location of the center of mass in the blade frame
+%         sectLocs % 3xn Location of sections expressed in the blade frame
         % todo(rodney) need to unorder these. Use ids or something.
     end
     
     properties (SetAccess = private)
+        centermass   % 3x1 Location of the center of mass in the blade frame        
         sections     % 1xn(n=numsects) vector of bladesections
-        orientations % 3xn vector of section orientation angles in the blade frame IN RADIANS 
+        sectLocs     % 3xn Location of sections expressed in the blade frame
+        sectOrnts    % 3xn vector of section orientation angles in the blade frame IN RADIANS 
         numsects     % Number of sections that comprise the blade
         length       % Length of the blade (m)
         mass         % Mass of the blade (kg)
         inertia      % Intertia tensor of the blade
         rootLoc      % Location of the blade root in the blade frame
         tipLoc       % Location of the blade tip in the blade frame
+        orientation  % Orientation of the blade frame w.r.t. the rotor frame
         % todo(rodney) Do we need this? meanChord  % Mean chord of the blade (m)
         bladeforce   % The force on the blade not due to blade sections expressed in the blade frame
         blademoment  % The moment on the blade not due to blade sections expressed in the blade frame
@@ -48,6 +52,7 @@ classdef blade < handle
                     % length is scalar.
             if nargin == 0
                 % remember to init
+                error('Currently unalbe to instantiate a blade without arguments.');
             elseif nargin == 3
                 % This is manual blade creation where a vector of
                     % bladesection objects is passed in
@@ -67,11 +72,16 @@ classdef blade < handle
                 hobj.tipLoc = length; % See note above.
                 hobj.sections = section;
                 hobj.numsects = numel(section);
-                hobj.sectionLocs = secLocs;
+                hobj.sectLocs = secLocs;
                 hobj.centermass = [0;length/2;0];
                 hobj.mass = mass;
                 hobj.inertia = thinrod(mass,length);
-                hobj.orientations = [zeros(size(twist));twist;zeros(size(twist))];
+                % todo(rodney) add in the blade.orientation with is
+                % essentially pitch plus some pre-cone and lead-lag
+                if isstruct(twist)
+                    twist = hobj.computeTwist(twist.AoAopt_deg,twist.numBlades,twist.bladeDZfrac);
+                end
+                hobj.sectOrnts = [zeros(size(twist));twist;zeros(size(twist))];
                 % todo(rodney) add other methods for computation of inertia tensor
             else
                 % This is the automatic blade construction method. The idea
@@ -122,19 +132,17 @@ classdef blade < handle
            hobj.blademoment = blademoment;
         end
         
-%         function twist = computeTwist(hobj,aoaopt,numblds)
-%             rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
-%             % stream length for computing optimal TSR. A good rule-of-thumb value is
-%             % 2.0 (Ragheb and Ragheb 2011).
-%             AoAopt_deg = aoaopt; % Optimal angle of attack for the airfoil
-%             % Compute optimal TSR using method described in (Ragheb and Ragheb 2011)
-%             TSRopt = 2*pi/numblds*rtos;
-%             % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
-%             locs = linspace(bladeLength*bladeDZfrac,bladeLength,numSections);
-%             twist = atand(2/3*bladeLength/TSRopt*1./locs)-AoAopt_deg;
-%             twist_deg = twist; % In case I want to plot later.
-%             twist = twist*pi/180;
-%         end
+        function twist = computeTwist(hobj,aoaopt,numblds,bladeDZfrac)
+            rtos = 2.0;    % This is the ratio of rotor radius to disturbed fluid
+            % stream length for computing optimal TSR. A good rule-of-thumb value is
+            % 2.0 (Ragheb and Ragheb 2011).
+            % Compute optimal TSR using method described in (Ragheb and Ragheb 2011)
+            TSRopt = 2*pi/numblds*rtos;
+            % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
+            %bladeDZfrac = 0.0; % todo(rodney) un-hardcode this
+            locs = linspace(hobj.length*bladeDZfrac,hobj.length,hobj.numsects);
+            twist = atan(2/3*hobj.length/TSRopt*1./locs)-aoaopt*pi/180;
+        end
         
         % Setters
         function set.centermass(hobj,cm)
@@ -144,11 +152,11 @@ classdef blade < handle
             hobj.centermass = cm;
         end
         
-        function set.sectionLocs(hobj,locs)
-           if ~isempty(hobj.sectionLocs) && (size(locs) ~= size(hobj.sectionLocs))
+        function set.sectLocs(hobj,locs)
+           if ~isempty(hobj.sectLocs) && (size(locs) ~= size(hobj.sectLocs))
                error('blade: You cannot change number of section locations');
            end
-           hobj.sectionLocs = locs;
+           hobj.sectLocs = locs;
         end
         
     end

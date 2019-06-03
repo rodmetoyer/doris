@@ -7,10 +7,6 @@ classdef bladesection < handle
             % an airfoil id, which will create a unique airfoil object for
                 % this bladesection or:
             % a handle for an airfoil object
-        % afname (optional) = name of the airfoil (only if creating airfoil
-            % objects. If you pass a handle to an existing airfoil object
-            % you will not be able to rename the airfoil when creating the
-            % section object.
 % General Information:
 % Bladesection frame defined by i_a pointing from leading edge to training
 % edge and coincident with the chord, j_a perpendicular to the bladesection
@@ -40,30 +36,14 @@ classdef bladesection < handle
     
     methods
         %% Constructor
-        function hobj=bladesection(chord,width,af,afname)
+        function hobj=bladesection(chord,width,af)
             % af may be either an airfoil ID or a handle for an instantiated airfoil object
-            if nargin == 0
-                chord = NaN;
-                width = NaN;
-            elseif nargin > 3
-                if isnumeric(af)
-                    % Create an instance of airfoil to go with the section
-                    hobj.hAirfoil = airfoil(af,afname);
-                else
-                    % Should be an airfoil handle getting passed in.
-                    % todo(any) can we check that? 
-                    try
-                        isvalid(af);
-                    catch
-                        error('bladesection: Problem with the airfoil designation - not numeric, not a valid handle... I don"t know how to proceed.');
-                    end
-                    warning('You cannot rename the airfoil.');
-                end
+            if nargin < 3
+                error('A bladesection must be instantiated with chord and width');
             else
                 if isnumeric(af)
                     % Create an instance of airfoil to go with the section
-                    afname = 'unnamed';
-                    hobj.hAirfoil = airfoil(af,afname);
+                    hobj.hAirfoil = airfoil(af);
                 else
                 hobj.hAirfoil = af;
                 end
@@ -72,15 +52,8 @@ classdef bladesection < handle
             hobj.width = width;
         end
         
-        %% Initialization Method
-        function init(hobj,chord,width,airfoil)
-            hobj.chord = chord;
-            hobj.width = width;
-            hobj.hAirfoil = airfoil;
-        end
-        
         %% Other class methods
-        function [L,D,M] = computeLoads(hobj,vr,fluid)
+        function [lift,drag,moment] = computeLoads(hobj,vr,fluid)
             % Computes the aerodynamic loads on the section from the airfoil cl
                 % and cd curves. Only the rotor knows the position of the
                 % blade sections in space.
@@ -88,10 +61,11 @@ classdef bladesection < handle
                 % vr = 3x1 relative velocity vector expressed in the blade
                     % section frame (i_a, j_a, k_a).
                 % fluid = a fluid object
+            % OUTPUTS:
+                % [lift,drag,moment] = loads relative to the vr argument
                 
             % The blade section only knows his orientation with respect to
-            % the velocity vector passed into this method. First must
-            % compute angle of attack.
+            % the velocity vector passed into this method.
             aoa = atan2d(vr(3),vr(1)); % Section aerodynamic loads are due only to in-plane velocity.
             % Out-of-plane component of relative velocity is deal with by
             % the blade (which is the object with physical width).
@@ -109,9 +83,9 @@ classdef bladesection < handle
                 salpha = vr(3)/temp;
                 calpha = vr(1)/temp;
             end
-            D = [Dmag*calpha;0;Dmag*salpha];
-            L = [-Lmag*salpha;0;Lmag*calpha];
-            M = [0;Mmag;0];
+            drag = [Dmag*calpha;0;Dmag*salpha];
+            lift = [-Lmag*salpha;0;Lmag*calpha];
+            moment = [0;Mmag;0];
             hobj.lift = Lmag;
             hobj.drag = Dmag;
             hobj.momentqc = Mmag;

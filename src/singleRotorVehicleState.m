@@ -26,7 +26,7 @@ costheta = cos(x(1)); sintheta = sin(x(1));
 %fluid.rampvelocity(t);
 
 %% Update rotor object properites with current state info
-v.rotors.position = [x(4);x(5);x(6)];   % Expressed in O frame
+v.position = [x(4);x(5);x(6)];   % Expressed in O frame
 v.rotors.orientation = [x(1);x(2);x(3)];
 v.orientation = [x(1);x(2);0]; % HACKY temporary to get single rotor vehicle going. Fix this shit.
 % Compute
@@ -34,15 +34,15 @@ v.orientation = [x(1);x(2);0]; % HACKY temporary to get single rotor vehicle goi
 % and
 % $\phantom{}^O[C]^B$
 % matrices.
-B_C_O = v.rotors.B_C_O;%[cosbeta*costheta + sinbeta*singamma*sintheta, cosgamma*sinbeta, sinbeta*costheta*singamma - cosbeta*sintheta;cosbeta*singamma*sintheta - sinbeta*costheta, cosbeta*cosgamma, sinbeta*sintheta + cosbeta*costheta*singamma;cosgamma*sintheta,-singamma,cosgamma*costheta];
+B_C_O = v.rotors.P_C_O;%[cosbeta*costheta + sinbeta*singamma*sintheta, cosgamma*sinbeta, sinbeta*costheta*singamma - cosbeta*sintheta;cosbeta*singamma*sintheta - sinbeta*costheta, cosbeta*cosgamma, sinbeta*sintheta + cosbeta*costheta*singamma;cosgamma*sintheta,-singamma,cosgamma*costheta];
 O_C_B = B_C_O.';
 A_C_O = v.A_C_O;
 OV_AO_O = O_C_B*[x(10);x(11);x(12)];
-v.rotors.velocity = OV_AO_O;            % Expressed in O frame
+% v.rotors.velocity = OV_AO_O;            % Expressed in O frame
 v.rotors.angvel = [x(7);x(8);x(9)];     % Expressed in rotor frame
 
 %% Compute loads on rotor
-[rotorforce, rotortorque] = v.rotors.computeAeroLoadsBasic(fluid); % Rotor is responsible for computing his near-field
+[rotorforce, rotortorque] = v.rotors.computeNetAeroLoads(fluid); % Rotor is responsible for computing his near-field
 % Move to center mass if necessary. By symmetry, loads will be about rotor
 % center mass for any rotor of n>1 blades when the blades are equal. (This
 % should be done in a rotor class method, not here)
