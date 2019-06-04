@@ -19,17 +19,18 @@ classdef rotor < handle
         sectPos    % 3xjxn array of position vectors to blade section locations in the rotor frame, j=num blade sections
         % rotor doesn't know where he is, but he knows which vehicle he belongs to and can get position that way position   % 3x1 Position vector of mass center in the vehicle frame IN METERS
         vehicle    % The vehicle object that the rotor is attached to.
+        ID         % Identifier specifying which rotor it is in the vehicle
     end
     
     properties
         % Properties that change during simulation
-        orientation % 3x1 orientation of the rotor frame w.r.t. the vehicle frame following 1-2-3 (xi1, xi2, xi3) IN RADIANS
-        velocity    % 3x1 Velocity vector of mass center w.r.t the inertial frame expressed in the vehicle frame IN METERS/SEC
+        orientation % 3x1 orientation of the rotor frame w.r.t. the vehicle frame following 1-2-3 (xi1, xi2, xi3) IN RADIANS        
         angvel      % 3x1 Angular velocity of the rotor frame w.r.t. the vehicle frame in the rotor frame (omega_x,omega_y,omega_z)IN RADIANS/SEC
     end
     
     properties (Dependent)
-        % Properties that are comuted only on demand
+        % Properties that are computed only on demand
+        velocity   % 3x1 Velocity vector of mass center w.r.t the inertial frame expressed in the vehicle frame IN METERS/SEC
         P_C_O      % 3x3 tranformation matrix from rotor frame to inertial frame
         O_C_P      % 3x3 tranformation matrix from inertial frame to rotor frame
     end
@@ -42,7 +43,7 @@ classdef rotor < handle
     
     methods
         % Constructor
-        function hobj = rotor(bladearray,numblades,radius,airfoil)
+        function hobj = rotor(bladearray,numblades,radius,airfoil,ID)
             % Only manual construction for now. Pass in a vector of blade
             % objects. The constructor method will assemble a rotor of n
             % equally spaced blades where n=numel(blade).
@@ -75,6 +76,7 @@ classdef rotor < handle
             hobj.bladeAngls = eta;
             mass = bladearray.mass;
             hobj.mass = mass;
+            hobj.ID = [];
         end
         
         %% Class methods
@@ -272,12 +274,20 @@ classdef rotor < handle
             hobj.angvel = av;
         end
         
+        function setID(hobj,ID)
+            hobj.ID = ID;
+        end
+        
         % Getters
         function m = get.P_C_O(hobj)
             beta = hobj.orientation(3);  cb = cos(beta);  sb = sin(beta);
             gamma = hobj.orientation(2); cg = cos(gamma); sg = sin(gamma);
             theta = hobj.orientation(1); ct = cos(theta); st = sin(theta);
             m = [cb*ct + sb*sg*st, cg*sb, sb*ct*sg - cb*st;cb*sg*st - sb*ct, cb*cg, sb*st + cb*ct*sg;cg*st,-sg,cg*ct];
+        end
+        
+        function v = get.velocity(hobj)
+            v = cross(hobj.vehicle.angvel,hobj.vehicle.rotorLocs(:,hobj.ID))+hobj.vehicle.velocity;
         end
         
     end % end methods

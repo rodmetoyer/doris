@@ -27,9 +27,9 @@ classdef vehicle < handle
     
     properties
         % Vehicle state variables
-        position    % 3x1 Position vector of mass center in the inertial frame IN METERS
+        position    % 3x1 Position vector of mass center in the inertial frame IN METERS (x1,x2,x3)
         orientation % 3x1 orientation of the vehicle frame w.r.t. the inertial frame following 2-1-3 (theta, gamma, beta) IN RADIANS
-        velocity    % 3x1 Velocity vector of mass center in the inertial frame IN METERS/SEC
+        velocity    % 3x1 Velocity vector of mass center in the inertial frame IN METERS/SEC (dx1,dx2,dx3)
         angvel      % 3x1 Angular velocity vector in the VEHICLE frame (omega_x,omega_y,omega_z)IN RADIANS/SEC
     end
     
@@ -86,7 +86,7 @@ classdef vehicle < handle
                         hobj.type = 1;
                     case 2
                         hobj.type = 2;
-                        warning('Assuming vehicle type is coaxial. Use setType to change after init if this is incorrect.');
+                        warning('VEHICLE:construction','Assuming vehicle type is coaxial. Use setType to change after init if this is incorrect.');
                     otherwise
                         error('Only 0, 1, or 2 rotor systems currently supported');
                 end

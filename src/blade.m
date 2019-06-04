@@ -144,6 +144,12 @@ classdef blade < handle
             twist = atan(2/3*hobj.length/TSRopt*1./locs)-aoaopt*pi/180;
         end
         
+        function reverseTwist(hobj)
+            % Reverses the blade twist to make a contrarotating rotor
+            warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis');
+            hobj.sectOrnts(2,:) = pi-hobj.sectOrnts(2,:);
+        end
+        
         % Setters
         function set.centermass(hobj,cm)
             if numel(cm)<3
