@@ -58,7 +58,7 @@ r1.setID(1);
 % Need to make rotor 2 have blades with twist 180-
 r2 = rotor(b2);
 r2.setID(2);
-% Make a vehicle
+% Make a vehicle - all points in A frame
 vbcentermass = [0;0;0];
 vbtetherpoint = [-0.01;0;0];
 vbbuoypoint = [0;0;0];
@@ -101,7 +101,8 @@ clear position position1 position2 i r1point r2point rotPoints vbbuoypoint vbtet
 water.velocity = [1;0;0];
 % Now orient the vehicle - think of this as pitch-yaw-roll where 0 pitch
 % points the axis of rotation of a coaxial vehicle towards the ground
-v.orientation = [90*pi/180;15*pi/180;0];
+pitch = 90; yaw = 0;
+v.orientation = [90*pi/180;yaw*pi/180;0];
 % Initial posotion of the center of mass in the inertial frame
 v.position = [1;0;1];
 % Initial velocity of the center of mass in the inertial frame
@@ -115,7 +116,7 @@ v.rotors(1).orientation = [0;0;0];
 v.rotors(2).orientation = [0;0;0];
 
 % Set the angular velocity of the rotors. All 3rd for coax.
-rpm = 60;
+rpm = 0;
 v.rotors(1).angvel = [0;0;rpm/60*2*pi];
 v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
 
@@ -123,11 +124,42 @@ v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
 % the blade sections and thus the aero loads.
 % Make a method in vehicle that computes all aero loads
 % Starts by getting forces from the rotors
-Urel_P1 = v.rotors(1).computeHydroLoads(water);
-Urel_P2 = v.rotors(2).computeHydroLoads(water);
-% To visulaize the relative velocity vectors and the forces at teh sections
-% we need to get the positions of the sections in the inertial frame.
-
-% Now get the forces from the rotor objects and show the forces and/or
-% velocity vectors as quivers applied at the section locations.
-
+Urel1_P1 = v.rotors(1).computeHydroLoads(water);
+Urel2_P2 = v.rotors(2).computeHydroLoads(water);
+% To visulaize the relative velocity vectors and the forces at the sections
+% we need to get the positions of the sections in the inertial frame as
+% well as the forces from the rotor objects. 
+temp = size(v.rotors(1).sectPos);
+O_C_A = transpose(v.A_C_O);
+O_C_P1 = O_C_A*transpose(v.rotors(1).P_C_A);
+O_C_P2 = O_C_A*transpose(v.rotors(2).P_C_A);
+for i=1:1:temp(2)
+    for j=1:1:temp(3)
+        rap1_O(:,i,j) = O_C_P1*v.rotors(1).sectPos(:,i,j);
+        rap2_O(:,i,j) = O_C_P2*v.rotors(2).sectPos(:,i,j);
+        Urel1_O(:,i,j) = O_C_P1*Urel1_P1(:,i,j);
+        Urel2_O(:,i,j) = O_C_P2*Urel2_P2(:,i,j);
+    end
+end
+% Show the forces and/or velocity vectors as quivers applied at the section
+% locations. For that we need rp1o_O and rp2o_O
+rco_O = v.position;
+rp1c_O = O_C_A*v.rotorLocs(:,1);
+rp2c_O = O_C_A*v.rotorLocs(:,2);
+rp1o_O = rco_O + rp1c_O;
+rp2o_O = rco_O + rp2c_O;
+%% First check is to plot the relative velocity vectors in the O frame
+% No motion of the rotors or body means that we should see relative
+% velocity vectors that are exactly the freestream velocity.
+figure
+scale = 0;
+quiver3(0,0,0,water.velocity(1),water.velocity(2),water.velocity(3),scale,'b');
+hold on
+quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),Urel1_O(1,:,:),Urel1_O(2,:,:),Urel1_O(3,:,:),scale,'c')
+quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),Urel2_O(1,:,:),Urel2_O(2,:,:),Urel2_O(3,:,:),scale,'g')
+axis equal
+xlabel('x'); ylabel('y');
+title('Velocity Vectors');
+legend('Freestream Velocity','Relative Velocity','Location','East');
+view(-123,22)
+hold off
