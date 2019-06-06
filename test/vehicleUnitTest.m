@@ -121,3 +121,13 @@ v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
 
 % I think we have enough information to compute the relative velocities at
 % the blade sections and thus the aero loads.
+% Make a method in vehicle that computes all aero loads
+% Starts by getting forces from the rotors
+Urel_P1 = v.rotors(1).computeHydroLoads(water);
+Urel_P2 = v.rotors(2).computeHydroLoads(water);
+% To visulaize the relative velocity vectors and the forces at teh sections
+% we need to get the positions of the sections in the inertial frame.
+
+% Now get the forces from the rotor objects and show the forces and/or
+% velocity vectors as quivers applied at the section locations.
+

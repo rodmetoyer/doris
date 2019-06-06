@@ -15,6 +15,9 @@ classdef fluid < handle
     end
     
     properties
+        % This velocity is really mean velocity. Need a way to make
+        % velocity a funciton of time an position in the flow field. For
+        % now, every point in the flow has the same velocity.
         velocity    % 3x1 The fluid velocity in the inertial frame
     end
     
