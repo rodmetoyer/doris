@@ -101,14 +101,30 @@ classdef vehicle < handle
         
         %% Other class methods
         
-        function computeNetLoads(hobj)
+        function computeNetLoads(hobj,f)
             % Computes the net force and torque vectors
+            frc = 0;
+            trq = 0;
+            % Get aerodynamic loads on rotors, cross and sum
+            for i=1:1:numel(hobj.rotors)
+                hobj.rotors(i).computeHydroLoads(f);
+                % 3xjxn array of lift and drag at each section expressed in the rotor frame
+                sectionforces = hobj.rotors(i).sectLift + hobj.rotors(i).sectDrag;
+                % Aerodynamic moments not currently functional. When we go to implement them
+                % I think we can just sum the section moments.
+                % sectiontorques(:,:,:,i) = hobj.rotors(i).sectMomt;
+                r_ayxA_A = hobj.rotorLocs(i) + hobj.rotors(i).sectPos;
+                trq = trq + cross(r_ayxA_A,sectionforces);
+                frc = frc + sectionforces;
+            end
             
-            % Get aerodynamic loads on rotors
+            % Get aerodynamic loads on body, cross and sum
             
-            % Get aerodynamic loads on body
-            
-            % Get tether loads
+            % Get tether loads, cross and sum
+            % Sum along the 2dim gives 3x1xnumBlades of total blade loads
+            % then sum along the 3dim to get 3x1 vector of total loads
+            hobj.force = sum(sum(frc,2),3);
+            hobj.torque = sum(sum(trq,2),3);
         end
         
         function addRotor(hobj,loc)

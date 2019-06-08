@@ -34,15 +34,17 @@ v.orientation = [x(1);x(2);0]; % HACKY temporary to get single rotor vehicle goi
 % and
 % $\phantom{}^O[C]^B$
 % matrices.
-B_C_O = v.rotors.P_C_O;%[cosbeta*costheta + sinbeta*singamma*sintheta, cosgamma*sinbeta, sinbeta*costheta*singamma - cosbeta*sintheta;cosbeta*singamma*sintheta - sinbeta*costheta, cosbeta*cosgamma, sinbeta*sintheta + cosbeta*costheta*singamma;cosgamma*sintheta,-singamma,cosgamma*costheta];
-O_C_B = B_C_O.';
-A_C_O = v.A_C_O;
-OV_AO_O = O_C_B*[x(10);x(11);x(12)];
+A_C_O = v.A_C_O; % Rotation matrices are computed on demand, so best to save it to a var if using more than once.
+P_C_O = v.rotors.P_C_A*A_C_O;
+O_C_P = P_C_O.';
+
+OV_AO_O = O_C_P*[x(10);x(11);x(12)];
 % v.rotors.velocity = OV_AO_O;            % Expressed in O frame
 v.rotors.angvel = [x(7);x(8);x(9)];     % Expressed in rotor frame
 
 %% Compute loads on rotor
-[rotorforce, rotortorque] = v.rotors.computeNetAeroLoads(fluid); % Rotor is responsible for computing his near-field
+%[rotorforce, rotortorque] = v.rotors.computeHydroLoads(fluid); % Rotor is responsible for computing his near-field
+v.rotors.computeHydroLoads(fluid);
 % Move to center mass if necessary. By symmetry, loads will be about rotor
 % center mass for any rotor of n>1 blades when the blades are equal. (This
 % should be done in a rotor class method, not here)
@@ -52,7 +54,7 @@ v.rotors.angvel = [x(7);x(8);x(9)];     % Expressed in rotor frame
 % tauz = rotortorque(3);
 
 % Forces and positions are expressed in the inertial frame
-rotorforce = O_C_B*rotorforce;
+rotorforce = O_C_P*rotorforce;
 % Fx = rotorforce(1);
 % Fy = rotorforce(2);
 % Fz = rotorforce(3);

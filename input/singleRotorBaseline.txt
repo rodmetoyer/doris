@@ -21,6 +21,7 @@ vbcentermass = [0;0;0];
 vbtetherpoint = [-0.01;0;0];
 vbbuoypoint = [0;0;0]; % Center of buoyancy
 vbreldensity = 0;    % Density of the vehilce body relative to water
+rotpoint = [0;0;0]; % Point where the rotor is located [g1,g2,g3]
 
 % Simulation
 totalSimTime = 10;

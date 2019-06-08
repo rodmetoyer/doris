@@ -53,18 +53,14 @@ b3 = blade(section,bladeMass,twist);
 
 % rotor
 rotor = rotor([b1,b2,b3]);
+rotor.setID(1); % Says this is the first rotor in the vehicle.
 
 % vehicle body
-% vbmass = 0.01;
-% vbcentermass = [0;0;0];
-% vbtetherpoint = [-0.01;0;0];
-% vbbuoypoint = [0;0;0];
-% vbbuoyforce = 0;
-% todo put the vehicle body properties on the wehicle body
 vbod = vehiclebody(vbmass);
+
+% vehicle
 %v = vehicle(rotor,vbod,vbcentermass,vbtetherpoint,vbbuoypoint,vbbuoyforce);
 v = vehicle;
-rotpoint = [0;0;0];
 v.init(vbod,rotor,rotpoint,vbcentermass,vbtetherpoint,vbbuoypoint);
 rotor.connectVehicle(v);
 
