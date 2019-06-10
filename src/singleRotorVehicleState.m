@@ -12,10 +12,8 @@ function xdot = singleRotorVehicleState(t,x,v,fluid)
 % computation economy? Am I forcing matlab to allocate and deallocate
 % memory to make a copy of rotor mass? Maybe faster to just use the object
 % property.
-m = v.rotors.mass;
-g = 9.81;
-I = v.rotors.inertia;
-Ixx = I(1,1); Iyy = I(2,2); Izz = I(3,3);
+m = v.mass;
+g = 9.81; % todo this needs to come from an environment object
 cosbeta = cos(x(3)); sinbeta = sin(x(3));
 cosgamma = cos(x(2)); singamma = sin(x(2));
 costheta = cos(x(1)); sintheta = sin(x(1));

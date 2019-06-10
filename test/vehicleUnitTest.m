@@ -54,7 +54,7 @@ end
 for i=1:1:numBlades
     b1(i) = blade(section,bladeMass,twist);
 end
-warning('off','BLADE:construction');
+
 for i=1:1:numBlades
     b2(i) = blade(section,bladeMass,twist);
     b2(i).reverseTwist;
@@ -111,7 +111,7 @@ water.velocity = [1;0;0];
 % Now orient the vehicle - think of this as pitch-yaw-roll where 0 pitch
 % points the axis of rotation of a coaxial vehicle towards the ground
 pitch = 90; yaw = 0;
-v.orientation = [90*pi/180;yaw*pi/180;0];
+v.orientation = [pitch*pi/180;yaw*pi/180;0];
 % Initial posotion of the center of mass in the inertial frame
 v.position = [3;0;1];
 % Initial velocity of the center of mass in the inertial frame

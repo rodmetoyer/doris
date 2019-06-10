@@ -119,8 +119,11 @@ classdef vehicle < handle
             end
             
             % Get aerodynamic loads on body, cross and sum
+            % todo(rodney) add vehicle hydrodynamic loads.
             
             % Get tether loads, cross and sum
+            
+            
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
             hobj.force = sum(sum(frc,2),3);

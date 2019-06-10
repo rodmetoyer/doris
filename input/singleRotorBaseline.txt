@@ -16,7 +16,8 @@ numBlades = 3;
 bladeDZfrac = 0.05; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
 twist = []; % To prescribe a twist make a 1 X numSections array
 % vehicle body
-vbmass = 0.03;
+vbmass = 0.0;
+I = [0,0,0;0,0,0;0,0,0];
 vbcentermass = [0;0;0];
 vbtetherpoint = [-0.01;0;0];
 vbbuoypoint = [0;0;0]; % Center of buoyancy

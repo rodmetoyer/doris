@@ -1,0 +1,47 @@
+% Simulation input file for a dual rotor simualtion
+runname = 'dualRotorBaseline';
+
+% Environment
+fluidtype = 'water';
+fluidVelocity = [0.2;0.0;0];
+
+% Vehicle
+bladeMass = 0.02;
+airfoiltype = 'SG6040';
+aspectRatio = 7;
+bladeLength = 4*0.0254; % Inches times meters per inch
+secChord = bladeLength/aspectRatio;
+numSections = 13;       % Number of sections (whole number)
+secWidth = bladeLength/numSections;
+numBlades = 3;
+bladeDZfrac = 0.0; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
+% twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
+twist.AoAopt_deg = 8.0;
+twist.numBlades = numBlades;
+twist.bladeDZfrac = bladeDZfrac;
+% vehicle body
+vbmass = 0.0;
+I = [0,0,0;0,0,0;0,0,0];
+vbcentermass = [0;0;0];
+vbtetherpoint = [0;0;-0.1];
+vbbuoypoint = [0;0;0.1]; % Center of buoyancy
+vbreldensity = 0.5;    % Density of the vehilce body relative to water
+rot1point = [0;0;-0.1]; % Point where the 1st rotor is located [g1,g2,g3]
+rot2point = [0;0;0.1]; % Point where the 2nd rotor is located [h1,h2,h3]
+
+% Simulation
+totalSimTime = 10;
+tstep = 0.01;
+
+% Initial Conditions
+initialYaw = 0;
+initialPitch = 0;
+%initialRoll
+initialLateral = 0;
+%initialLongitudinal
+%initialVertical
+
+% Products
+makeplots = true;
+makemovie = true;
+speedfactor = 1; % How much to slow the video by. e.g. 1/8;
