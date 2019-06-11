@@ -17,6 +17,8 @@ classdef vehiclebody < handle
             hobj.inertia = I;
         end
         
-    end % methods
-    
+        function setRelativeDensity(hobj,rd)
+            hobj.relDensity = rd;
+        end        
+    end % methods   
 end % vehiclebody

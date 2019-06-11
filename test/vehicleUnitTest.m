@@ -337,6 +337,10 @@ if saveplots
 end
 
 %% Ok now we can look at some forces
+% todo(rodney) need to make sure that v.computeHydroLoads is equal to the
+% net loads from v.rotors(1).computeHydroLoads + v.rotors(1).computeHydroLoads
+
+
 % Vehicle is rotated 90 degrees
 rpm = 0;
 v.rotors(1).angvel = [0;0;rpm/60*2*pi];
@@ -378,6 +382,7 @@ if saveplots
 end
 
 %% Lets try to make an animation
+
 
 
 

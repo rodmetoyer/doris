@@ -14,8 +14,8 @@ classdef vehicle < handle
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
         centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3)
-        tetherpoint % 3x1 vector of location of the tether attachment point in the vehicle frame
-        buoypoint   % 3x1 vector of location of the center of buoyancy todo - and/or buoy tether attachment point?
+        tetherpoint % 3xm vector of location of the tether attachment point(s) in the vehicle frame (t1, t2, t3)
+        buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
         mass        % scalar total mass of the vehicle
         type        % uint identifier | see typeName get method for list of types
     end
@@ -101,8 +101,8 @@ classdef vehicle < handle
         
         %% Other class methods
         
-        function computeNetLoads(hobj,f)
-            % Computes the net force and torque vectors
+        function computeHydroLoads(hobj,f)
+            % Computes the net hydrodynamic force and torque vectors
             frc = 0;
             trq = 0;
             % Get aerodynamic loads on rotors, cross and sum
@@ -121,13 +121,21 @@ classdef vehicle < handle
             % Get aerodynamic loads on body, cross and sum
             % todo(rodney) add vehicle hydrodynamic loads.
             
-            % Get tether loads, cross and sum
-            
-            
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
             hobj.force = sum(sum(frc,2),3);
             hobj.torque = sum(sum(trq,2),3);
+        end
+        
+        function addTetherLoads(hobj,frc)
+            % Adds the tether loads to the total vehicle force and torque
+            % INPUTS:
+                % frc = 3xm force in the vehicle frame
+            [~,numloads] = size(frc);
+            for i=1:1:numloads
+                hobj.force = hobj.force + frc(:,i);
+                hobj.torque = hobj.torque + cross(hobj.tetherpoint(:,i),frc(:,i));
+            end
         end
         
         function addRotor(hobj,loc)

@@ -3,13 +3,13 @@ runname = 'dualRotorBaseline';
 
 % Environment
 fluidtype = 'water';
-fluidVelocity = [0.2;0.0;0];
+fluidVelocity = [0.1;0.0;0];
 
 % Vehicle
 bladeMass = 0.02;
 airfoiltype = 'SG6040';
 aspectRatio = 7;
-bladeLength = 4*0.0254; % Inches times meters per inch
+bladeLength = 12*0.0254; % Inches times meters per inch
 secChord = bladeLength/aspectRatio;
 numSections = 13;       % Number of sections (whole number)
 secWidth = bladeLength/numSections;
@@ -20,8 +20,8 @@ twist.AoAopt_deg = 8.0;
 twist.numBlades = numBlades;
 twist.bladeDZfrac = bladeDZfrac;
 % vehicle body
-vbmass = 0.0;
-I = [0,0,0;0,0,0;0,0,0];
+vbmass = 0.01;
+I = [0.1,0,0;0,0.1,0;0,0,0.1];
 vbcentermass = [0;0;0];
 vbtetherpoint = [0;0;-0.1];
 vbbuoypoint = [0;0;0.1]; % Center of buoyancy

@@ -53,6 +53,7 @@ r2 = rotor(bld2);
 r2.setID(2);
 % Make a vehicle body
 vbod = vehiclebody(vbmass,I);
+vbod.setRelativeDensity(0.5);
 % Make a vehicle
 rotPoints = [rot1point,rot2point];
 v = vehicle;
@@ -62,23 +63,68 @@ r1.connectVehicle(v);
 r2.connectVehicle(v);
 
 %% Make sure the vehicle we just built is what we were trying to build.
-% The easiest way to do this is visually.
+% The easiest way to do this is visually. WE can also play around here and
+% then use this to set initial values.
 water.velocity = [0.5;0;0];
 pitch = 90; yaw = 0;
-v.orientation = [pitch*pi/180;yaw*pi/180;0];
+theta0 = pitch*pi/180; gamma0 = yaw*pi/180; beta0 = 0;
+v.orientation = [theta0;gamma0;beta0]; % (theta, gamma, beta for 2-1-3) rotation
 v.position = [0;0;1];
 v.velocity = [0;0;0];
-v.angvel = [0;0;0];
+dgamma0 = 0*2*pi; % rad/s
+w10 = cosd(beta0)*dgamma0;
+w20 = -sin(beta0)*dgamma0;
+v.angvel = [w10;w20;0];
 v.rotors(1).orientation = [0;0;0];
 v.rotors(2).orientation = [0;0;0];
-rpm = 60;
+rpm = 0;
 v.rotors(1).angvel = [0;0;rpm/60*2*pi];
 v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
-vehicleVisualCheck(water,v)
+hfig = vehicleVisualCheck(water,v);
+disp('Close figure to continue...');
+waitfor(hfig)
+disp('Figure closed, continuing');
 
 
 %% Set-up simulation
-tspan = 0:tstep:totalSimTime;
+%tspan = 0:tstep:totalSimTime;
+% temporary control for debugging
+tspan = 0:0.002:2;
 
 % Initial states
 % State vector
+% x = [x1; x2; x3; theta; gamma; beta; w1; w2; w3; u1; u2; u3; p3; fi3; q3; sy3];
+x0 = [v.position; v.orientation; v.angvel; v.velocity;...
+    v.rotors(1).angvel(3); v.rotors(1).orientation(3); v.rotors(2).angvel(3); v.rotors(2).orientation(3)];
+% We are going to add a tether with two links and one central node
+
+disp('Running the simulation');
+%[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
+opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
+%opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
+[t, y] = ode45(@(t,y) vehicleState( t,y,v,water),tspan,x0,opts);
+
+%% Plots
+plotlowx = 100; plotlowy = 100; plotw = 600; ploth = 400;
+figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plot(t,y(:,1),'r',t,y(:,2),'b',t,y(:,3),'g');
+xlabel('Time (s)'); ylabel('Position (m)');
+legend({'x1','x2','x3'},'Location','Best');
+
+plotlowx = 200; plotlowy = 200;
+figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plot(t,y(:,4)*180/pi,'r',t,y(:,5)*180/pi,'b',t,y(:,6)*180/pi,'g');
+xlabel('Time (s)'); ylabel('Angle (deg)');
+legend({'theta','gamma','beta'},'Location','Best');
+
+plotlowx = 300; plotlowy = 300;
+figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plot(t,y(:,14)*180/pi,'r',t,y(:,16)*180/pi,'b');
+xlabel('Time (s)'); ylabel('Angle (deg)');
+legend({'fi3','sy3'},'Location','Best');
+
+plotlowx = 300; plotlowy = 100;
+figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plot(t,y(:,13)*180/pi,'r',t,y(:,15)*180/pi,'b');
+xlabel('Time (s)'); ylabel('Angular Rate (deg/s)');
+legend({'p3','q3'},'Location','Best');

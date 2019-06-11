@@ -1,12 +1,12 @@
-function vehicleVisualCheck(f,v)
+function hfig = vehicleVisualCheck(f,v)
 % Creates a plot to visually verify that the vehicle you constructed is the
 % vehicle you were trying to construct
 
 % Get plot arrays from subfunction
 [rp1o_O,rp2o_O,rap1_O,rap2_O,Urel1_O,Urel2_O,~,~,~,~] = getPlotArrays(v,f);
-
-figure
-scale = 0.4;
+x = 300; y = 100; w = x+600; h = y+600;
+hfig = figure('position',[x y w h]);
+scale = 1;
 y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
 z = v.position(3)+y;
 [Y,Z] = meshgrid(y, z);
@@ -22,7 +22,7 @@ quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),
 axis equal
 xlabel('x'); ylabel('y'); zlabel('z');
 title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','best','color','none');
+legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
 view(-130,20)
 hold off
 end
