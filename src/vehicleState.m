@@ -37,8 +37,8 @@ v.computeHydroLoads(f);
 % todo(rodney) make a tether class. Number nodes = number links-1. End
 % nodes are part of the signal. Output is loads on end links and position
 % of internal nodes
-k = 10.0;
-c = 2.50;
+k = 100.0;
+c = 25.0;
 usleng = 1;
 O_C_A = transpose(v.A_C_O);
 r_ao_O = [x(1); x(2); x(3)];

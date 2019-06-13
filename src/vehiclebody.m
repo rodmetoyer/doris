@@ -13,6 +13,10 @@ classdef vehiclebody < handle
     methods
         % Constructor
         function hobj=vehiclebody(m,I)
+            if nargin < 1
+                m = 0;
+                I = zeros(3);
+            end
             hobj.mass = m;
             hobj.inertia = I;
         end

@@ -22,7 +22,7 @@ twist.bladeDZfrac = bladeDZfrac;
 % vehicle body
 vblength = 1.0;
 vbradius = 0.1;
-vbmass = 0.8;
+vbmass = 5.0;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0];
 vbtetherpoint = [0;0;-0.5];

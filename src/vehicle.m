@@ -44,9 +44,10 @@ classdef vehicle < handle
         function hobj = vehicle(bod,rot,cm,tp,bp)
             if nargin == 0
                 % Make sure to call init
+                warning('Make sure to initialize vehicle');
             elseif nargin == 2
                % assume simple single rotor with cm at body [0;0;0];
-               hobj.body = vehiclebody;
+               hobj.body = bod;
                hobj.rotors = rot;
                hobj.mass = rot.mass;
                %hobj.buoyforce = 0;

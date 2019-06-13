@@ -69,7 +69,7 @@ water.velocity = [0.5;0;0];
 pitch = 90; yaw = 0;
 theta0 = pitch*pi/180; gamma0 = yaw*pi/180; beta0 = 0;
 v.orientation = [theta0;gamma0;beta0]; % (theta, gamma, beta for 2-1-3) rotation
-v.position = [0;0;1];
+v.position = [2;0;1];
 v.velocity = [0;0;0];
 dgamma0 = 0*2*pi; % rad/s
 w10 = cosd(beta0)*dgamma0;
@@ -89,7 +89,7 @@ disp('Figure closed, continuing');
 %% Set-up simulation
 %tspan = 0:tstep:totalSimTime;
 % temporary control for debugging
-tspan = 0:0.002:10;
+tspan = 0:0.002:5;
 
 % Initial states
 % State vector
