@@ -101,19 +101,31 @@ classdef vehicle < handle
         
         %% Other class methods
         
-        function computeHydroLoads(hobj,f)
+        function urel = computeHydroLoads(hobj,f)
             % Computes the net hydrodynamic force and torque vectors
             frc = 0;
             trq = 0;
             % Get aerodynamic loads on rotors, cross and sum
             for i=1:1:numel(hobj.rotors)
-                hobj.rotors(i).computeHydroLoads(f);
-                % 3xjxn array of lift and drag at each section expressed in the rotor frame
+                urel(:,:,:,i) = hobj.rotors(i).computeHydroLoads(f);
+                % 3xjxn array of lift and drag at each section expressed in
+                % the rotor frame (j=num sections, n=num blades)
                 sectionforces = hobj.rotors(i).sectLift + hobj.rotors(i).sectDrag;
+                % 3xjxn array of position of each section expressed in the rotor frame
+                sectionpositions = hobj.rotors(i).sectPos;
+                [~,numsecs,numblades] = size(sectionpositions);
+                % Rotate into the vehicle frame
+                for j = 1:1:numsecs
+                    for n = 1:1:numblades
+                        sectionpositions(:,j,n) = transpose(hobj.rotors(i).P_C_A)*sectionpositions(:,j,n);
+                        sectionforces(:,j,n) = transpose(hobj.rotors(i).P_C_A)*sectionforces(:,j,n);
+                    end
+                end
+                
                 % Aerodynamic moments not currently functional. When we go to implement them
                 % I think we can just sum the section moments.
                 % sectiontorques(:,:,:,i) = hobj.rotors(i).sectMomt;
-                r_ayxA_A = hobj.rotorLocs(i) + hobj.rotors(i).sectPos;
+                r_ayxA_A = hobj.rotorLocs(i) + sectionpositions;
                 trq = trq + cross(r_ayxA_A,sectionforces);
                 frc = frc + sectionforces;
             end

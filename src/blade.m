@@ -145,9 +145,10 @@ classdef blade < handle
         end
         
         function reverseTwist(hobj)
-            % Reverses the blade twist to make a contrarotating rotor
+            % Reverses the blade twist to make a contrarotating rotor by
+            % mirroring the location of the blade sections.
             warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis');
-            hobj.sectOrnts(2,:) = pi-hobj.sectOrnts(2,:);
+            hobj.sectLocs = -hobj.sectLocs;
         end
         
         % Setters
@@ -159,7 +160,7 @@ classdef blade < handle
         end
         
         function set.sectLocs(hobj,locs)
-           if ~isempty(hobj.sectLocs) && (size(locs) ~= size(hobj.sectLocs))
+           if ~isempty(hobj.sectLocs) && any(size(locs) ~= size(hobj.sectLocs))
                error('blade: You cannot change number of section locations');
            end
            hobj.sectLocs = locs;

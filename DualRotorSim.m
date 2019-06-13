@@ -89,7 +89,7 @@ disp('Figure closed, continuing');
 %% Set-up simulation
 %tspan = 0:tstep:totalSimTime;
 % temporary control for debugging
-tspan = 0:0.002:2;
+tspan = 0:0.002:10;
 
 % Initial states
 % State vector
@@ -105,26 +105,38 @@ opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
 [t, y] = ode45(@(t,y) vehicleState( t,y,v,water),tspan,x0,opts);
 
 %% Plots
-plotlowx = 100; plotlowy = 100; plotw = 600; ploth = 400;
-figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plotlowx = 50; plotlowy = 50; plotw = 600; ploth = 400;
+figure('Position',[plotlowx plotlowy plotw ploth])
 plot(t,y(:,1),'r',t,y(:,2),'b',t,y(:,3),'g');
 xlabel('Time (s)'); ylabel('Position (m)');
 legend({'x1','x2','x3'},'Location','Best');
 
-plotlowx = 200; plotlowy = 200;
-figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plotlowy = plotlowy+ploth; % Move up
+figure('Position',[plotlowx plotlowy plotw ploth])
 plot(t,y(:,4)*180/pi,'r',t,y(:,5)*180/pi,'b',t,y(:,6)*180/pi,'g');
 xlabel('Time (s)'); ylabel('Angle (deg)');
 legend({'theta','gamma','beta'},'Location','Best');
 
-plotlowx = 300; plotlowy = 300;
-figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
+figure('Position',[plotlowx plotlowy plotw ploth])
+plot(t,y(:,7)*180/pi,'r',t,y(:,8)*180/pi,'b',t,y(:,9)*180/pi,'g');
+xlabel('Time (s)'); ylabel('Angular Rate (deg/s)');
+legend({'w1','w2','w3'},'Location','Best');
+
+plotlowy = plotlowy+ploth; % Move up
+figure('Position',[plotlowx plotlowy plotw ploth])
+plot(t,y(:,10),'r',t,y(:,11),'b',t,y(:,12),'g');
+xlabel('Time (s)'); ylabel('Speed (m/s)');
+legend({'u1','u2','u3'},'Location','Best');
+
+plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
+figure('Position',[plotlowx plotlowy plotw ploth])
 plot(t,y(:,14)*180/pi,'r',t,y(:,16)*180/pi,'b');
 xlabel('Time (s)'); ylabel('Angle (deg)');
 legend({'fi3','sy3'},'Location','Best');
 
-plotlowx = 300; plotlowy = 100;
-figure('Position',[plotlowx plotlowy plotlowx+plotw plotlowy+ploth])
+plotlowy = plotlowy+ploth; % Move up
+figure('Position',[plotlowx plotlowy plotw ploth])
 plot(t,y(:,13)*180/pi,'r',t,y(:,15)*180/pi,'b');
 xlabel('Time (s)'); ylabel('Angular Rate (deg/s)');
 legend({'p3','q3'},'Location','Best');

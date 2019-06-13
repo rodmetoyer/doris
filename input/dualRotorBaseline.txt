@@ -6,12 +6,12 @@ fluidtype = 'water';
 fluidVelocity = [0.1;0.0;0];
 
 % Vehicle
-bladeMass = 0.02;
+bladeMass = 0.5;
 airfoiltype = 'SG6040';
 aspectRatio = 7;
-bladeLength = 12*0.0254; % Inches times meters per inch
+bladeLength = 1.0; %12*0.0254; % Inches times meters per inch
 secChord = bladeLength/aspectRatio;
-numSections = 13;       % Number of sections (whole number)
+numSections = 12;       % Number of sections (whole number)
 secWidth = bladeLength/numSections;
 numBlades = 3;
 bladeDZfrac = 0.0; % Blade dead zone fraction (Ro/R - see Spera 2009) %%%NOTE%%% Only used to compute twist right now. Forces are computed the entire length of the blade.
@@ -20,14 +20,16 @@ twist.AoAopt_deg = 8.0;
 twist.numBlades = numBlades;
 twist.bladeDZfrac = bladeDZfrac;
 % vehicle body
-vbmass = 0.01;
-I = [0.1,0,0;0,0.1,0;0,0,0.1];
+vblength = 1.0;
+vbradius = 0.1;
+vbmass = 0.8;
+I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0];
-vbtetherpoint = [0;0;-0.1];
-vbbuoypoint = [0;0;0.1]; % Center of buoyancy
-vbreldensity = 0.5;    % Density of the vehilce body relative to water
-rot1point = [0;0;-0.1]; % Point where the 1st rotor is located [g1,g2,g3]
-rot2point = [0;0;0.1]; % Point where the 2nd rotor is located [h1,h2,h3]
+vbtetherpoint = [0;0;-0.5];
+vbbuoypoint = [0;0;0.0]; % Center of buoyancy
+vbreldensity = 1.0;    % Density of the vehilce body relative to water
+rot1point = [0;0;-0.5]; % Point where the 1st rotor is located [g1,g2,g3]
+rot2point = [0;0;0.5]; % Point where the 2nd rotor is located [h1,h2,h3]
 
 % Simulation
 totalSimTime = 10;

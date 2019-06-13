@@ -75,7 +75,12 @@ r1point = [0;0;1.25];
 r2point = [0;0;-1.25];
 rotPoints = [r1point,r2point];
 vbmass = 0.8;
-vbod = vehiclebody(vbmass);
+vblength = 1.0;
+vbradius = 0.1;
+I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;...
+    0,1/12*vbmass*(3*vbradius^2+vblength^2),0;...
+    0,0,1/2*vbmass*vbradius^2];
+vbod = vehiclebody(vbmass,I);
 v = vehicle;
 v.init(vbod,[r1,r2],rotPoints,vbcentermass,vbtetherpoint,vbbuoypoint);
 % Associate rotors with vehicle
@@ -342,10 +347,10 @@ end
 
 
 % Vehicle is rotated 90 degrees
-rpm = 0;
+rpm = 20;
 v.rotors(1).angvel = [0;0;rpm/60*2*pi];
 v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
-v.orientation = [90;0;0]*pi/180;
+v.orientation = [90;10;0]*pi/180;
 v.rotors(1).orientation = [0;0;0]*pi/180;
 v.rotors(2).orientation = [0;0;0]*pi/180;
 [rp1o_O,rp2o_O,rap1_O,rap2_O,~,~,L1_O,D1_O,L2_O,D2_O] = getPlotArrays(v,water);
@@ -388,8 +393,11 @@ end
 
 %% functions
 function [rp1o_O,rp2o_O,rap1_O,rap2_O,Urel1_O,Urel2_O,L1_O,D1_O,L2_O,D2_O] = getPlotArrays(v,f)
-    Urel1_P1 = v.rotors(1).computeHydroLoads(f);
-    Urel2_P2 = v.rotors(2).computeHydroLoads(f);
+%     Urel1_P1 = v.rotors(1).computeHydroLoads(f);
+%     Urel2_P2 = v.rotors(2).computeHydroLoads(f);
+    Urel = v.computeHydroLoads(f);
+    Urel1_P1 = Urel(:,:,:,1);
+    Urel2_P2 = Urel(:,:,:,2);
     temp = size(v.rotors(1).sectPos);
     O_C_A = transpose(v.A_C_O);
     O_C_P1 = O_C_A*transpose(v.rotors(1).P_C_A);

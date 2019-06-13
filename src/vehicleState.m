@@ -61,7 +61,7 @@ end
 %     Fmag = Fmag - stretchd*c;
 % end
 tetherforce = [Fmag*unitvec(1);Fmag*unitvec(2);Fmag*unitvec(3)];
-v.addTetherLoads(tetherforce);
+v.addTetherLoads(v.A_C_O*tetherforce);
 
 %% Compute weight and buoyancy loads
 % todo(rodney) easiest way to fix this is to move relative density off of
