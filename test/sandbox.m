@@ -36,6 +36,7 @@ for i=1:1:numSections
 end
 for i=1:1:numBlades
     b(i) = blade(section,bladeMass,twist);
+    b2(i) = blade(section,bladeMass,twist);
 end
 clear twist bladeMass AoAopt_deg bladeDZfrac numBlades numSections i
 % Make a set of rotors
@@ -53,7 +54,24 @@ v.orientation = [pi/2;0;0];
 v.velocity = [0;0;0];
 v.angvel = [0/60*2*pi;0/60*2*pi;60/60*2*pi];
 r.connectVehicle(v);
-water.velocity = [1;0;0];
+water.velocity = [0.1;0;0];
 v.computeHydroLoads(water);
 r.visualizeSectionLoads;
-
+% I'd like to visualize the rotor on a body
+% init(hobj,bod,rot,rotLocs,cm,tp,bp)
+b2.reverseTwist;
+r2 = rotor(b2);
+r2.setID(2);
+r2.orientation = [0;0;0]; % Rotor orientation is w.r.t. the vehicle frame
+vRPM = [0;0;0];
+v.angvel = vRPM/60*2*pi;
+%v.angvel = [0;1;0];
+rpm = 20;
+rpm2 = -20;
+r.angvel = [0;0;rpm/60*2*pi];
+r2.angvel = [0;0;rpm2/60*2*pi]; % Also w.r.t. the vehicle frame
+r2.connectVehicle(v);
+v.init(vb,[r r2],[0 0;0 0;1 -1],[0;0;0],[0;0;0],[0;0;0]);
+v.computeHydroLoads(water);
+v.visualizeSectionLoads(false,0.7);
+v.visualizeRelativeVelocities(water,false,0);

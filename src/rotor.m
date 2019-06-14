@@ -124,17 +124,19 @@ classdef rotor < handle
                     % Rotate coordinates to this section in the rotor
                     % frame. NOTE that this assumes that the blade root is
                     % at the rotor frame origin. Need to generalize.
-                    rap_P = hobj.P_C_bx(:,:,i)*hobj.blades(i).sectLocs(:,j); % hobj.blades(i).sectionLocs(:,j) is rap_bx
+                    %rap_P = hobj.P_C_bx(:,:,i)*hobj.blades(i).sectLocs(:,j); % hobj.blades(i).sectionLocs(:,j) is rap_bx
+                    rap_P = hobj.sectPos(:,j,i);
                     % Compute relative velocity in the rotor frame at the
                     % section location.
                     temp = hobj.vehicle.angvel + hobj.angvel;
-                    V_p_P = cross(temp,rap_P);
-                    U_rel_P = Ufluid_P - OVpo_P - V_p_P;
+                    V_ap_P = cross(temp,rap_P);
+                    U_rel_P = Ufluid_P - OVpo_P - V_ap_P;
                     U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
                     
                     % Rotate the relative velocity into the blade section
                     % frame. First, compute b_this_i_C_a
-                    ang = hobj.blades(i).sectOrnts(2,j); % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
+                    ang = hobj.blades(i).sectOrnts(2,j); 
+                    % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
                     bx_C_a = [cos(-ang),0,-sin(-ang);0,1,0;sin(-ang),0,cos(-ang)];
                     % U in section frame =
                     % section_C_blade*blade_C_rotor*U_rotor
@@ -278,6 +280,7 @@ classdef rotor < handle
         end
         
         function v = get.velocity(hobj)
+            % Inertial velocity of the rotor frame expressed in the vehicle frame
             v = cross(hobj.vehicle.angvel,hobj.vehicle.rotorLocs(:,hobj.ID))+hobj.vehicle.velocity;
         end
         

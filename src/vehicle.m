@@ -156,6 +156,138 @@ classdef vehicle < handle
             hobj.rotorLocs = [hobj.rotorLocs,loc];
         end
             
+        function hfig = visualizeSectionLoads(hobj,hide,scale)
+            % This method creates a plot of the current loads on the rotor
+            % at each section.
+            % ARGS: hide = bool hide the plot?
+            % OUT: hfig = figure handle
+            if nargin < 2
+                hide = false;                
+            end
+            if nargin < 3
+                scale = 0.5;
+            end
+            
+            for k=1:1:numel(hobj.rotors) % rotors loop
+                temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
+                for i=1:1:temp(2)
+                    for j=1:1:temp(3)
+                        % 3 x nSects x nBlades x nRotors
+                        rap1_P(:,i,j,k) = hobj.rotors(k).sectPos(:,i,j) + hobj.rotorLocs(:,k);                        
+                        L_P(:,i,j,k) = hobj.rotors(k).sectLift(:,i,j);
+                        D_P(:,i,j,k) = hobj.rotors(k).sectDrag(:,i,j);
+                        R_P(:,i,j,k) = L_P(:,i,j,k) + D_P(:,i,j,k);
+                    end
+                end
+                % Show the forces and/or velocity vectors as quivers applied at the section
+                % locations in the rotor frame
+            end % End rotors loop
+            
+            
+            v = 'on';
+            if hide
+                v = 'off';
+            end
+            hfig = figure('visible',v,'Position',[100 100 900 900]);
+            quiver3(rap1_P(1,:,:,1),rap1_P(2,:,:,1),rap1_P(3,:,:,1),L_P(1,:,:,1),L_P(2,:,:,1),L_P(3,:,:,1),scale,'-','color',[0 0 1],'LineWidth',2);
+            hold on
+            quiver3(rap1_P(1,:,:,1),rap1_P(2,:,:,1),rap1_P(3,:,:,1),D_P(1,:,:,1),D_P(2,:,:,1),D_P(3,:,:,1),scale,'-','color',[1 0 0],'LineWidth',2);
+            quiver3(rap1_P(1,:,:,1),rap1_P(2,:,:,1),rap1_P(3,:,:,1),R_P(1,:,:,1),R_P(2,:,:,1),R_P(3,:,:,1),scale,'-','color',[0 0 0],'LineWidth',2);
+            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
+            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.7,['Torque = ' num2str(hobj.rotors(1).torqueCM(3),3) ' N']);
+            for i=2:1:numel(hobj.rotors)
+                quiver3(rap1_P(1,:,:,i),rap1_P(2,:,:,i),rap1_P(3,:,:,i),L_P(1,:,:,i),L_P(2,:,:,i),L_P(3,:,:,i),scale,'-','color',[0 0 1],'LineWidth',2);
+                quiver3(rap1_P(1,:,:,i),rap1_P(2,:,:,i),rap1_P(3,:,:,i),D_P(1,:,:,i),D_P(2,:,:,i),D_P(3,:,:,i),scale,'-','color',[1 0 0],'LineWidth',2);
+                quiver3(rap1_P(1,:,:,i),rap1_P(2,:,:,i),rap1_P(3,:,:,i),R_P(1,:,:,i),R_P(2,:,:,i),R_P(3,:,:,i),scale,'-','color',[0 0 0],'LineWidth',2);
+                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
+                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.7,['Torque = ' num2str(hobj.rotors(i).torqueCM(3),3) ' N']);
+            end
+
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title({'Force Vectors',['Vehicle Angular Rate = [' num2str(hobj.angvel(1)*30/pi,3) ' ' num2str(hobj.angvel(2)*30/pi,3) ' ' num2str(hobj.angvel(3)*30/pi,3) '] RPM']});
+            legend({'Lift','Drag','Total'},'Location','northeast','color','none');
+            view(-140,17)
+            hold off
+            ax = gca;
+            ax.FontSize = 10;
+            set(ax,'color','none');
+            
+        end % end visualizeSectionLoads
+        
+        function hfig = visualizeRelativeVelocities(hobj,fluid,hide,scale)
+            % This method creates a plot of the current relative
+            % velocities at each section in the vehicle frame.
+            % ARGS: 
+                % fluid = a fluid object?
+                % hide = bool hide the plot?
+                % scale = to scale the vectors?
+            % OUT: hfig = figure handle
+            if nargin < 3
+                hide = false;                
+            end
+            if nargin < 4
+                scale = 0.5;
+            end
+            
+            for k=1:1:numel(hobj.rotors) % rotors loop
+                % Velocity of the fluid in the rotor frame
+                Ufluid_P = hobj.rotors(k).P_C_A*hobj.A_C_O*fluid.velocity;
+                % Velocity of point p in the rotor frame
+                OVpo_P = hobj.rotors(k).P_C_A*hobj.rotors(k).velocity; % OVpo_P is O derivative of r_<to><from>_<ExprsdFrame>
+                temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
+                for i=1:1:temp(2)
+                    for j=1:1:temp(3)                        
+                        rap_P = hobj.rotors(k).sectPos(:,i,j);
+                        % Compute relative velocity in the rotor frame at the
+                        % section location.
+                        temp2 = hobj.rotors(k).P_C_A*hobj.angvel + hobj.rotors(k).angvel;
+                        OV_ap_P = cross(temp2,rap_P);
+                        OV_ao_P = OV_ap_P + OVpo_P;
+                        U_rel_P = Ufluid_P - OV_ao_P;
+                        % 3 x nSects x nBlades x nRotors
+                        U_relSections(:,i,j,k) = U_rel_P;
+                        raA_A(:,i,j,k) = transpose(hobj.rotors(k).P_C_A)*(rap_P + hobj.rotorLocs(:,k));
+                    end
+                end
+                % Show the forces and/or velocity vectors as quivers applied at the section
+                % locations in the rotor frame
+                lgnd(k) = join(["U_{rel}",num2str(k)]);
+            end % End rotors loop
+            
+            
+            v = 'on';
+            if hide
+                v = 'off';
+            end
+            hfig = figure('visible',v,'Position',[600 100 900 900]);
+            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),U_relSections(1,:,:,1),U_relSections(2,:,:,1),U_relSections(3,:,:,1),scale,'-','color','r','LineWidth',2);
+            hold on
+            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
+            for i=2:1:numel(hobj.rotors)
+                clrs = '-gcym';
+                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),U_relSections(1,:,:,i),U_relSections(2,:,:,i),U_relSections(3,:,:,i),scale,'-','color',clrs(k),'LineWidth',2);
+                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*1.1,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
+            end
+            % Add freestream
+            y = -1:0.5:1; x = y; %z = 0:0.5:2;
+            [Y,X] = meshgrid(y, x);
+            Z = zeros(size(Y));
+            fluidvel_A = hobj.A_C_O*fluid.velocity;
+            U = ones(size(X))*fluidvel_A(1); V = ones(size(Y))*fluidvel_A(2); W = ones(size(Z))*fluidvel_A(3);
+            quiver3(X,Y,Z,U,V,W,1.0*scale,'b','LineWidth',2);
+            lgnd = [lgnd,"Freestream"];
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title({'Relative Veloctiy Vectors',['Vehicle Angular Rate = [' num2str(hobj.angvel(1)*30/pi,3) ' ' num2str(hobj.angvel(2)*30/pi,3) ' ' num2str(hobj.angvel(3)*30/pi,3) '] RPM']});
+            legend(lgnd,'Location','northeast','color','none');
+            view(-140,17)
+            hold off
+            ax = gca;
+            ax.FontSize = 10;
+            set(ax,'color','none');
+        end % end visualizeRelativeVelocities
+        
         
         function sinebuoyforce(hobj,t,a,w)
             hobj.buoyforce = a*sin(w*t);

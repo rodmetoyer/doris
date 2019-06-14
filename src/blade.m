@@ -148,7 +148,9 @@ classdef blade < handle
             % Reverses the blade twist to make a contrarotating rotor by
             % mirroring the location of the blade sections.
             warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis');
-            hobj.sectLocs = -hobj.sectLocs;
+            for i=1:1:numel(hobj)
+                hobj(i).sectLocs = -hobj(i).sectLocs;
+            end
         end
         
         % Setters
