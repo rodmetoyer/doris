@@ -3,14 +3,12 @@ classdef blade < handle
 % vehicle <aggregate-- rotor <compose-- blade <compose-- bladesection
     % --generalize> airfoil
     
-    % Public properties
     properties
         % Could be public for future aeroelasticity functionality.
 %         centermass  % 3x1 Location of the center of mass in the blade frame
 %         sectLocs % 3xn Location of sections expressed in the blade frame
         % todo(rodney) need to unorder these. Use ids or something.
-    end
-    
+    end % end public properties
     properties (SetAccess = private)
         centermass   % 3x1 Location of the center of mass in the blade frame        
         sections     % 1xn(n=numsects) vector of bladesections
@@ -27,12 +25,10 @@ classdef blade < handle
         bladeforce   % The force on the blade not due to blade sections expressed in the blade frame
         blademoment  % The moment on the blade not due to blade sections expressed in the blade frame
         % id         % Unique integer identifier - maybe don't need
-    end
-    
-%     properties (Dependent) % Calculated only when asked for
-%         bladeforce      % The force on the blade not due to blade sections
-%         blademoment     % The moment on the blade not due to blade sections
-%     end
+    end % end private properties
+    properties (Dependent) % Calculated only when asked for
+        b_C_a        % 3x3xn array tranformation matrix from the section frame into the blade frame
+    end % end dependent properties
     
     methods
         %% Constructor
@@ -153,7 +149,7 @@ classdef blade < handle
             end
         end
         
-        % Setters
+        %% Setters
         function set.centermass(hobj,cm)
             if numel(cm)<3
                 cm = [0;cm;0];
@@ -166,6 +162,21 @@ classdef blade < handle
                error('blade: You cannot change number of section locations');
            end
            hobj.sectLocs = locs;
+        end
+        
+        %% Getters
+        function m = get.b_C_a(hobj)
+            % sectOrnts is 3xn orientation angles
+            % todo need to document the specific sequence.
+            % As of 17JUN2019 we assume that the rotation is only about the
+            % j_b = j_a axis.
+            temp = size(hobj.sectOrnts);
+            for i=1:1:temp(2)
+                th = hobj.sectOrnts(2,i);
+                m(:,:,i) = [cos(th) 0 -sin(th);...
+                            0 1 0;...
+                            sin(th) 0 cos(th)];
+            end            
         end
         
     end

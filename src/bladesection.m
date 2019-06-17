@@ -94,7 +94,7 @@ classdef bladesection < handle
         function [L,D,M] = computeLoadsFast(hobj,vr,fluid)
             % This method is obsolete. See GIT history.
             error('Obsolete method');
-        end
+        end % end computeLoadsFast
         % setters
     end    
 end

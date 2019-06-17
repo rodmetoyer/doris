@@ -77,3 +77,4 @@ v.visualizeSectionLoads(false,0.7);
 v.visualizeRelativeVelocities(water,false,0);
 
 %% Let's try to visualize all the frames in the vehicle
+v.visualizeSectionFrames;
