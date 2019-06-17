@@ -66,8 +66,8 @@ r2.orientation = [0;0;0]; % Rotor orientation is w.r.t. the vehicle frame
 vRPM = [0;0;0];
 v.angvel = vRPM/60*2*pi;
 %v.angvel = [0;1;0];
-rpm = 20;
-rpm2 = -20;
+rpm = 10;
+rpm2 = -10;
 r.angvel = [0;0;rpm/60*2*pi];
 r2.angvel = [0;0;rpm2/60*2*pi]; % Also w.r.t. the vehicle frame
 r2.connectVehicle(v);
@@ -75,3 +75,5 @@ v.init(vb,[r r2],[0 0;0 0;1 -1],[0;0;0],[0;0;0],[0;0;0]);
 v.computeHydroLoads(water);
 v.visualizeSectionLoads(false,0.7);
 v.visualizeRelativeVelocities(water,false,0);
+
+%% Let's try to visualize all the frames in the vehicle
