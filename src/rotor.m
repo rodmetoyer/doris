@@ -27,7 +27,8 @@ classdef rotor < handle
         sectDrag   % 3xjxn array of drag at each section expressed in the rotor frame
         sectLift   % 3xjxn array of lift at each section expressed in the rotor frame
         sectMomt   % 3xjxn array of moment at each section expressed in the rotor frame
-        torqueCM   % 3x1 total torque about the center mass expressed in the rotor frame
+        torqueCM   % 3x1 total hydrodynamic torque about the center mass expressed in the rotor frame
+        force      % 3x1 total hydrodynamic force expressed in the rotor frame
     end % end properties that change every timestep
     properties
         % Properties that change during simulation
@@ -117,7 +118,8 @@ classdef rotor < handle
             DragSections = U_relSections;
             ForceSections = U_relSections;
             % Init torque sum
-            torque = 0;
+            torque = [0;0;0];
+            totforce = [0;0;0];
             for i=1:1:hobj.numblades
                 % Get section aero loads
                 for j=1:1:hobj.blades(i).numsects
@@ -158,6 +160,7 @@ classdef rotor < handle
                     DragSections(:,j,i) = drag;
                     % TorqueSections(:,j,i) % Not currently functional
                     ForceSections(:,j,i) = lift + drag;
+                    totforce = totforce + ForceSections(:,j,i);
                     
                     % Compute torque from loads
                     tauprev = cross(rap_P,ForceSections(:,j,i));
@@ -168,6 +171,7 @@ classdef rotor < handle
                     hobj.sectLift = LiftSections;
                     hobj.sectDrag = DragSections;
                     % hobj.sectMomt = TorqueSections;
+                    hobj.force = totforce;
                     hobj.torqueCM = torque; % + sum(TorqueSections) I think, right?
         end % end computeHydroLoads
         

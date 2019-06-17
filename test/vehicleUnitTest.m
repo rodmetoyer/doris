@@ -26,10 +26,6 @@ if saveplots
         mkdir(plotsavepath)
     end
 end
-    
-% Don't need to see these warnings. We know they are going to happen.
-warning('off','BLADE:construction');
-warning('off','VEHICLE:construction');
 
 % Build a vehicle operating in a fluid
 water = fluid('water');
