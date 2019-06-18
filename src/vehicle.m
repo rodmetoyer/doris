@@ -149,7 +149,7 @@ classdef vehicle < handle
             hobj.rotorLocs = [hobj.rotorLocs,loc];
         end % end addRotor
         %% visualizeSectionLoads
-        function hfig = visualizeSectionLoads(hobj,hide,scale)
+        function hfig = visualizeSectionLoads(hobj,hide,scale,totalOnly)
             % This method creates a plot of the current loads on the
             % ARGS: 
                 % hide = bool hide the plot?
@@ -160,7 +160,10 @@ classdef vehicle < handle
             end
             if nargin < 3
                 scale = 0.5;
-            end            
+            end
+            if nargin < 4
+                totalOnly = false;
+            end
             for k=1:1:numel(hobj.rotors) % rotors loop
                 temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
                 A_C_P = transpose(hobj.rotors(k).P_C_A);
@@ -180,24 +183,34 @@ classdef vehicle < handle
             if hide
                 v = 'off';
             end
-            hfig = figure('visible',v,'Position',[100 100 900 900]);
-            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),L_A(1,:,:,1),L_A(2,:,:,1),L_A(3,:,:,1),scale,'-','color',[0 0 1],'LineWidth',2);
-            hold on
-            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),D_A(1,:,:,1),D_A(2,:,:,1),D_A(3,:,:,1),scale,'-','color',[1 0 0],'LineWidth',2);
+            hfig = figure('visible',v,'Position',[100 100 900 900]);            
             quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),R_A(1,:,:,1),R_A(2,:,:,1),R_A(3,:,:,1),scale,'-','color',[0 0 0],'LineWidth',2);
-            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
+            hold on
+            if ~totalOnly
+                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),D_A(1,:,:,1),D_A(2,:,:,1),D_A(3,:,:,1),scale,'-','color',[1 0 0],'LineWidth',2);
+                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),L_A(1,:,:,1),L_A(2,:,:,1),L_A(3,:,:,1),scale,'-','color',[0 0 1],'LineWidth',2);
+            end
+            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.6,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
             text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.7,['Torque = ' num2str(hobj.rotors(1).torqueCM(3),3) ' N']);
+            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.8,['Rotor Number = ' num2str(hobj.rotors(1).ID,1)]);
             for i=2:1:numel(hobj.rotors)
-                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),L_A(1,:,:,i),L_A(2,:,:,i),L_A(3,:,:,i),scale,'-','color',[0 0 1],'LineWidth',2);
-                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),D_A(1,:,:,i),D_A(2,:,:,i),D_A(3,:,:,i),scale,'-','color',[1 0 0],'LineWidth',2);
                 quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),R_A(1,:,:,i),R_A(2,:,:,i),R_A(3,:,:,i),scale,'-','color',[0 0 0],'LineWidth',2);
-                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
+                if ~totalOnly
+                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),L_A(1,:,:,i),L_A(2,:,:,i),L_A(3,:,:,i),scale,'-','color',[0 0 1],'LineWidth',2);
+                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),D_A(1,:,:,i),D_A(2,:,:,i),D_A(3,:,:,i),scale,'-','color',[1 0 0],'LineWidth',2);
+                end
+                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.6,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
                 text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.7,['Torque = ' num2str(hobj.rotors(i).torqueCM(3),3) ' N']);
+                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.8,['Rotor Number = ' num2str(hobj.rotors(i).ID,1)]);
             end
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
             title({'Force Vectors',['Vehicle Angular Rate = [' num2str(hobj.angvel(1)*30/pi,3) ' ' num2str(hobj.angvel(2)*30/pi,3) ' ' num2str(hobj.angvel(3)*30/pi,3) '] RPM']});
-            legend({'Lift','Drag','Total'},'Location','northeast','color','none');
+            legndstr = "Total Hydrodynamic Load";
+            if ~totalOnly
+                legndstr = ["Total","Drag","Lift"];
+            end
+            legend(legndstr,'Location','northeast','color','none');
             view(-140,17)
             hold off
             ax = gca;
@@ -279,7 +292,7 @@ classdef vehicle < handle
             set(ax,'color','none');
         end % end visualizeRelativeVelocities
         %% visualizeSectionFrames
-        function hfig = visualizeSectionFrames(hobj,hide,Oframe)
+        function hfig = visualizeSections(hobj,hide,Oframe)
             % This method creates a plot of all of the section frames in the
             % vehicle in the vehicle frame.
             % ARGS: hide = bool hide the plot?
@@ -297,14 +310,20 @@ classdef vehicle < handle
                 % Velocity of the fluid in the rotor frame
                 A_C_P = transpose(hobj.rotors(k).P_C_A);
                 temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
-                for i=1:1:temp(2)
-                    for j=1:1:temp(3)
+                for i=1:1:temp(2) % sections
+                    for j=1:1:temp(3) % blades
                         % Location of the frame origin w.r.t. point A in
                         % frame A.
-                        raA_A(:,i,j,k) = A_C_P*(hobj.rotors(k).sectPos(:,i,j)) + hobj.rotorLocs(:,k);
-                        % Now rotate a frame from the section into the blade into
-                        % the rotor into the vehicle.
-                        leadEdge_A(:,i,j,k) = A_C_P*hobj.rotors(k).P_C_bx(:,:,j)*hobj.rotors(k).blades(j).b_C_a(:,:,i)*leadEdge_a + raA_A(:,i,j,k);
+                        raA_A = A_C_P*(hobj.rotors(k).sectPos(:,i,j)) + hobj.rotorLocs(:,k);
+                        % So far we have a 3 x nSects x nBlades x nRotors
+                        % Rotate section coordinates from section frame
+                        % into blade frame then blade frame into rotor
+                        % frame then rotor frame into vehicle frame.
+                        sectCoords = A_C_P*hobj.rotors(k).P_C_bx(:,:,j)*hobj.rotors(k).blades(j).b_C_a(:,:,i)*hobj.rotors(k).blades(j).sections(i).coords;
+                        % Now we can get 3 x nPoints x nSect x nBlades x nRotors
+                        coords2plot(:,:,i,j,k) = raA_A + sectCoords;
+                        % of points to the chord/4 point. Now let's get 
+                        %leadEdge_A(:,i,j,k) = A_C_P*hobj.rotors(k).P_C_bx(:,:,j)*hobj.rotors(k).blades(j).b_C_a(:,:,i)*leadEdge_a + raA_A(:,i,j,k);
                     end
                 end
 %                 lgnd(k) = join(["U_{rel}",num2str(k)]);
@@ -315,13 +334,19 @@ classdef vehicle < handle
             end
             hfig = figure('visible',v,'Position',[600 100 900 900]);
             % 3 x nSects x nBlades x nRotors
-            scale = 1;
-            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),leadEdge_A(1,:,:,1),leadEdge_A(2,:,:,1),leadEdge_A(3,:,:,1),scale,'-','color','r','LineWidth',2);
+            %quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),leadEdge_A(1,:,:,1),leadEdge_A(2,:,:,1),leadEdge_A(3,:,:,1),scale,'-','color','r','LineWidth',2);
             hold on
             %text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.9,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
-            for i=2:1:numel(hobj.rotors)
+            for k=1:1:numel(hobj.rotors)
                 clrs = '-gcym';
-                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),leadEdge_A(1,:,:,i),leadEdge_A(2,:,:,i),leadEdge_A(3,:,:,i),scale,'-','color',clrs(k),'LineWidth',2);
+                temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
+                for i=1:1:temp(2) % Sections
+                    for j=1:1:temp(3) % Blades
+                        plot3(coords2plot(1,:,i,j,k),coords2plot(2,:,i,j,k),coords2plot(3,:,i,j,k));
+                        text(hobj.rotorLocs(1,k),hobj.rotorLocs(2,k),hobj.rotorLocs(3,k)*0.8,['Rotor Number = ' num2str(hobj.rotors(k).ID,1)]);
+                    end                    
+                end
+                %quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),leadEdge_A(1,:,:,i),leadEdge_A(2,:,:,i),leadEdge_A(3,:,:,i),scale,'-','color',clrs(k),'LineWidth',2);
                 %text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*1.1,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
             end
             axis equal

@@ -67,7 +67,7 @@ classdef blade < handle
                 hobj.length = length;
                 hobj.tipLoc = length; % See note above.
                 hobj.sections = section;
-                hobj.numsects = numel(section);
+                hobj.numsects = numel(hobj.sections);
                 hobj.sectLocs = secLocs;
                 hobj.centermass = [0;length/2;0];
                 hobj.mass = mass;
@@ -136,14 +136,14 @@ classdef blade < handle
             TSRopt = 2*pi/numblds*rtos;
             % Compute Twist using method described in Ch. 5 of (Gasch and Twele 2012)
             %bladeDZfrac = 0.0; % todo(rodney) un-hardcode this
-            locs = linspace(hobj.length*bladeDZfrac,hobj.length,hobj.numsects);
+            locs = linspace(hobj.length*bladeDZfrac,hobj.length,numel(hobj.sections));
             twist = atan(2/3*hobj.length/TSRopt*1./locs)-aoaopt*pi/180;
         end
         
         function reverseTwist(hobj)
             % Reverses the blade twist to make a contrarotating rotor by
             % mirroring the location of the blade sections.
-            warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis');
+            warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis. Just mirroring the blade by moving sections.');
             for i=1:1:numel(hobj)
                 hobj(i).sectLocs = -hobj(i).sectLocs;
             end
@@ -171,6 +171,7 @@ classdef blade < handle
             % As of 17JUN2019 we assume that the rotation is only about the
             % j_b = j_a axis.
             temp = size(hobj.sectOrnts);
+            m = NaN(3,3,temp(2));
             for i=1:1:temp(2)
                 th = hobj.sectOrnts(2,i);
                 m(:,:,i) = [cos(th) 0 -sin(th);...

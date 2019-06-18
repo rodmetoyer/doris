@@ -14,7 +14,7 @@ classdef airfoil < handle
         clpp        % Piecewise polynomial object for the cl alpha curve
         cdpp        % Piecewise polynomial object for the cd alpha curve
         cmpp        % Piecewise polynomial object for the cm alpha curve
-        basecoords  % The base (unit) coordinates for the airfoil geometry
+        basecoords  % 3xn base (unit) coordinates for the airfoil geometry in the airfoil frame (xyz by nPoints)
     end
     
     properties (Dependent)
@@ -51,7 +51,8 @@ classdef airfoil < handle
             hobj.clpp = pchip(hobj.clcurve(1,:),hobj.clcurve(2,:));
             hobj.cdpp = pchip(hobj.cdcurve(1,:),hobj.cdcurve(2,:));
             hobj.cmpp = pchip(hobj.cmcurve(1,:),hobj.cmcurve(2,:));
-            hobj.basecoords = getBaseCoords(hobj.airfoilID);
+            basecoords = getBaseCoords(hobj.airfoilID);
+            hobj.basecoords = transpose(basecoords);
         end
         % Other methods
         

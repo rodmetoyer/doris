@@ -54,7 +54,7 @@ v.orientation = [pi/2;0;0];
 v.velocity = [0;0;0];
 v.angvel = [0/60*2*pi;0/60*2*pi;60/60*2*pi];
 r.connectVehicle(v);
-water.velocity = [0.1;0;0];
+water.velocity = [0.5;0;0];
 v.computeHydroLoads(water);
 r.visualizeSectionLoads;
 % I'd like to visualize the rotor on a body
@@ -65,16 +65,27 @@ r2.setID(2);
 r2.orientation = [0;0;0]; % Rotor orientation is w.r.t. the vehicle frame
 vRPM = [0;0;0];
 v.angvel = vRPM/60*2*pi;
-%v.angvel = [0;1;0];
+r2.connectVehicle(v);
+v.init(vb,[r r2],[0 0;0 0;1 -1],[0;0;0],[0;0;0],[0;0;0]);
 rpm = 10;
 rpm2 = -10;
 r.angvel = [0;0;rpm/60*2*pi];
 r2.angvel = [0;0;rpm2/60*2*pi]; % Also w.r.t. the vehicle frame
-r2.connectVehicle(v);
-v.init(vb,[r r2],[0 0;0 0;1 -1],[0;0;0],[0;0;0],[0;0;0]);
+
 v.computeHydroLoads(water);
-v.visualizeSectionLoads(false,0.7);
-v.visualizeRelativeVelocities(water,false,0);
+hideThePlots = false;
+onlyShowTotalLoads = false;
+v.visualizeSectionLoads(hideThePlots,0.7,onlyShowTotalLoads);
+v.visualizeRelativeVelocities(water,hideThePlots,0);
 
 %% Let's try to visualize all the frames in the vehicle
-v.visualizeSectionFrames;
+v.visualizeSections;
+
+
+% Alright, lets see about a movie
+rpm = 0;
+rpm2 = 0;
+r.angvel = [0;0;rpm/60*2*pi];
+r2.angvel = [0;0;rpm2/60*2*pi]; % Also w.r.t. the vehicle frame
+
+    

@@ -57,26 +57,30 @@ r.connectVehicle(v);
 water.velocity = [0.5;0;0];
 v.computeHydroLoads(water);
 itr = 1;
-for TSR=0:0.5:18
+for TSR=0:0.2:14
     omega(itr) = TSR*norm(water.velocity)/v.rotors(1).blades(1).length;
     v.rotors(1).angvel = [0;0;omega(itr)];
     v.computeHydroLoads(water);
     forceout(:,itr) = v.rotors(1).force;
     TQout(:,itr) = v.rotors(1).torqueCM;
     TSRout(itr) = TSR;
-    %figs(itr) = v.rotors(1).visualizeSectionLoads(true,0);
+    figs(itr) = v.visualizeSectionLoads(true,1,false);
     itr = itr + 1;
 end
 figure
 plot(TSRout,forceout(3,:),'o');
+xlabel('TSR'); ylabel('Thrust (N)');
+title('Hydrodynamic Thrust | BEM');
 
 figure
 plot(TSRout,TQout(3,:),'o');
+xlabel('TSR'); ylabel('Torque (Nm)');
+title('Hydodynamic Moment | BEM');
 
 %% Movie
 
 writerObj = VideoWriter('myVideo.avi');
-writerObj.FrameRate = 1;
+writerObj.FrameRate = 10;
 open(writerObj);
 % write the frames to the video
 for i=1:numel(figs)

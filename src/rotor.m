@@ -106,6 +106,10 @@ classdef rotor < handle
             % todo(rodney) Think about how to do this for a vector field for future functionality.
             Ufluid_P = hobj.P_C_A*hobj.vehicle.A_C_O*fluid.velocity;
             % Rotate rotor center mass velocity to rotor frame
+                % rotor.velocity returns the velocity in the vehicle frame
+                % todo not sure why I do it this way. See if you can just
+                % % return in the rotor frame. That would be easier to
+                % remember. He gets used in vehicle.
             OVpo_P = hobj.P_C_A*hobj.velocity; % OVpo_P is O derivative of r_<to><from>_<ExprsdFrame>
             
             % Get aero loads for each blade
@@ -113,7 +117,7 @@ classdef rotor < handle
             % NOTE: This assumes that the number of sections is the same in
             % each blade. I'm OK with that for now because we use the same
             % assumption in the loop. Need to fix this when we generalize.
-            U_relSections = NaN(3,hobj.blades(1).numsects,hobj.numblades); % todo fix this when you make the number of sections per blade arbitrary.
+            U_relSections = NaN(3,hobj.blades(1).numsects,hobj.numblades); % todo fix this if/when you make the number of sections per blade arbitrary.
             LiftSections = U_relSections;
             DragSections = U_relSections;
             ForceSections = U_relSections;
@@ -123,31 +127,29 @@ classdef rotor < handle
             for i=1:1:hobj.numblades
                 % Get section aero loads
                 for j=1:1:hobj.blades(i).numsects
-                    % Rotate coordinates to this section in the rotor
-                    % frame. NOTE that this assumes that the blade root is
-                    % at the rotor frame origin. Need to generalize.
-                    %rap_P = hobj.P_C_bx(:,:,i)*hobj.blades(i).sectLocs(:,j); % hobj.blades(i).sectionLocs(:,j) is rap_bx
+                    % Get section positions
                     rap_P = hobj.sectPos(:,j,i);
                     % Compute relative velocity in the rotor frame at the
                     % section location.
-                    temp = hobj.vehicle.angvel + hobj.angvel;
-                    V_ap_P = cross(temp,rap_P);
+                        % Need {O_W_A}_P
+                    O_W_P = hobj.P_C_A*hobj.vehicle.angvel + hobj.angvel;
+                    V_ap_P = cross(O_W_P,rap_P);
                     U_rel_P = Ufluid_P - OVpo_P - V_ap_P;
                     U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
                     
                     % Rotate the relative velocity into the blade section
-                    % frame. First, compute b_this_i_C_a
+                    % frame. First, compute bx_C_a
                     ang = hobj.blades(i).sectOrnts(2,j); 
                     % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
-                    bx_C_a = [cos(-ang),0,-sin(-ang);0,1,0;sin(-ang),0,cos(-ang)];
+                    bx_C_a = [cos(ang),0,-sin(ang);0,1,0;sin(ang),0,cos(ang)];
                     % U in section frame =
                     % section_C_blade*blade_C_rotor*U_rotor
-                    U_rel_bs = transpose(bx_C_a)*hobj.bx_C_P(:,:,i)*U_rel_P;
+                    U_rel_a = transpose(bx_C_a)*hobj.bx_C_P(:,:,i)*U_rel_P;
                     
                     % Get loads from each section of the blade. INFO: The
                     % computeLoads method only uses the x and z components
                     % of the relative velocity vector.
-                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_bs,fluid);
+                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_a,fluid);
                     %[lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
                     % No moments right now so I'm not dealing with them.
                     % todo(rodney) add section moment functionality.                    
