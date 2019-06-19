@@ -89,7 +89,7 @@ disp('Figure closed, continuing');
 %% Set-up simulation
 %tspan = 0:tstep:totalSimTime;
 % temporary control for debugging
-tspan = 0:0.002:5;
+tspan = 0:0.005:20;
 
 % Initial states
 % State vector
@@ -103,6 +103,19 @@ disp('Running the simulation');
 opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
 %opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
 [t, y] = ode45(@(t,y) vehicleState( t,y,v,water),tspan,x0,opts);
+
+%% Write simulation results to file
+simCaseID = 0;
+% todo make a simulation class that can make a number of simualtion cases
+% or inport simulation cases from input files.
+if ~exist('data','dir')
+    mkdir('data');
+end
+flnm = ['data\simCase' num2str(simCaseID) '.txt'];
+writeToFile(t,y,flnm);
+
+%% Make a video of the simulation results
+
 
 %% Plots
 plotlowx = 50; plotlowy = 50; plotw = 600; ploth = 400;

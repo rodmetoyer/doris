@@ -149,7 +149,7 @@ classdef vehicle < handle
             hobj.rotorLocs = [hobj.rotorLocs,loc];
         end % end addRotor
         %% visualizeSectionLoads
-        function hfig = visualizeSectionLoads(hobj,hide,scale,totalOnly)
+        function frame = visualizeSectionLoads(hobj,hide,scale,totalOnly)
             % This method creates a plot of the current loads on the
             % ARGS: 
                 % hide = bool hide the plot?
@@ -164,6 +164,7 @@ classdef vehicle < handle
             if nargin < 4
                 totalOnly = false;
             end
+            as = 'on';
             for k=1:1:numel(hobj.rotors) % rotors loop
                 temp = size(hobj.rotors(k).sectPos); % 3 x nSects x nBlades
                 A_C_P = transpose(hobj.rotors(k).P_C_A);
@@ -183,25 +184,27 @@ classdef vehicle < handle
             if hide
                 v = 'off';
             end
-            hfig = figure('visible',v,'Position',[100 100 900 900]);            
-            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),R_A(1,:,:,1),R_A(2,:,:,1),R_A(3,:,:,1),scale,'-','color',[0 0 0],'LineWidth',2);
+            
+            hfig = figure('visible',v,'Position',[100 100 900 900]);
+            
+            quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),R_A(1,:,:,1),R_A(2,:,:,1),R_A(3,:,:,1),scale,'-','color',[0 0 0],'LineWidth',2,'AutoScale',as);
             hold on
             if ~totalOnly
-                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),D_A(1,:,:,1),D_A(2,:,:,1),D_A(3,:,:,1),scale,'-','color',[1 0 0],'LineWidth',2);
-                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),L_A(1,:,:,1),L_A(2,:,:,1),L_A(3,:,:,1),scale,'-','color',[0 0 1],'LineWidth',2);
+                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),D_A(1,:,:,1),D_A(2,:,:,1),D_A(3,:,:,1),scale,'-','color',[1 0 0],'LineWidth',2,'AutoScale',as);
+                quiver3(raA_A(1,:,:,1),raA_A(2,:,:,1),raA_A(3,:,:,1),L_A(1,:,:,1),L_A(2,:,:,1),L_A(3,:,:,1),scale,'-','color',[0 0 1],'LineWidth',2,'AutoScale',as);
             end
-            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.6,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM']);
-            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.7,['Torque = ' num2str(hobj.rotors(1).torqueCM(3),3) ' N']);
-            text(hobj.rotorLocs(1,1),hobj.rotorLocs(2,1),hobj.rotorLocs(3,1)*0.8,['Rotor Number = ' num2str(hobj.rotors(1).ID,1)]);
+            text((hobj.rotorLocs(1,1)+R_A(1,end,1,1))*0.5,(hobj.rotorLocs(2,1)+R_A(2,end,1,1))*0.5,(hobj.rotorLocs(3,1)+R_A(3,end,1,1))*0.5,['Rotor Rotation Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi,3) ' RPM'],'color','m','FontSize',12,'FontWeight','bold');
+            text((hobj.rotorLocs(1,1)+R_A(1,end,1,1))*0.6,(hobj.rotorLocs(2,1)+R_A(2,end,1,1))*0.6,(hobj.rotorLocs(3,1)+R_A(3,end,1,1))*0.6,['Torque = ' num2str(hobj.rotors(1).torqueCM(3),3) ' N'],'color','m','FontSize',12,'FontWeight','bold');
+            text((hobj.rotorLocs(1,1)+R_A(1,end,1,1))*0.7,(hobj.rotorLocs(2,1)+R_A(2,end,1,1))*0.7,(hobj.rotorLocs(3,1)+R_A(3,end,1,1))*0.7,['Rotor Number = ' num2str(hobj.rotors(1).ID,1)],'color','m','FontSize',12,'FontWeight','bold');
             for i=2:1:numel(hobj.rotors)
-                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),R_A(1,:,:,i),R_A(2,:,:,i),R_A(3,:,:,i),scale,'-','color',[0 0 0],'LineWidth',2);
+                quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),R_A(1,:,:,i),R_A(2,:,:,i),R_A(3,:,:,i),scale,'-','color',[0 0 0],'LineWidth',2,'AutoScale',as);
                 if ~totalOnly
-                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),L_A(1,:,:,i),L_A(2,:,:,i),L_A(3,:,:,i),scale,'-','color',[0 0 1],'LineWidth',2);
-                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),D_A(1,:,:,i),D_A(2,:,:,i),D_A(3,:,:,i),scale,'-','color',[1 0 0],'LineWidth',2);
+                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),L_A(1,:,:,i),L_A(2,:,:,i),L_A(3,:,:,i),scale,'-','color',[0 0 1],'LineWidth',2,'AutoScale',as);
+                    quiver3(raA_A(1,:,:,i),raA_A(2,:,:,i),raA_A(3,:,:,i),D_A(1,:,:,i),D_A(2,:,:,i),D_A(3,:,:,i),scale,'-','color',[1 0 0],'LineWidth',2,'AutoScale',as);
                 end
-                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.6,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
-                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.7,['Torque = ' num2str(hobj.rotors(i).torqueCM(3),3) ' N']);
-                text(hobj.rotorLocs(1,i),hobj.rotorLocs(2,i),hobj.rotorLocs(3,i)*0.8,['Rotor Number = ' num2str(hobj.rotors(i).ID,1)]);
+%                 text((hobj.rotorLocs(1,i)+R_A(1,:,:,i))*0.5,(hobj.rotorLocs(2,i)+R_A(2,:,:,i))*0.5,(hobj.rotorLocs(3,i)+R_A(3,:,:,i))*0.5,['Rotor Rotation Rate = ' num2str(hobj.rotors(i).angvel(3)*30/pi,3) ' RPM']);
+%                 text((hobj.rotorLocs(1,i)+R_A(1,:,:,i))*0.6,(hobj.rotorLocs(2,i)+R_A(2,:,:,i))*0.6,(hobj.rotorLocs(3,i)+R_A(3,:,:,i))*0.6,['Torque = ' num2str(hobj.rotors(i).torqueCM(3),3) ' N']);
+%                 text((hobj.rotorLocs(1,i)+R_A(1,:,:,i))*0.7,(hobj.rotorLocs(2,i)+R_A(2,:,:,i))*0.7,(hobj.rotorLocs(3,i)+R_A(3,:,:,i))*0.7,['Rotor Number = ' num2str(hobj.rotors(i).ID,1)]);
             end
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
@@ -215,7 +218,11 @@ classdef vehicle < handle
             hold off
             ax = gca;
             ax.FontSize = 10;
-            set(ax,'color','none');            
+            set(ax,'color','none');
+            frame = getframe(hfig);
+            if hide
+                close(hfig);
+            end
         end % end visualizeSectionLoads
         %% visualizeRelativeVelocities
         function hfig = visualizeRelativeVelocities(hobj,fluid,hide,scale)

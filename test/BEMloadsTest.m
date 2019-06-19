@@ -47,7 +47,7 @@ r.angvel = [0;0;rpm/60*2*pi]; % Also w.r.t. the vehicle frame
 % Need a vehicle to relate the rotor frame to inertial frame
 vb = vehiclebody;
 v = vehicle;
-v.init(vb,r,[0;0;0],[0;0;0],[0;0;0],[0;0;0]);
+v.init(vb,r,[0;0;-1],[0;0;0],[0;0;0],[0;0;0]);
 v.orientation = [pi/2;0;0];
 v.velocity = [0;0;0];
 v.angvel = [0/60*2*pi;0/60*2*pi;0/60*2*pi];
@@ -56,16 +56,25 @@ r.connectVehicle(v);
 % him.
 water.velocity = [0.5;0;0];
 v.computeHydroLoads(water);
+v.rotors(1).angvel = [0;0;0*pi/30];
+v.computeHydroLoads(water);
+v.visualizeSectionLoads(false,0,false);
+
 itr = 1;
-for TSR=0:0.2:14
+startTSR = 0;
+endTSR = 14;
+TSRincr = 0.1;
+%% Get movie frames
+for TSR=startTSR:TSRincr:endTSR
     omega(itr) = TSR*norm(water.velocity)/v.rotors(1).blades(1).length;
     v.rotors(1).angvel = [0;0;omega(itr)];
     v.computeHydroLoads(water);
     forceout(:,itr) = v.rotors(1).force;
     TQout(:,itr) = v.rotors(1).torqueCM;
     TSRout(itr) = TSR;
-    figs(itr) = v.visualizeSectionLoads(true,1,false);
+    frms(itr) = v.visualizeSectionLoads(true,0,false); % hide,scale,totalOnly
     itr = itr + 1;
+    disp(['Iteration number: ' num2str(itr) ' of ' num2str(ceil((endTSR-startTSR)/TSRincr)+2)]);
 end
 figure
 plot(TSRout,forceout(3,:),'o');
@@ -79,15 +88,8 @@ title('Hydodynamic Moment | BEM');
 
 %% Movie
 
-writerObj = VideoWriter('myVideo.avi');
+writerObj = VideoWriter('LDandTotal_noScale.avi');
 writerObj.FrameRate = 10;
 open(writerObj);
-% write the frames to the video
-for i=1:numel(figs)
-    % convert the image to a frame
-    frame = getframe(figs(i));
-    drawnow
-    writeVideo(writerObj, frame);
-end
-% close the writer object
+writeVideo(writerObj, frms);
 close(writerObj);

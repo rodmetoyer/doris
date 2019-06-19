@@ -75,7 +75,7 @@ r2.angvel = [0;0;rpm2/60*2*pi]; % Also w.r.t. the vehicle frame
 v.computeHydroLoads(water);
 hideThePlots = false;
 onlyShowTotalLoads = false;
-v.visualizeSectionLoads(hideThePlots,0.7,onlyShowTotalLoads);
+v.visualizeSectionLoads(hideThePlots,0,onlyShowTotalLoads);
 v.visualizeRelativeVelocities(water,hideThePlots,0);
 
 %% Let's try to visualize all the frames in the vehicle
