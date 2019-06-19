@@ -111,7 +111,8 @@ simCaseID = 0;
 if ~exist('data','dir')
     mkdir('data');
 end
-flnm = ['data\simCase' num2str(simCaseID) '.txt'];
+%flnm = ['data\simCase' num2str(simCaseID) '.txt'];
+flnm = ['data\' runname '.txt'];
 writeToFile(t,y,flnm);
 
 %% Make a video of the simulation results
