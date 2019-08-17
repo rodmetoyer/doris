@@ -1,5 +1,5 @@
 % BEMloadsTest.m
-% Compares loads to aerodyn
+% For comparing loads to aerodyn
 
 clearvars; close all; clc;
 addpath('..\src');
