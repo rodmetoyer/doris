@@ -5,55 +5,77 @@ clearvars; close all; clc;
 addpath('..\src');
 
 % Global options
+opts.interactive = false; % Make this true to turn on all the dialogs, make it false to manually run unit tests
 opts.verbose = true;
 opts.resultsfile = '';
 opts.plot = true;
 opts.movie = false;
+testToRun = 'Generator';
+% These are all of the unit tests available
+unittests = {'All','Airfoil','Fluid','Rotor','Blade','BladeSection','Vehicle','Generator'};
 
-runairfoil = false; runfluid = false; runrotor = false; runblade = false;
-runbaldesection = false; runvehicle = false;
-unittests = {'All','Airfoil','Fluid','Rotor','Blade','BladeSection','Vehicle'};
-[indx, tf] = listdlg('PromptString','Select a test to run?','ListString',unittests);
-if ~tf
-    error('Test canceled.');
+
+%% Run Unit Tests
+run.airfoil = false; run.fluid = false; run.rotor = false; run.blade = false;
+run.baldesection = false; run.vehicle = false; run.generator = false;
+
+if opts.interactive
+    [indx, tf] = listdlg('PromptString','Select a test to run?','ListString',unittests);
+else
+    tf = opts.interactive;
+    ii = 1;
+    for i=1:1:numel(unittests)
+        if strcmpi(testToRun,unittests(i))
+            indx(ii) = i;
+            ii = ii + 1;
+        end
+    end
+    clear ii;
+end
+if (~tf && opts.interactive)
+    error('Error determining which tests to run. Test canceled.');
 else
     for i=1:1:numel(indx)        
         switch char(unittests(indx(i)))
             case 'All'
-                runairfoil = true; runfluid = true; runrotor = true; runblade = true; runbaldesection = true;
+                run.airfoil = true; run.fluid = true; run.rotor = true; run.blade = true; run.baldesection = true;
                 break;
             case 'Fluid'
-                runfluid = true;
+                run.fluid = true;
             case 'Rotor'
-                runrotor = true;
+                run.rotor = true;
             case 'Airfoil'
-                runairfoil = true;
+                run.airfoil = true;
             case 'Blade'
-                runblade = true;
+                run.blade = true;
             case 'BladeSection'
-                runbaldesection = true;
+                run.baldesection = true;
             case 'Vehicle'
-                runvehicle = true;
+                run.vehicle = true;
+            case 'Generator'
+                run.generator = true;
             otherwise
-                error('Something strange happened. What do I do with this?');
+                errstr = ['Something strange happened. I was trying to run "' char(unittests(indx(i))) '". What do I do with this?'];
+                error(errstr);
         end
     end
 end
 
 % Fluid
-f = fluid('water'); % This object gets used later in bladesection unit test
-% todo make all these stand alone. If you need objects for the unit test
-% make them there then destroy them before moving on.
-f.velocity = [1.0,0.0,0.0];
-if runfluid
+if run.fluid
+    f = fluid('water'); % This object gets used later in bladesection unit test
+    % todo make all these stand alone. If you need objects for the unit test
+    % make them there then destroy them before moving on.
+    f.velocity = [1.0,0.0,0.0];
     fltest = fluidUnitTest(f);
     if ~fltest
         error('Fluid unit test failed.');
     end
+    clear f fltest;
 end
 
 % Airfoil
-if runairfoil
+if run.airfoil
     aftest = airfoilUnitTest(opts);
     if ~aftest
         error('Airfoil unit test failed.');
@@ -62,19 +84,22 @@ end
 
 % bladesection
 % Make new airfoil object
-if runbaldesection
+if run.baldesection
+    f = fluid('water');
+    f.velocity = [1.0,0.0,0.0];
     af = airfoil('SG6040');
     bs = bladesection(0.1,0.1,af);
     passed = bladesectionUnitTest(bs,f,true);
     if ~passed
         error('Bladesection failed unit test');
     end
+    clear f bs af passed
 end
 
 % blade
 % Make a blade out of blade sections
 % (root)<-bs->-<-bs1->-<-bs2->-<--bs3-->-<---bs4--->-<bs5>(tip)
-if runblade
+if run.blade
     error('blade unit test not currently functional');
     
     bs3 = bladesection(0.1,0.2,af);
@@ -107,7 +132,7 @@ if runblade
     hold off
 end
 
-if runrotor
+if run.rotor
     error('rotor unit test not currently funcitonal');
     % Rotor
     % first need to make a couple more blades (remember that these are handle
@@ -137,8 +162,95 @@ if runrotor
     %rotorUnitTest(f,test);
 end
 
-if runvehicle
+if run.vehicle
     vtest = vehicleUnitTest(opts);    
 end
+
+% generator
+if run.generator
+    % Make a generator object
+    % generator(machineConstant,magFlux,ArmResistance,viscCoeff)
+    gen = generator(0.19,1,0.1,1.0e-4);
+    % Get the torque for whatever rate it is currently spinning. Should be
+    % minimum right now because there is no load.
+    speed = 0:1:100;
+%     for i=1:1:length(speed)
+%         tq(1,i) = -gen.getTorque(speed(i));
+%         pwr(1,i) = gen.getPower(abs(speed(i)));
+%         curr(1,i) = gen.getArmatureCurrent(abs(speed(i)));
+%     end
+    % set the load. Torque increases as load decreases
+    load = [inf logspace(0,-2,3) 0];
+    load = [inf logspace(2,1,3) 0];
+    load = [inf 100 5 0];
+    for j = 1:1:length(load)
+        gen.setLoadResistance(load(j));
+        for i=1:1:length(speed)
+            tq(j,i) = -gen.getTorque(speed(i));
+            pwr(j,i) = gen.getPower(abs(speed(i)));
+            curr(j,i) = gen.getArmatureCurrent(abs(speed(i)));
+        end
+    end
+    % make a plot
+    color = 'w';
+    hfig1 = figure('Color',color);
+    ax1 = axes('Parent',hfig1,'Color',color);
+    hold on
+    for j = 1:1:length(load)
+        plot(ax1,speed*180/pi,tq(j,:),'LineWidth',2.0);
+    end
+    hold off
+    legend(ax1,[sprintfc('%3.2e',load)],'Location','best');
+    xlabel(ax1,'Shaft Speed (RPM)'); ylabel(ax1,'Torque (Nm)');
+    
+    hfig2= figure('Color',color);
+    ax2 = axes('Parent',hfig2,'Color',color);
+    hold on
+    for j = 1:1:length(load)
+        plot(ax2,speed*180/pi,pwr(j,:),'LineWidth',2.0);
+    end
+    hold off
+    legend(ax2,[sprintfc('%3.2e',load)],'Location','best');
+    xlabel(ax2,'Shaft Speed (RPM)'); ylabel(ax2,'Electrical Power (W)');
+    
+%     case2plot = 1;
+%     if case2plot > 1
+%         loadnow = load(case2plot-1);
+%     else
+%         loadnow = inf;
+%     end
+    hfig3 = figure('Position',[100 100 900 800],'Color',color);
+    ax31 = subplot(2,2,1,'Color',color,'Parent',hfig3);
+    ax32 = subplot(2,2,2,'Color',color,'Parent',hfig3);
+    ax33 = subplot(2,2,3,'Color',color,'Parent',hfig3);
+    ax34 = subplot(2,2,4,'Color',color,'Parent',hfig3);
+    plot(ax31,speed*180/pi,speed.*tq(1,:),speed*180/pi,pwr(1,:),'LineWidth',2.0); hold on
+    %plot(ax31,speed*180/pi,pwr(case2plot,:));% hold off
+    plot(ax32,speed*180/pi,speed.*tq(2,:),speed*180/pi,pwr(2,:),'LineWidth',2.0);% hold on
+    %plot(ax32,speed*180/pi,pwr(case2plot,:));% hold off
+    plot(ax33,speed*180/pi,speed.*tq(3,:),speed*180/pi,pwr(3,:),'LineWidth',2.0);% hold on
+    %plot(ax33,speed*180/pi,pwr(case2plot,:));% hold off
+    plot(ax34,speed*180/pi,speed.*tq(end,:),speed*180/pi,pwr(end,:),'LineWidth',2.0);% hold on
+    % plot(ax34,speed*180/pi,pwr(case2plot,:)); hold off
+    legend(ax31,{'Mechanical','Electrical'},'Location','best');
+    xlabel(ax33,'Shaft Speed (RPM)'); ylabel(ax31,'Power (W)');
+    xlabel(ax34,'Shaft Speed (RPM)'); ylabel(ax33,'Power (W)');
+    title(ax31,['Load resistance = ' num2str(load(1),'%3.2f') ' (\Omega)']);
+    title(ax32,['Load resistance = ' num2str(load(2),'%3.2f') ' (\Omega)']);
+    title(ax33,['Load resistance = ' num2str(load(3),'%3.2f') ' (\Omega)']);
+    title(ax34,['Load resistance = ' num2str(load(end),'%3.2f') ' (\Omega)']);
+    ax31.Box = 'off'; ax32.Box = 'off'; ax33.Box = 'off'; ax34.Box = 'off';
+%     
+%     figure
+%     plot(tq(:,end),pwr(:,end),'or')
+%     figure
+%     hold on
+%     for j = 1:1:length(load)+1
+%         plot(speed*180/pi,curr(j,:));
+%     end
+%     hold off
+%     xlabel('Shaft Speed (RPM)'); ylabel('Current (A)');
+
+end % generator
 
 % todo Make a summary of all the returns

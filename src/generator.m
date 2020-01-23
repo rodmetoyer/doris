@@ -2,36 +2,38 @@ classdef generator < handle
     % The generator
     
     properties (SetAccess = private)
-        efficiency
+        kmach   % machine constant
+        flux    % magnetic flux
+        rarm    % total armature resistance
+        rload   % load resistance
+        kvisc   % damping constant for viscous friction
     end % end parameters
-    properties
-        torque
-    end % end variable properties
     
     methods
-        function hobj = generator(tq,e)
-            % ARGUMENTS
-                % tq = torque
-                % e = efficiency
-            if nargin == 0
-                hobj.torque = 0;
-                hobj.efficiency = 0.9;
-            else
-                hobj.torque = tq;
-                hobj.efficiency = e;
-            end
+        % Constructor
+        function hobj = generator(k,phi,ra,c)
+            hobj.kmach = k;
+            hobj.flux = phi;
+            hobj.rarm = ra;
+            hobj.rload = inf; % no load when you first make the generator
+            hobj.kvisc = c;
+        end % generator
+        
+        function tq = getTorque(hobj,omg)
+            k = 0.8; % this is an exponential that determines the shape of viscous friction vs. speed.
+            tq = -(hobj.kmach*hobj.flux)^2*omg/(hobj.rarm + hobj.rload) - hobj.kvisc^k*omg;
+        end % getTorque
+        
+        function pwr = getPower(hobj,omg)
+            pwr = (hobj.kmach*hobj.flux*omg)^2/(hobj.rarm + hobj.rload);
         end
         
-        function computeTorque(hobj,p,omega)
-            % ARGUMENTS
-                % p = power in watts
-                % omega = angular speed in rad/s
-            if abs(omega) < 10e-9 && p > 1
-                error('Generator has stalled');
-            end
-            hobj.torque = hobj.efficiency*p/omega;
+        function i = getArmatureCurrent(hobj,omg)
+            i = (hobj.kmach*hobj.flux*omg)/(hobj.rarm + hobj.rload);
         end
         
-    end % end methods
-    
+        function setLoadResistance(hobj,r)
+            hobj.rload = r;
+        end
+    end % end methods    
 end % end generator
