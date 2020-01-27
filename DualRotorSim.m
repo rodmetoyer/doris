@@ -89,7 +89,7 @@ disp('Figure closed, continuing');
 %% Set-up simulation
 %tspan = 0:tstep:totalSimTime;
 % temporary control for debugging
-tspan = 0:0.005:20;
+tspan = 0:0.005:5;
 
 % Initial states
 % State vector
@@ -102,6 +102,9 @@ disp('Running the simulation');
 %[t, y] = ode45(@(t,y) rotorState(t,y,rotor,water),tspan,x0);
 opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
 %opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
+% todo make a simulation class.
+% todo also make a system class that includes the tether. Move completely
+% away from the state files. Let's take advantage of this hierarchy.
 [t, y] = ode45(@(t,y) vehicleState( t,y,v,water),tspan,x0,opts);
 
 %% Write simulation results to file
