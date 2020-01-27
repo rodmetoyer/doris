@@ -80,6 +80,9 @@ v.rotors(2).orientation = [0;0;0];
 rpm = 0;
 v.rotors(1).angvel = [0;0;rpm/60*2*pi];
 v.rotors(2).angvel = [0;0;-rpm/60*2*pi];
+% Add a generator to the vehicle
+gen = generator(0.19,1,0.1,1.0e-4); % todo size generator constant so that torque is reasonable
+v.addGenerator(gen);
 hfig = vehicleVisualCheck(water,v);
 disp('Close figure to continue...');
 waitfor(hfig)

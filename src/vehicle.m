@@ -11,6 +11,7 @@ classdef vehicle < handle
         % Objects
         body        % the vehicle body object
         rotors      % nx1 vector of rotor objects n is the number of rotors
+        generator   % generator
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
         centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3)
@@ -368,7 +369,11 @@ classdef vehicle < handle
         
         %% Other methods
         function sinebuoyforce(hobj,t,a,w)
+            % todo this is not a property of the vehicle. Get rid of this.
             hobj.buoyforce = a*sin(w*t);
+        end
+        function addGenerator(hobj,g)
+            hobj.generator = g;
         end
         
         %$ Setters
