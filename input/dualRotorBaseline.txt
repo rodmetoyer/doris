@@ -3,7 +3,7 @@ runname = 'dualRotorBaseline';
 
 % Environment
 fluidtype = 'water';
-fluidVelocity = [0.1;0.0;0];
+fluidVelocity = [0.5;0.0;0];
 
 % Vehicle
 bladeMass = 0.5;
@@ -36,12 +36,18 @@ totalSimTime = 10;
 tstep = 0.01;
 
 % Initial Conditions
-initialYaw = 0;
-initialPitch = 0;
-%initialRoll
+initialYaw = 0*pi/180;
+initialPitch = 90*pi/180;
+initialRoll = 0*pi/180;
 initialLateral = 0;
-%initialLongitudinal
-%initialVertical
+initialLongitudinal = 2;
+initialVertical = 1;
+initialSway = 0;
+initialSurge = 0;
+initialHeave = 0;
+initialYawRate = 0;
+initialPitchRate = 0;
+initialRollRate = 0;
 
 % Products
 makeplots = true;

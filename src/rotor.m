@@ -169,12 +169,14 @@ classdef rotor < handle
                     torque = torque + tauprev;
                 end % end bladesection loop               
             end % end blade loop
+            % Compute generator torquw
+            genTorque = hobj.vehicle.generator.getTorque(hobj.angvel);
             % Update class properties
-                    hobj.sectLift = LiftSections;
-                    hobj.sectDrag = DragSections;
-                    % hobj.sectMomt = TorqueSections;
-                    hobj.force = totforce;
-                    hobj.torqueCM = torque; % + sum(TorqueSections) I think, right?
+            hobj.sectLift = LiftSections;
+            hobj.sectDrag = DragSections;
+            % hobj.sectMomt = TorqueSections;
+            hobj.force = totforce;
+            hobj.torqueCM = torque + genTorque; % + sum(TorqueSections) I think, right?
         end % end computeHydroLoads
         
         function hfig = visualizeSectionLoads(hobj,hide,scale)

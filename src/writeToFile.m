@@ -1,4 +1,5 @@
 function writeToFile(t,y,flnm)
+error('writeToFile is obsolete. use write2file in teh simulation class');
 % Writes vehcile simulation data to file
 % INPUTS: 
     % t = time vector
