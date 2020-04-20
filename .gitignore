@@ -6,3 +6,7 @@ eval/
 *.avi
 tempfigs/
 data/
+sandbox/
+tools/*.txt
+tools/*.csv
+tools/*.xlsm

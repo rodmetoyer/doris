@@ -91,14 +91,20 @@ classdef simulation < handle
             end
         end
         
-        function write2file(hobj)
-            % simCaseID = 0;
+        function write2file(hobj,datflnm)
+            % Optional argument is the name of the file that you want to
+            % save to. Otherwise the filename will be whatever the
+            % simulation name is.
             outDir = 'products\data\';
             if ~exist(outDir,'dir')
                 mkdir(outDir);
             end
             %flnm = ['data\simCase' num2str(simCaseID) '.txt'];
-            flnm = [outDir hobj.name '.txt'];
+            if nargin < 2
+                flnm = [outDir hobj.name '.txt'];
+            else
+                flnm = [outDir datflnm '.txt'];
+            end
             % Break into states for writing
             [~,nStates] = size(hobj.states);
             dualrtr = false;
@@ -128,25 +134,32 @@ classdef simulation < handle
             fprintf('\nDone\n');
         end
         
-        function simulate(hobj,tspan,solver)
-            if nargin < 2
-                tspan = 0:hobj.timestep:hobj.duration;
-                solver = 'ode45';
-            end
+        function simulate(hobj,varargin)
+            defaultTspan = 0:hobj.timestep:hobj.duration;
+            defaultSolver = 'ode45';
+            defaultStats = 'on';
+            defaultOutput = @odeplot;
+            p = inputParser;
+            %validateOutput = @(x) isa(x,'function_handle');
+            addParameter(p,'tspan',defaultTspan,@isnumeric);
+            addParameter(p,'solver',defaultSolver,@ischar);
+            addParameter(p,'stats',defaultStats,@ischar);
+            addParameter(p,'output',defaultOutput);
+            parse(p,varargin{:});
             % Initial states
             % State vector
             % x = [x1; x2; x3; theta; gamma; beta; w1; w2; w3; u1; u2; u3; p3; fi3; q3; sy3];
             x0 = [hobj.vhcl.position; hobj.vhcl.orientation; hobj.vhcl.angvel; hobj.vhcl.velocity;...
                 hobj.vhcl.rotors(1).angvel(3); hobj.vhcl.rotors(1).orientation(3); hobj.vhcl.rotors(2).angvel(3); hobj.vhcl.rotors(2).orientation(3)];
             % todo add tether states We are going to add a tether with two links and one central node
-            if strcmpi(solver,'ode45')
+            if strcmpi(p.Results.solver,'ode45')
             disp('Running the simulation');
-            opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats','on','OutputFcn',@odeplot);
+            opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats',p.Results.stats,'OutputFcn',p.Results.output);
             %opts = odeset('RelTol',1e-5,'AbsTol',1e-6);
             % todo make a simulation class.
             % todo also make a system class that includes the tether. Move completely
             % away from the state files. Let's take advantage of this hierarchy.
-            [t, y] = ode45(@(t,y) vehicleState( t,y,hobj.vhcl,hobj.fld),tspan,x0,opts);
+            [t, y] = ode45(@(t,y) vehicleState( t,y,hobj.vhcl,hobj.fld),p.Results.tspan,x0,opts);
             hobj.times = t;
             hobj.states = y;
             else

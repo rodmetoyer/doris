@@ -7,16 +7,20 @@ syms m1 m2 mv
 mt = m1+m2+mv;
 
 % Create rotation matrices
-syms fi3 sy3 theta gamma beta
+syms fi1 fi2 fi3 sy1 sy2 sy3 theta gamma beta
 A_C_O = [cos(beta) sin(beta) 0; -sin(beta) cos(beta) 0; 0 0 1]*...
     [1 0 0; 0 cos(gamma) sin(gamma); 0 -sin(gamma) cos(gamma)]*...
     [cos(theta) 0 -sin(theta); 0 1 0; sin(theta) 0 cos(theta)];
 O_C_A = A_C_O.';
-P1_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1];
+P1_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1]*...
+    [1 0 0; 0 cos(fi1) sin(fi1); 0 -sin(fi1) cos(fi1)]*...
+    [cos(fi2) 0 -sin(fi2); 0 1 0; sin(fi2) 0 cos(fi2)];
 A_C_P1 = P1_C_A.';
 P1_C_O = P1_C_A*A_C_O;
 O_C_P1 = P1_C_O.';
-P2_C_A = [cos(sy3) sin(sy3) 0; -sin(sy3) cos(sy3) 0; 0 0 1];
+P2_C_A = [cos(sy3) sin(sy3) 0; -sin(sy3) cos(sy3) 0; 0 0 1]*...
+    [1 0 0; 0 cos(sy1) sin(sy1); 0 -sin(sy1) cos(sy1)]*...
+    [cos(sy2) 0 -sin(sy2); 0 1 0; sin(sy2) 0 cos(sy2)];
 A_C_P2 = P2_C_A.';
 P2_C_O = P2_C_A*A_C_O;
 O_C_P2 = P2_C_O.';
@@ -24,13 +28,11 @@ O_C_P2 = P2_C_O.';
 % Create position vectors
 syms x1 x2 x3
 r_cso_O = [x1; x2; x3];
-% ASSUMPTION: The vehicle is coaxial and the rotors are symmetrical
-syms c3 % cv and cs must be on k_A axis so geometry defined by one parameter
-r_cvcs_A = [0; 0; c3];
-% ASSUMPTION: The vehicle is coaxial and the rotors are symmetrical
-syms g3 h3 % location of p (cm of rotor) also defined by one parameter
-r_p1cs_A = [0; 0; g3];
-r_p2cs_A = [0; 0; h3];
+syms c1 c2 c3
+r_cvcs_A = [c1; c2; c3];
+syms g1 g2 g3 h1 h2 h3
+r_p1cs_A = [g1; g2; g3];
+r_p2cs_A = [h1; h2; h3];
 
 % Create velocity vectors
 syms u1 u2 u3
@@ -39,8 +41,7 @@ syms dx1 dx2 dx3
 Ov_cso_O = [dx1; dx2; dx3];
 syms w1 w2 w3
 O_w_A_A = [w1; w2; w3];
-% ASSUMPTION: The vehicle is coaxial and the rotors are symmetrical
-syms p3 q3 % only z-direction angular velocity of rotor in the rotor frame
+syms p3 q3 % Because of how we define the rotor frames, rotation will only ever be in the 3 direction.
 A_w_P1_P1 = [0; 0; p3];
 A_w_P1_A = A_C_P1*A_w_P1_P1;
 O_w_P1_A = O_w_A_A + A_C_P1*A_w_P1_P1;
@@ -49,13 +50,13 @@ A_w_P2_A = A_C_P2*A_w_P2_P2;
 O_w_P2_A = O_w_A_A + A_C_P2*A_w_P2_P2;
 
 % Create acceleration vectors
-% Note that a is used for linear and angular acceleration.
+% Note that 'a' is used for linear and angular acceleration.
 syms du1 du2 du3
 Aa_cso_A = [du1; du2; du3]; % Linear acceleration has prepended frame
 Oa_cso_A = Aa_cso_A + cross(O_w_A_A,Ov_cso_A);
 syms dw1 dw2 dw3
 O_a_A_A = [dw1; dw2; dw3];  % Angular accel'n has frame1_a_frame2
-syms dp3 dq3
+syms dp3 dq3 % Because of how we define the rotor frames, rotation will only ever be in the 3 direction.
 A_a_P1_P1 = [0; 0; dp3];
 A_a_P1_A = A_C_P1*A_a_P1_P1;
 A_a_P2_P2 = [0; 0; dq3];
@@ -71,7 +72,7 @@ syms f1 f2 f3
 F_A = [f1; f2; f3];
 
 % Create inertia matrices
-% ASSUMPTION: All frames are aligned with the principal axes
+% ASSUMPTION: All frames are aligned with their respective principal axes
 syms Icv11 Icv22 Icv33
 Icv_A = [Icv11,0,0;0,Icv22,0;0,0,Icv33];
 temp = makecrossmat(-r_cvcs_A);
@@ -105,19 +106,21 @@ term14 = m2*cross(r_p2cs_A,cross(O_w_A_A,cross(O_w_A_A,r_p2cs_A)));
 term15 = Ip2_A*(O_a_A_A + cross(O_w_A_A,A_w_P2_A) + A_a_P2_A);
 term16 = cross(O_w_P2_A,(Ip2_A*O_w_P2_A));
 
-% Rotor angular dynamical equations
-
 % Dynamical Equations | 12 equations and 12 unknowns
 rhs = (term1 + term2 + term3 + term4 + term5 + term6 + term7 + term8 + term9 + term10 + term11 + term12 + term13 + term14 + term15 + term16);
 rhs = [rhs; mt*Oa_cso_A;term9+term10;term15+term16];
 rhs = simplify(rhs);
+% Look for patterns of constants in the RHS that we can replace with
+% lumped parameters.
+
 lhs = [Tcs_A;F_A;Tp1_A;Tp2_A];
+lhs = simplify(lhs);
 eqn = rhs == lhs;
 % Solve dynamical equations
 disp('Solving eqns.');
 S = solve(eqn,[dw1,dw2,dw3,du1,du2,du3,tp11,tp12,dp3,tp21,tp22,dq3]);
 
-% Kinematical Equations  | 12 equations and 12 unknowns
+% Kinematical Equations  | 8 equations and 8 unknowns
 dangles = [1/cos(gamma)*(sin(beta)*O_w_A_A(1)+cos(beta)*O_w_A_A(2));...
     1/cos(gamma)*(cos(beta)*cos(gamma)*O_w_A_A(1)-sin(beta)*cos(gamma)*O_w_A_A(2));...
     1/cos(gamma)*(sin(beta)*sin(gamma)*O_w_A_A(1)-cos(beta)*sin(gamma)*O_w_A_A(2)+cos(gamma)*O_w_A_A(3))];
@@ -164,7 +167,7 @@ aa19 = dfi(3);
 aa20 = dsy(3);
 
 disp('Sending to file');  
-fid = fopen('equations_assumptions_dual.txt','w');
+fid = fopen('equations_minassumptions_dual.txt','w');
 fprintf(fid,'%s %s\n','dw1 = ', aa1);
 fprintf(fid,'%s %s\n','dw2 = ', aa2);
 fprintf(fid,'%s %s\n','dw3 = ', aa3);
@@ -189,3 +192,7 @@ fprintf(fid,'%s %s\n','dsy3 = ', aa20);
 fclose(fid);
 
 fprintf('\nDone\n');
+
+function mat = makecrossmat(x)
+mat=[0 -x(3) x(2) ; x(3) 0 -x(1) ; -x(2) x(1) 0 ];
+end

@@ -8,7 +8,7 @@ clearvars; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
 
-inputfile = 'dualRotorBaseline.txt';
+inputfile = 'tacticalScale.txt';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -43,10 +43,11 @@ disp('Figure closed, continuing');
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
 tspan = 0:0.005:1;
-sim.simulate(tspan,'ode45');
+sim.simulate('tspan',tspan);
+%sim.simulate('tspan',tspan,'stats','off','output',[]);
 
 %% Write simulation results to file
-sim.write2file;
+sim.write2file('test_relaxedAssumptions'); % The method will append the .txt extension
 
 %% Make a video of the simulation results
 
@@ -86,6 +87,6 @@ legend({'fi3','sy3'},'Location','Best');
 
 plotlowy = plotlowy+ploth; % Move up
 figure('Position',[plotlowx plotlowy plotw ploth])
-plot(t,y(:,13)*180/pi,'r',t,y(:,15)*180/pi,'b');
-xlabel('Time (s)'); ylabel('Angular Rate (deg/s)');
+plot(t,y(:,13)*30/pi,'r',t,y(:,15)*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
+xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Body Frame)');
 legend({'p3','q3'},'Location','Best');
