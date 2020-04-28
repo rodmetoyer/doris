@@ -41,6 +41,10 @@ sim.vhcl.addGenerator(gen);
 % uiwait(hfig,5)
 % disp('Figure closed, continuing');
 
+% add tether
+% todo - move to input file
+thr = tether(0,[],100,25,1);
+sim.addTether(thr);
 
 %% Simulate
 % No argument to the simulate method will default to simulation parameters

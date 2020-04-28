@@ -159,12 +159,16 @@ classdef simulation < handle
             % todo make a simulation class.
             % todo also make a system class that includes the tether. Move completely
             % away from the state files. Let's take advantage of this hierarchy.
-            [t, y] = ode45(@(t,y) vehicleState( t,y,hobj.vhcl,hobj.fld),p.Results.tspan,x0,opts);
+            [t, y] = ode45(@(t,y) vehicleState( t,y,hobj.vhcl,hobj.fld,hobj.thr),p.Results.tspan,x0,opts);
             hobj.times = t;
             hobj.states = y;
             else
                 error('only ode45 currently supported');
             end
+        end
+        
+        function addTether(hobj,t)
+            hobj.thr = t;
         end
         
         function makeMovie(hobj)
