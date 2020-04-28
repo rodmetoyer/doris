@@ -15,10 +15,13 @@ classdef vehicle < handle
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
         centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3)
+        syscm       % 3x1 vector location of center of mass of the system in the vehicle frame (s1,s2,s3)
         tetherpoint % 3xm vector of location of the tether attachment point(s) in the vehicle frame (t1, t2, t3)
         buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
         mass        % scalar total mass of the vehicle
         type        % uint identifier | see typeName get method for list of types
+        Mstar
+        MstarT
     end % End private properties    
     properties (Dependent)
         A_C_O       % 3x3 tranformation matrix from vehicle frame to inertial frame
@@ -37,7 +40,7 @@ classdef vehicle < handle
     
     methods
         %% Constructor
-        function hobj = vehicle(bod,rot,cm,tp,bp)
+        function hobj = vehicle(bod,rot,cm,cmsys,tp,bp)
             if nargin == 0
                 % Make sure to call init
                 warning('Make sure to initialize vehicle');
@@ -51,6 +54,7 @@ classdef vehicle < handle
                hobj.rotors = rot;
                hobj.body = bod;
                hobj.centermass = cm;
+               hobj.syscm = cmsys;
                hobj.tetherpoint = tp;
                hobj.buoypoint = bp;
                m = 0;
@@ -60,6 +64,8 @@ classdef vehicle < handle
                hobj.mass = m + bod.mass;
                %hobj.buoyforce = bf;
             end
+            hobj.Mstar = [];
+            hobj.MstarT = [];
         end % End constructor
         
         %% Initialization method
@@ -70,7 +76,8 @@ classdef vehicle < handle
             else
                 hobj.body = bod;
                 hobj.rotors = rot;
-                hobj.centermass = cm; % todo compute the center of mass of the vehicle from cm of vbod and rotors
+                hobj.centermass = cm;
+                hobj.syscm = cm; % todo compute the center of mass of the vehicle from cm of vbod and rotors
                 hobj.tetherpoint = tp;
                 hobj.buoypoint = bp;
                 %hobj.buoyforce = bf;
@@ -375,7 +382,39 @@ classdef vehicle < handle
         function addGenerator(hobj,g)
             hobj.generator = g;
         end
-        
+        function computeMstar(hobj)
+            if isempty(hobj.rotors)
+                error('Need an assembled vehicle to compute the mass matrix');
+            end
+            M11 = hobj.mass*eye(3);
+            r_csa_A = hobj.syscm;
+            r_csa_A_X = makecrossmat(r_csa_A);
+            M12 = -r_csa_A_X;
+            P_C_A = hobj.rotors(1).P_C_A;
+            Q_C_A = hobj.rotors(2).P_C_A;
+            A_C_P = P_C_A.';
+            A_C_Q = Q_C_A.';
+            Ip_P = hobj.rotors(1).inertia;
+            Iq_Q = hobj.rotors(2).inertia;
+            M23 = A_C_P*Ip_P;
+            M24 = A_C_Q*Iq_Q;
+            M33 = Ip_P;
+            M44 = Iq_Q;
+            r_pa_A = hobj.rotorLocs(:,1);
+            r_pa_A_X = makecrossmat(r_pa_A);
+            r_qa_A = hobj.rotorLocs(:,2);
+            r_qa_A_X = makecrossmat(r_qa_A);
+            Ia_A = hobj.body.inertia;
+            m1 = hobj.rotors(1).mass;
+            m2 = hobj.rotors(2).mass;
+            A = Ia_A - m1*r_pa_A_X*r_pa_A_X - m2*r_qa_A_X*r_qa_A_X + A_C_P*Ip_P*A_C_P + A_C_Q*Iq_Q*A_C_Q;
+            xi = [0 0 1];
+            hobj.Mstar = [M11 M12 zeros(3,1) zeros(3,1);...
+                transpose(M12) A M23*xi.' M24*xi.';...
+                zeros(1,3) xi*transpose(M23) xi*M33*xi.' 0;...
+                zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
+            hobj.MstarT = hobj.Mstar.';
+        end % computeMstar
         %$ Setters
         function setType(hobj,t)
             hobj.type = t;
@@ -404,4 +443,8 @@ classdef vehicle < handle
         end
         
     end
+end
+
+function mat = makecrossmat(x)
+mat=[0 -x(3) x(2) ; x(3) 0 -x(1) ; -x(2) x(1) 0 ];
 end

@@ -87,7 +87,7 @@ classdef simulation < handle
                 w10 = cos(initialYaw)*sin(initialRoll)*initialPitchRate + cos(initialRoll)*initialYawRate;
                 w20 = cos(initialYaw)*cos(initialRoll)*initialPitchRate - sin(initialRoll)*initialYawRate;
                 w30 = -sin(initialYaw)+initialRollRate;
-                hobj.vhcl.angvel = [w10;w20;w30];
+                hobj.vhcl.angvel = [w10;w20;w30];                
             end
         end
         

@@ -4,11 +4,11 @@
 % so. This script should let you setup either.
 
 % Clear the workspace
-clearvars; close all; clc;
+clear all; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
 
-inputfile = 'tacticalScale.txt';
+inputfile = 'dualRotorBaseline.txt';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -27,16 +27,19 @@ sim = simulation(inputfile);
 % sim.vhcl.angvel = [w10;w20;0];
 sim.vhcl.rotors(1).orientation = [0;0;0];
 sim.vhcl.rotors(2).orientation = [0;0;0];
+% Compute the mass matrix - todo add to sim class and add an initial
+% orientation to the rotors.
+sim.vhcl.computeMstar;
 rpm = 0;
 sim.vhcl.rotors(1).angvel = [0;0;rpm/60*2*pi];
 sim.vhcl.rotors(2).angvel = [0;0;-rpm/60*2*pi];
 % Add a generator to the vehicle
 gen = generator(0.19,1,0.1,1.0e-4); % todo size generator constant so that torque is reasonable
 sim.vhcl.addGenerator(gen);
-hfig = vehicleVisualCheck(sim.fld,sim.vhcl);
-disp('Close figure to continue...');
-uiwait(hfig,5)
-disp('Figure closed, continuing');
+% hfig = vehicleVisualCheck(sim.fld,sim.vhcl);
+% disp('Close figure to continue...');
+% uiwait(hfig,5)
+% disp('Figure closed, continuing');
 
 
 %% Simulate

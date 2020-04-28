@@ -96,11 +96,21 @@ cvec = [cvec1;cvec2;cvec3;cvec4];
 
 % need to solve for tp1, tp2, tq1, and tq2 to sub in
 A = Ia_A - m1*r_pa_A_X*r_pa_A_X - m2*r_qa_A_X*r_qa_A_X + A_C_P*Ip_P*A_C_P + A_C_Q*Iq_Q*A_C_Q;
-M = [ms*eye(3) -r_csa_A_X zeros(3) zeros(3);...
-    r_csa_A_X A A_C_P*Ip_P A_C_Q*Iq_Q;...
-    zeros(3) Ip_P*P_C_A Ip_P zeros(3);...
-    zeros(3) Iq_Q*Q_C_A zeros(3) Iq_Q];
-beta = [Aa_ao_A; O_a_A_A; A_a_P_P; A_a_Q_Q];
+M11 = ms*eye(3);
+M12 = -r_csa_A_X;
+M23 = A_C_P*Ip_P;
+M24 = A_C_Q*Iq_Q;
+M33 = Ip_P;
+M44 = Iq_Q;
+% M = [ms*eye(3) -r_csa_A_X zeros(3) zeros(3);...
+%     r_csa_A_X A A_C_P*Ip_P A_C_Q*Iq_Q;...
+%     zeros(3) Ip_P*P_C_A Ip_P zeros(3);...
+%     zeros(3) Iq_Q*Q_C_A zeros(3) Iq_Q];
+M = [M11 M12 zeros(3) zeros(3);...
+    transpose(M12) A M23 M24;...
+    zeros(3) transpose(M23) M33 zeros(3);...
+    zeros(3) transpose(M24) zeros(3) M44];
+betavec = [Aa_ao_A; O_a_A_A; A_a_P_P; A_a_Q_Q];
 % tau = M*beta + cvec;
 % tp1 = tau(7);
 % tp2 = tau(8);
@@ -116,12 +126,23 @@ Tq_Q = [tq1; tq2; tq3]; % Torque about k_P=k_A. Note tp1 and tp2 are the unknown
 syms f1 f2 f3
 F_A = [f1; f2; f3];
 
-tauMinusCvec = [F_A;Ta_A;Tp_P;Tq_Q] - cvec;
-disp('Simplifying c vector');
-tauMinusCvec = simplify(expand(tauMinusCvec));
-eqn = beta == transpose(M)*tauMinusCvec;
-disp('Solving eqns.');
-S = solve(eqn,[dw1,dw2,dw3,du1,du2,du3,tp1,tp2,dp3,tq1,tq2,dq3]);
+% make star matrices
+xi = [0 0 1];
+Mstar = [M11 M12 zeros(3,1) zeros(3,1);...
+    transpose(M12) A M23*xi.' M24*xi.';...
+    zeros(1,3) xi*transpose(M23) xi*M33*xi.' 0;...
+    zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
+betastar = [Aa_ao_A; O_a_A_A; xi*A_a_P_P; xi*A_a_Q_Q];
+taustar = [F_A; Ta_A; xi*Tp_P; xi*Tq_Q];
+cvecstar = [cvec1;cvec2;xi*cvec3;xi*cvec4];
+tauMinusCvec = taustar - cvecstar;
+
+% tauMinusCvec = [F_A;Ta_A;Tp_P;Tq_Q] - cvec;
+% disp('Simplifying c vector');
+% tauMinusCvec = simplify(expand(tauMinusCvec));
+% eqn = beta == transpose(M)*tauMinusCvec;
+% disp('Solving eqns.');
+% S = solve(eqn,[dw1,dw2,dw3,du1,du2,du3,tp1,tp2,dp3,tq1,tq2,dq3]);
 %S = solve(eqn,[dw1,dw2,dw3,du1,du2,du3,dp3,dq3]);
 
 % Kinematical Equations  | 8 equations and 8 unknowns
@@ -150,55 +171,100 @@ dsy = [0;0;q3];
 % aa6 = simplify(S.du3); %simplify(expand(S.du_3));
 
 %% Send to file
-aa1 = S.dw1; % The dw terms are about half a million characters long
-aa2 = S.dw2; %simplify(expand(S.dw_2));
-aa3 = S.dw3; %simplify(expand(S.dw_3));
-aa4 = S.du1; %simplify(expand(S.du_1));
-aa5 = S.du2; %simplify(expand(S.du_2));
-aa6 = S.du3; %simplify(expand(S.du_3));
-aa7 = S.tp1; %simplify(expand(xdot(1)));
-aa8 = S.tp2; %simplify(expand(xdot(2)));
-aa9 = S.dp3; %simplify(expand(xdot(3))); 
-aa10 = S.tq1; %simplify(expand(xdot(1)));
-aa11 = S.tq2; %simplify(expand(xdot(2)));
-aa12 = S.dq3; %simplify(expand(xdot(3)));
+% aa1 = S.dw1; % The dw terms are about half a million characters long
+% aa2 = S.dw2; %simplify(expand(S.dw_2));
+% aa3 = S.dw3; %simplify(expand(S.dw_3));
+% aa4 = S.du1; %simplify(expand(S.du_1));
+% aa5 = S.du2; %simplify(expand(S.du_2));
+% aa6 = S.du3; %simplify(expand(S.du_3));
+% aa7 = S.tp1; %simplify(expand(xdot(1)));
+% aa8 = S.tp2; %simplify(expand(xdot(2)));
+% aa9 = S.dp3; %simplify(expand(xdot(3))); 
+% aa10 = S.tq1; %simplify(expand(xdot(1)));
+% aa11 = S.tq2; %simplify(expand(xdot(2)));
+% aa12 = S.dq3; %simplify(expand(xdot(3)));
 
 disp('Simplifying kinematical equations');
-aa13 = simplify(dangles(1));
-aa14 = simplify(dangles(2));
-aa15 = simplify(dangles(3));
-aa16 = simplify(xdot(1));
-aa17 = simplify(xdot(2));
-aa18 = simplify(xdot(3));
-aa19 = dfi(3);
-aa20 = dsy(3);
+dangles = simplify(dangles);
+xdot = simplify(xdot);
+danglesstr = string(dangles);
+xdotstr = string(xdot);
+danglesstr = strrep(danglesstr,"cos(beta)","cosbeta");
+danglesstr = strrep(danglesstr,"sin(beta)","sinbeta");
+danglesstr = strrep(danglesstr,"cos(gamma)","cosgamma");
+danglesstr = strrep(danglesstr,"sin(gamma)","singamma");
+danglesstr = strrep(danglesstr,"cos(theta)","costheta");
+danglesstr = strrep(danglesstr,"sin(theta)","sintheta");
+danglesstr = strrep(danglesstr,"w1","x(7)");
+danglesstr = strrep(danglesstr,"w2","x(8)");
+danglesstr = strrep(danglesstr,"w3","x(9)");
+xdotstr = strrep(xdotstr,"w1","x(7)");
+xdotstr = strrep(xdotstr,"w2","x(8)");
+xdotstr = strrep(xdotstr,"w3","x(9)");
+xdotstr = strrep(xdotstr,"u1","x(10)");
+xdotstr = strrep(xdotstr,"u2","x(11)");
+xdotstr = strrep(xdotstr,"u3","x(12)");
+xdotstr = strrep(xdotstr,"cos(beta)","cosbeta");
+xdotstr = strrep(xdotstr,"sin(beta)","sinbeta");
+xdotstr = strrep(xdotstr,"cos(gamma)","cosgamma");
+xdotstr = strrep(xdotstr,"sin(gamma)","singamma");
+xdotstr = strrep(xdotstr,"cos(theta)","costheta");
+xdotstr = strrep(xdotstr,"sin(theta)","sintheta");
+
+aa13 = danglesstr(1);
+aa14 = danglesstr(2);
+aa15 = danglesstr(3);
+aa16 = xdotstr(1);
+aa17 = xdotstr(2);
+aa18 = xdotstr(3);
+aa19 = strrep(string(dfi(3)),'p3',"x(14)");
+aa20 = strrep(string(dsy(3)),'q3',"x(16)");
+
+disp('Replacing with states used in vehicleState.m');
+tauMinusCvecStr = string(tauMinusCvec);
+tauMinusCvecStr = strrep(tauMinusCvecStr,"w1","x(7)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"w2","x(8)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"w3","x(9)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"u1","x(10)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"u2","x(11)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"u3","x(12)");
+% tauMinusCvecStr = strrep(tauMinusCvecStr,"p3","x(13)");
+% tauMinusCvecStr = strrep(tauMinusCvecStr,"q3","x(15)");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi1)","cosfi1");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi1)","sinfi1");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy1)","cossy1");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy1)","sinsy1");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi2)","cosfi2");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi2)","sinfi2");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy2)","cossy2");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy2)","sinsy2");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi3)","cosfi3");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi3)","sinfi3");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy3)","cossy3");
+tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy3)","sinsy3");
 
 disp('Sending to file');  
-fid = fopen('equations_minassumptions_dual_notsimplified.txt','w');
-% fprintf(fid,'%s %s;\n','tauMinusCvec(1) = ', tauMinusCvec(1));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(2) = ', tauMinusCvec(2));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(3) = ', tauMinusCvec(3));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(4) = ', tauMinusCvec(4));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(5) = ', tauMinusCvec(5));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(6) = ', tauMinusCvec(6));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(7) = ', tauMinusCvec(7));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(8) = ', tauMinusCvec(8));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(9) = ', tauMinusCvec(9));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(10) = ', tauMinusCvec(10));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(11) = ', tauMinusCvec(11));
-% fprintf(fid,'%s %s;\n','tauMinusCvec(12) = ', tauMinusCvec(12));
-fprintf(fid,'%s %s;\n','dw1 = ', aa1);
-fprintf(fid,'%s %s;\n','dw2 = ', aa2);
-fprintf(fid,'%s %s;\n','dw3 = ', aa3);
-fprintf(fid,'%s %s;\n','du1 = ', aa4);
-fprintf(fid,'%s %s;\n','du2 = ', aa5);
-fprintf(fid,'%s %s;\n','du3 = ', aa6);
-fprintf(fid,'%s %s;\n','tp1 = ', aa7);
-fprintf(fid,'%s %s;\n','tp2 = ', aa8);
-fprintf(fid,'%s %s;\n','dp3 = ', aa9);
-fprintf(fid,'%s %s;\n','tq1 = ', aa10);
-fprintf(fid,'%s %s;\n','tq2 = ', aa11);
-fprintf(fid,'%s %s;\n','dq3 = ', aa12);
+fid = fopen('equations_minassumptions_matApproach.txt','w');
+fprintf(fid,'%s %s;\n','tauMinusCvec(1) = ', tauMinusCvecStr(1));
+fprintf(fid,'%s %s;\n','tauMinusCvec(2) = ', tauMinusCvecStr(2));
+fprintf(fid,'%s %s;\n','tauMinusCvec(3) = ', tauMinusCvecStr(3));
+fprintf(fid,'%s %s;\n','tauMinusCvec(4) = ', tauMinusCvecStr(4));
+fprintf(fid,'%s %s;\n','tauMinusCvec(5) = ', tauMinusCvecStr(5));
+fprintf(fid,'%s %s;\n','tauMinusCvec(6) = ', tauMinusCvecStr(6));
+fprintf(fid,'%s %s;\n','tauMinusCvec(7) = ', tauMinusCvecStr(7));
+fprintf(fid,'%s %s;\n','tauMinusCvec(8) = ', tauMinusCvecStr(8));
+% fprintf(fid,'%s %s;\n','dw1 = ', aa1);
+% fprintf(fid,'%s %s;\n','dw2 = ', aa2);
+% fprintf(fid,'%s %s;\n','dw3 = ', aa3);
+% fprintf(fid,'%s %s;\n','du1 = ', aa4);
+% fprintf(fid,'%s %s;\n','du2 = ', aa5);
+% fprintf(fid,'%s %s;\n','du3 = ', aa6);
+% fprintf(fid,'%s %s;\n','tp1 = ', aa7);
+% fprintf(fid,'%s %s;\n','tp2 = ', aa8);
+% fprintf(fid,'%s %s;\n','dp3 = ', aa9);
+% fprintf(fid,'%s %s;\n','tq1 = ', aa10);
+% fprintf(fid,'%s %s;\n','tq2 = ', aa11);
+% fprintf(fid,'%s %s;\n','dq3 = ', aa12);
 fprintf(fid,'%s %s;\n','dtheta = ', aa13);
 fprintf(fid,'%s %s;\n','dgamma = ', aa14);
 fprintf(fid,'%s %s;\n','dbeta = ', aa15);
