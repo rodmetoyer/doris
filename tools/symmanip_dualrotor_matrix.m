@@ -12,15 +12,19 @@ A_C_O = [cos(beta) sin(beta) 0; -sin(beta) cos(beta) 0; 0 0 1]*...
     [1 0 0; 0 cos(gamma) sin(gamma); 0 -sin(gamma) cos(gamma)]*...
     [cos(theta) 0 -sin(theta); 0 1 0; sin(theta) 0 cos(theta)];
 O_C_A = A_C_O.';
-P_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1]*...
-    [1 0 0; 0 cos(fi1) sin(fi1); 0 -sin(fi1) cos(fi1)]*...
-    [cos(fi2) 0 -sin(fi2); 0 1 0; sin(fi2) 0 cos(fi2)];
+% P_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1]*...
+%     [1 0 0; 0 cos(fi1) sin(fi1); 0 -sin(fi1) cos(fi1)]*...
+%     [cos(fi2) 0 -sin(fi2); 0 1 0; sin(fi2) 0 cos(fi2)];
+% For the coaxial rotor, fi1 and fi2 are zero.
+P_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1];
 A_C_P = P_C_A.';
 P_C_O = P_C_A*A_C_O;
 O_C_P = P_C_O.';
-Q_C_A = [cos(sy3) sin(sy3) 0; -sin(sy3) cos(sy3) 0; 0 0 1]*...
-    [1 0 0; 0 cos(sy1) sin(sy1); 0 -sin(sy1) cos(sy1)]*...
-    [cos(sy2) 0 -sin(sy2); 0 1 0; sin(sy2) 0 cos(sy2)];
+% Q_C_A = [cos(sy3) sin(sy3) 0; -sin(sy3) cos(sy3) 0; 0 0 1]*...
+%     [1 0 0; 0 cos(sy1) sin(sy1); 0 -sin(sy1) cos(sy1)]*...
+%     [cos(sy2) 0 -sin(sy2); 0 1 0; sin(sy2) 0 cos(sy2)];
+% For the coaxial rotor, sy1 and sy2 are zero.
+Q_C_A = [cos(sy3) sin(sy3) 0; -sin(sy3) cos(sy3) 0; 0 0 1];
 A_C_Q = Q_C_A.';
 Q_C_O = Q_C_A*A_C_O;
 O_C_Q = Q_C_O.';
@@ -28,14 +32,23 @@ O_C_Q = Q_C_O.';
 % Create position vectors
 syms x1 x2 x3
 r_ao_O = [x1; x2; x3];
-syms c1 c2 c3 s1 s2 s3
-r_cva_A = [c1; c2; c3];
-r_csa_A = [s1; s2; s3];
+% For the coaxial system the center mass of both the vehicle body and the
+% system are along the z axis.
+% syms c1 c2 c3 s1 s2 s3
+syms c3 s3
+% r_cva_A = [c1; c2; c3];
+% r_csa_A = [s1; s2; s3];
+r_cva_A = [0; 0; c3];
+r_csa_A = [0; 0; s3];
 r_csa_A_X = makecrossmat(r_csa_A);
-syms g1 g2 g3 h1 h2 h3
-r_pa_A = [g1; g2; g3];
+% For the coaxial system the rotors are on the z axis.
+% syms g1 g2 g3 h1 h2 h3
+syms g3 h3
+% r_pa_A = [g1; g2; g3];
+% r_qa_A = [h1; h2; h3];
+r_pa_A = [0; 0; g3];
+r_qa_A = [0; 0; h3];
 r_pa_A_X = makecrossmat(r_pa_A);
-r_qa_A = [h1; h2; h3];
 r_qa_A_X = makecrossmat(r_qa_A);
 
 % Create velocity vectors
@@ -58,7 +71,8 @@ O_w_Q_A = O_w_A_A + A_C_Q*A_w_Q_Q;
 O_w_Q_Q = O_w_A_Q + A_w_Q_Q;
 
 % Create acceleration vectors
-% Note that 'a' is used for linear and angular acceleration.
+% Note that 'a' is used for linear and angular acceleration in the naming
+% convention.
 syms du1 du2 du3
 Aa_ao_A = [du1; du2; du3]; % Linear acceleration has prepended frame
 Oa_ao_A = Aa_ao_A + cross(O_w_A_A,Ov_ao_A);
@@ -91,13 +105,13 @@ cvec2 = cross(O_w_A_A,Ia_A*O_w_A_A) - mv*cross(O_w_A_A,cross(Ov_ao_A,r_cva_A)) .
     - m2*cross(O_w_A_A,cross(Ov_ao_A,r_qa_A)) + m2*cross(r_qa_A,cross(O_w_A_A,cross(O_w_A_A,r_qa_A)))...
     + Iq_A*cross(O_w_A_A,A_w_Q_A) + cross(O_w_Q_A,Iq_A*O_w_Q_A);
 cvec3 = Ip_P*cross(O_w_A_P,A_w_P_P) + cross(O_w_P_P,Ip_P*O_w_P_P);
-cvec4 = Ip_P*cross(O_w_A_Q,A_w_Q_Q) + cross(O_w_Q_Q,Iq_Q*O_w_Q_Q);
+cvec4 = Iq_Q*cross(O_w_A_Q,A_w_Q_Q) + cross(O_w_Q_Q,Iq_Q*O_w_Q_Q);
 cvec = [cvec1;cvec2;cvec3;cvec4];
 
-% need to solve for tp1, tp2, tq1, and tq2 to sub in
-A = Ia_A - m1*r_pa_A_X*r_pa_A_X - m2*r_qa_A_X*r_qa_A_X + A_C_P*Ip_P*A_C_P + A_C_Q*Iq_Q*A_C_Q;
+% now the mass matrix
 M11 = ms*eye(3);
 M12 = -r_csa_A_X;
+M22 = Ia_A - m1*r_pa_A_X*r_pa_A_X - m2*r_qa_A_X*r_qa_A_X + A_C_P*Ip_P*A_C_P + A_C_Q*Iq_Q*A_C_Q;
 M23 = A_C_P*Ip_P;
 M24 = A_C_Q*Iq_Q;
 M33 = Ip_P;
@@ -107,7 +121,7 @@ M44 = Iq_Q;
 %     zeros(3) Ip_P*P_C_A Ip_P zeros(3);...
 %     zeros(3) Iq_Q*Q_C_A zeros(3) Iq_Q];
 M = [M11 M12 zeros(3) zeros(3);...
-    transpose(M12) A M23 M24;...
+    transpose(M12) M22 M23 M24;...
     zeros(3) transpose(M23) M33 zeros(3);...
     zeros(3) transpose(M24) zeros(3) M44];
 betavec = [Aa_ao_A; O_a_A_A; A_a_P_P; A_a_Q_Q];
@@ -129,7 +143,7 @@ F_A = [f1; f2; f3];
 % make star matrices
 xi = [0 0 1];
 Mstar = [M11 M12 zeros(3,1) zeros(3,1);...
-    transpose(M12) A M23*xi.' M24*xi.';...
+    transpose(M12) M22 M23*xi.' M24*xi.';...
     zeros(1,3) xi*transpose(M23) xi*M33*xi.' 0;...
     zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
 betastar = [Aa_ao_A; O_a_A_A; xi*A_a_P_P; xi*A_a_Q_Q];
@@ -155,6 +169,8 @@ xdot = O_C_A*Ov_ao_A;
 % their derivatives are zero). Same for dsy1 and dsy2
 dfi = [0;0;p3];
 dsy = [0;0;q3];
+S = (Mstar.')*tauMinusCvec;
+S = simplify(S);
 
 % disp('Simplifying S.dw1');
 % aa1 = simplify(S.dw1); %simplify(expand(S.dw_1));
@@ -217,8 +233,8 @@ aa15 = danglesstr(3);
 aa16 = xdotstr(1);
 aa17 = xdotstr(2);
 aa18 = xdotstr(3);
-aa19 = strrep(string(dfi(3)),'p3',"x(14)");
-aa20 = strrep(string(dsy(3)),'q3',"x(16)");
+aa19 = strrep(string(dfi(3)),'p3',"x(13)");
+aa20 = strrep(string(dsy(3)),'q3',"x(15)");
 
 disp('Replacing with states used in vehicleState.m');
 tauMinusCvecStr = string(tauMinusCvec);
@@ -244,7 +260,7 @@ tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy3)","cossy3");
 tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy3)","sinsy3");
 
 disp('Sending to file');  
-fid = fopen('equations_minassumptions_matApproach.txt','w');
+fid = fopen('equations_coaxAssum_matApproach.txt','w');
 fprintf(fid,'%s %s;\n','tauMinusCvec(1) = ', tauMinusCvecStr(1));
 fprintf(fid,'%s %s;\n','tauMinusCvec(2) = ', tauMinusCvecStr(2));
 fprintf(fid,'%s %s;\n','tauMinusCvec(3) = ', tauMinusCvecStr(3));
@@ -253,6 +269,17 @@ fprintf(fid,'%s %s;\n','tauMinusCvec(5) = ', tauMinusCvecStr(5));
 fprintf(fid,'%s %s;\n','tauMinusCvec(6) = ', tauMinusCvecStr(6));
 fprintf(fid,'%s %s;\n','tauMinusCvec(7) = ', tauMinusCvecStr(7));
 fprintf(fid,'%s %s;\n','tauMinusCvec(8) = ', tauMinusCvecStr(8));
+
+fprintf(fid,'%s %s;\n',char(betastar(1)), char(S(1)));
+fprintf(fid,'%s %s;\n',char(betastar(2)), char(S(2)));
+fprintf(fid,'%s %s;\n',char(betastar(3)), char(S(3)));
+fprintf(fid,'%s %s;\n',char(betastar(4)), char(S(4)));
+fprintf(fid,'%s %s;\n',char(betastar(5)), char(S(5)));
+fprintf(fid,'%s %s;\n',char(betastar(6)), char(S(6)));
+fprintf(fid,'%s %s;\n',char(betastar(7)), char(S(7)));
+fprintf(fid,'%s %s;\n',char(betastar(8)), char(S(8)));
+
+
 % fprintf(fid,'%s %s;\n','dw1 = ', aa1);
 % fprintf(fid,'%s %s;\n','dw2 = ', aa2);
 % fprintf(fid,'%s %s;\n','dw3 = ', aa3);

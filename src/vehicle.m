@@ -21,7 +21,7 @@ classdef vehicle < handle
         mass        % scalar total mass of the vehicle
         type        % uint identifier | see typeName get method for list of types
         Mstar
-        MstarT
+        MstarInv
     end % End private properties    
     properties (Dependent)
         A_C_O       % 3x3 tranformation matrix from vehicle frame to inertial frame
@@ -65,7 +65,7 @@ classdef vehicle < handle
                %hobj.buoyforce = bf;
             end
             hobj.Mstar = [];
-            hobj.MstarT = [];
+            hobj.MstarInv = [];
         end % End constructor
         
         %% Initialization method
@@ -413,7 +413,7 @@ classdef vehicle < handle
                 transpose(M12) A M23*xi.' M24*xi.';...
                 zeros(1,3) xi*transpose(M23) xi*M33*xi.' 0;...
                 zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
-            hobj.MstarT = hobj.Mstar.';
+            hobj.MstarInv = inv(hobj.Mstar);
         end % computeMstar
         %$ Setters
         function setType(hobj,t)
