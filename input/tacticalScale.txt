@@ -6,7 +6,7 @@ fluidtype = 'water';
 fluidVelocity = [1.5;0.0;0]; % Approximately rive velocity
 
 % Vehicle
-bladeMass = 0.25; % kg
+bladeMass = 5; % kg
 airfoiltype = 'SG6040';
 aspectRatio = 7;
 bladeLength = 0.5; %12*0.0254; % Inches times meters per inch
@@ -22,7 +22,7 @@ twist.bladeDZfrac = bladeDZfrac;
 % vehicle body
 vblength = 1.5;
 vbradius = 0.1;
-vbmass = 20.0;
+vbmass = 1.0;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0];
 vbtetherpoint = [0;0;-vblength/2];
@@ -40,7 +40,7 @@ initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 1;
+initialLongitudinal = 2;
 initialVertical = 0;
 initialSway = 0;
 initialSurge = 0;

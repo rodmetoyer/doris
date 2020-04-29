@@ -14,7 +14,7 @@ classdef vehicle < handle
         generator   % generator
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
-        centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3)
+        centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3) todo put this on the body
         syscm       % 3x1 vector location of center of mass of the system in the vehicle frame (s1,s2,s3)
         tetherpoint % 3xm vector of location of the tether attachment point(s) in the vehicle frame (t1, t2, t3)
         buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
@@ -76,8 +76,7 @@ classdef vehicle < handle
             else
                 hobj.body = bod;
                 hobj.rotors = rot;
-                hobj.centermass = cm;
-                hobj.syscm = cm; % todo compute the center of mass of the vehicle from cm of vbod and rotors
+                hobj.centermass = cm;                
                 hobj.tetherpoint = tp;
                 hobj.buoypoint = bp;
                 %hobj.buoyforce = bf;
@@ -96,10 +95,17 @@ classdef vehicle < handle
                 end
                 if numel(rot) >0
                     for i=1:1:numel(rot)
-                        m = m + rot(i).mass;                    
+                        m = m + rot(i).mass;
                     end
                 end
                 hobj.mass = m + bod.mass;
+                rcsa_A = [0;0;0];
+                for i=1:1:numel(rot)
+                    rcsa_A = rcsa_A + rot(i).mass/hobj.mass*rotLocs(:,i);
+                end
+                % Compute system center of mass
+                rcsa_A = rcsa_A + bod.mass/hobj.mass*cm;
+                hobj.syscm = rcsa_A;
             end
         end % End init
         %% computeHydroLoads

@@ -12,49 +12,25 @@ inputfile = 'dualRotorBaseline.txt';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
-% The easiest way to do this is visually. WE can also play around here and
-% then use this to set initial values.
-%sim.showme(fvel,vornt,vpos,vvel,vangvel,rornt,rangvel)
-% sim.fld.velocity = [0.5;0;0];
-% pitch = 90; yaw = 0;
-% theta0 = pitch*pi/180; gamma0 = yaw*pi/180; beta0 = 0;
-% sim.vhcl.orientation = [theta0;gamma0;beta0]; % (theta, gamma, beta for 2-1-3) rotation
-% sim.vhcl.position = [2;0;1];
-% sim.vhcl.velocity = [0;0;0];
-% dgamma0 = 0*2*pi; % rad/s
-% w10 = cosd(0)*dgamma0;
-% w20 = -sin(0)*dgamma0;
-% sim.vhcl.angvel = [w10;w20;0];
-sim.vhcl.rotors(1).orientation = [0;0;0];
-sim.vhcl.rotors(2).orientation = [0;0;0];
-% Compute the mass matrix - todo add to sim class and add an initial
-% orientation to the rotors.
-sim.vhcl.computeMstar;
-rpm = 0;
-sim.vhcl.rotors(1).angvel = [0;0;rpm/60*2*pi];
-sim.vhcl.rotors(2).angvel = [0;0;-rpm/60*2*pi];
-% Add a generator to the vehicle
-gen = generator(0.19,1,0.1,1.0e-4); % todo size generator constant so that torque is reasonable
-sim.vhcl.addGenerator(gen);
-% hfig = vehicleVisualCheck(sim.fld,sim.vhcl);
+% The easiest way to do this is visually. You can also play around here and
+% then use this to set/reset initial values for one-off simulations.
+% hfig = sim.showme;
 % disp('Close figure to continue...');
 % uiwait(hfig,5)
 % disp('Figure closed, continuing');
 
-% add tether
-% todo - move to input file
-thr = tether(0,[],100,25,1);
-sim.addTether(thr);
-
 %% Simulate
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
-tspan = 0:0.005:1;
+tspan = 0:0.005:10;
 sim.simulate('tspan',tspan);
 %sim.simulate('tspan',tspan,'stats','off','output',[]);
 
 %% Write simulation results to file
-sim.write2file('test_relaxedAssumptions'); % The method will append the .txt extension
+% If you want to name the results file something other than the simulation
+% name just pass the filename as an argument with no extension (the method
+% will append .txt).
+sim.write2file;
 
 %% Make a video of the simulation results
 

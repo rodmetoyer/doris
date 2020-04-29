@@ -1,4 +1,5 @@
 function hfig = vehicleVisualCheck(f,v)
+error('vehicleVisualCheck is deprecated. Use sim.showme.');
 % Creates a plot to visually verify that the vehicle you constructed is the
 % vehicle you were trying to construct
 

@@ -1,5 +1,12 @@
 classdef generator < handle
-    % The generator
+    % generator class modeled as separatly excited dc machine
+    % initiate with:
+    %   k   - the machine constant
+    %   phi - magnetic flux (from pm or excitation coil)
+    %   ra  - the armature resistance
+    %   c   - the constant for the viscous friction model
+    % The generator begins with an infinite load resistance (i.e. no load).
+    % To add a load resistance use the setLoadResistance method.
     
     properties (SetAccess = private)
         kmach   % machine constant
