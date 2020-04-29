@@ -8,6 +8,8 @@ classdef vehiclebody < handle
         centermass % 3x1 vector location of center of mass of the vehicle body
         relDensity % The total density of the vehicle body relative to water
         inertia    % 3x3 array intertia matrix in the vehicle frame
+        length     % the length of a slender body
+        radius     % the radius of a slender body
     end % properties
     
     methods
@@ -23,6 +25,14 @@ classdef vehiclebody < handle
         
         function setRelativeDensity(hobj,rd)
             hobj.relDensity = rd;
-        end        
+        end   
+        
+        function setLength(hobj,l)
+            hobj.length = l;
+        end
+        
+        function setRadius(hobj,r)
+            hobj.radius = r;
+        end
     end % methods   
 end % vehiclebody

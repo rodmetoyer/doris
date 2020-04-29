@@ -73,6 +73,8 @@ classdef simulation < handle
                 % Make a vehicle body
                 vbod = vehiclebody(vbmass,I);
                 vbod.setRelativeDensity(vbreldensity);
+                vbod.setLength(vblength);
+                vbod.setRadius(vbradius);
                 % Make a vehicle
                 rotPoints = [rot1point,rot2point];
                 hobj.vhcl = vehicle();
@@ -148,16 +150,10 @@ classdef simulation < handle
             
             % Now write a vehilce configuration file of the smae same that
             % holds all of the simulation configuration information.
-%             flnm = [flnm(1:end-4) '.config'];
-%             %todo finish this - not sure I need this.  input file should
-%             work
-%             fid = fopen(flnm,'w');
-%             if fid < 0
-%                 error(['Unable to open: ' flnm ' to write']);
-%             end
-%             fprintf(fid,'%s %s\n',headers);
-%             fclose(fid);
-%             fprintf('\nDone writing configuration file.\n');
+            sim = hobj;
+            svcmd = ['save ' pwd '\products\data\' hobj.name '.mat sim'];
+            eval(svcmd); clear sim;
+            fprintf(['\nDone writing configuration file: ' hobj.name '.mat\n']);
         end
         
         function simulate(hobj,varargin)
@@ -231,21 +227,43 @@ classdef simulation < handle
     end % methods
     
     methods(Static)
-        function makeMovie(infn, outfn)
+        function makeMovie(infn, outfn, varargin)
             % makeMovie  Static method that makes a movie out of a data file
             %   ARGS:
             %       infn - name of the data file
             %       outfn - name for the movie file
+            %       varargin - name,value pair to control the movie
+            if nargin < 2
+                outfn = infn;
+            end
 
             moviefile = ['products\videos\' outfn '.avi'];
             % get data
-            dat = importdata('products\data\dualRotorBaseline.txt');
+            try
+                dat = importdata(['products\data\' infn '.txt']);
+            catch
+                disp(['Unable to make a movie of ' infn]);
+                % todo log and move on
+                return;
+            end
             headers = dat.colheaders;
             dat = dat.data;
             
-            % get the configuration
-            % todo open simulation configuration file
-            % finish the rest of this method
+            % get the simulation object
+            svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+            eval(svcmd); clear svcmd;
+            
+            % make the vectors and everything
+            r_ao_O = dat(:,2:4);
+            theta = dat(:,5);
+            beta = dat(:,6);
+            gamma = dat(:,7);
+            p3 = dat(:,14);
+            fi3 = dat(:,15);
+            q3 = dat(:,16);
+            sy3 = dat(:,17);
+%             r_pa_A = sim.vhcl.rotorLocs(:,1);
+%             r_qa_A = sim.vhcl.rotorLocs(:,2);            
             
             % plot the data and grab frames
             tottime = dat(end,1); % sim time in seconds
@@ -253,39 +271,66 @@ classdef simulation < handle
             tstep = mean(diff(dat(:,1))); % seconds per frame            
             framerate = 24; % target framerate in frames per second
             sPerFrame = 1/framerate;
-            nsteps = round(sPerFrame/tstep);
-            framerate = 1/(nsteps*tstep); % Actual frame rate
-            for i = 1:1:nsteps
-                itr = nsteps*(i-1)+1;
-                cthe = cos(y(itr,1)); sthe = sin(y(itr,1));
-                cgam = cos(y(itr,2)); sgam = sin(y(itr,2));
-                cbet = cos(y(itr,3)); sbet = sin(y(itr,3));
-                B_C_O = [cbet*cthe + sbet*sgam*sthe, cgam*sbet, sbet*cthe*sgam - cbet*sthe;...
+            nskips = round(sPerFrame/tstep);
+            framerate = 1/(nskips*tstep); % Actual frame rate
+            nframes = floor(nsamps/nskips);
+            hfig = figure('position',[0 0 1728 972]);
+            ax = axes('parent',hfig);
+            for i = 1:1:nframes
+                smp = nskips*(i-1)+1;
+                cthe = cos(theta(smp)); sthe = sin(theta(smp));
+                cgam = cos(gamma(smp)); sgam = sin(gamma(smp));
+                cbet = cos(beta(smp)); sbet = sin(beta(smp));
+                cfi3 = cos(fi3(smp)); sfi3 = sin(fi3(smp));
+                csy3 = cos(sy3(smp)); ssy3 = sin(sy3(smp));
+                cxi3 = [cfi3 csy3]; sxi3 = [sfi3 ssy3]; % holds both fi3 and sy3 for the loop
+                
+                A_C_O = [cbet*cthe + sbet*sgam*sthe, cgam*sbet, sbet*cthe*sgam - cbet*sthe;...
                     cbet*sgam*sthe - sbet*cthe, cbet*cgam, sbet*sthe + cbet*cthe*sgam;...
                     cgam*sthe,-sgam,cgam*cthe];
-                O_C_B = transpose(B_C_O);
-                r_b1cm_O = O_C_B*v.rotors.sectPos(:,numSections,1);
-                r_b2cm_O = O_C_B*v.rotors.sectPos(:,numSections,2);
-                r_b3cm_O = O_C_B*v.rotors.sectPos(:,numSections,3);
-                figure(f1);
-                plot3([r_cmO_O(itr,1) r_cmO_O(itr,1)+r_b1cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b1cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b1cm_O(3)],'r');
+                O_C_A = transpose(A_C_O);
+                
+                r_epo_O = r_ao_O(smp,:).' - O_C_A*[0;0;sim.vhcl.body.length*0.5]; % body end proximal - assuming that the slender body is straight
+                r_edo_O = r_ao_O(smp,:).' + O_C_A*[0;0;sim.vhcl.body.length*0.5]; % body end distal - assuming that the slender body is straight
+%                 r_pa_O = O_C_A*r_pa_A;
+%                 r_qa_O = O_C_A*r_qa_A;
+                
+                
+                % plot the body
+                plot3(ax,[r_epo_O(1) r_edo_O(1)],[r_epo_O(2) r_edo_O(2)],[r_epo_O(3) r_edo_O(3)],'k','LineWidth',2.0);
                 hold on
-                plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b2cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b2cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b2cm_O(3)],'b');
-                plot3([r_cmO_O(i,1) r_cmO_O(i,1)+r_b3cm_O(1)],[r_cmO_O(i,2) r_cmO_O(i,2)+r_b3cm_O(2)],[r_cmO_O(i,3) r_cmO_O(i,3)+r_b3cm_O(3)],'k');
+                % plot each blade in rotors
+                color = ["r","b"];
+                for jj = 1:1:numel(sim.vhcl.rotors)
+                    r_pa_A = sim.vhcl.rotorLocs(:,jj);
+                    r_pa_O = O_C_A*r_pa_A;
+                    r_po_O = r_ao_O(smp,:).' + r_pa_O;
+                    P_C_A = [cxi3(jj) sxi3(jj) 0; -sxi3(jj) cxi3(jj) 0; 0 0 1];
+                    A_C_P = transpose(P_C_A);
+                    for ii=1:1:numel(sim.vhcl.rotors(jj).blades)
+                        r_tipp_bx = [0;sim.vhcl.rotors(jj).blades(ii).length;0];
+                        r_tipp_O = O_C_A*A_C_P*sim.vhcl.rotors(jj).P_C_bx(:,:,ii)*r_tipp_bx;
+                        plot3(ax,[r_po_O(1) r_po_O(1)+r_tipp_O(1)],...
+                            [r_po_O(2) r_po_O(2)+r_tipp_O(2)],...
+                            [r_po_O(3) r_po_O(3)+r_tipp_O(3)],color(jj),'LineWidth',2.0);
+                    end
+                end
+                
                 axis equal
-                axis([-0.25 0.25 -0.25 0.25 -0.5 0.25]);
-
-                view(-80,15)
-                xlabel('x'); ylabel('y');
+                axis([-1 7 -2 2 -2 2]);
+                view(-30,20)
+                
+                xlabel('x'); ylabel('y'); zlabel('z');
                 %title(['\fontsize{20}U_\infty = ' num2str(0.5/(1+exp(-0.5*(t(i)-10))),2)]);
                 %water.rampvelocity(t(i));
-                title(['\fontsize{20}RPM = ' num2str(abs(y(i,9)/(2*pi)*60),'%5.2f'), ' U_\infty = ' num2str(water.velocity(1),'%5.2f')]);
-                F(i) = getframe(f1);    
+                title(['\fontsize{20}RPM1 = ' num2str((p3(smp)/(2*pi)*60),'%5.2f'),...
+                    '\fontsize{20}RPM2 = ' num2str((q3(smp)/(2*pi)*60),'%5.2f'), ' U_\infty = ' num2str(sim.fld.velocity(1),'%5.2f')]);                
                 hold off
+                F(i) = getframe(hfig);    
             end % end loop through data
             % make the movie
             vw = VideoWriter(moviefile);            
-            vw.FrameRate = round(1/tstep)*speedfactor;
+            vw.FrameRate = framerate;
             %v.Quality = 100;% v.Width = 800; w.Height = 450;
             open(vw);
             writeVideo(vw,F); close(vw);

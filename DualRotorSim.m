@@ -23,7 +23,7 @@ sim = simulation(inputfile);
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
 tspan = 0:0.005:10;
-sim.simulate('tspan',tspan);
+sim.simulate;
 %sim.simulate('tspan',tspan,'stats','off','output',[]);
 
 %% Write simulation results to file
@@ -33,7 +33,10 @@ sim.simulate('tspan',tspan);
 sim.write2file;
 
 %% Make a video of the simulation results
-
+% The makeMovie method is static. The first argument is the name of the
+% data and input file combo to use. The second argument is the name of the
+% movie file. If you only pass one name the movie file gets that name.
+simulation.makeMovie(sim.name);
 
 %% Plots
 t = sim.times;
