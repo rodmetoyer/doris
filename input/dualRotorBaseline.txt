@@ -49,6 +49,7 @@ gmconst = 0.19;
 gflux = 1;
 grarm = 0.1;
 gkvisc = 1.0e-4;
+gmass = 0;
 
 % Simulation
 totalSimTime = 10;

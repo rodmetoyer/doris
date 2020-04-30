@@ -15,16 +15,18 @@ classdef generator < handle
         rarm    % total armature resistance
         rload   % load resistance
         kvisc   % damping constant for viscous friction
+        mass    % mass of the generator
     end % end parameters
     
     methods
         % Constructor
-        function hobj = generator(k,phi,ra,c)
+        function hobj = generator(k,phi,ra,c,m)
             hobj.kmach = k;
             hobj.flux = phi;
             hobj.rarm = ra;
             hobj.rload = inf; % no load when you first make the generator
             hobj.kvisc = c;
+            hobj.mass = m;
         end % generator
         
         function tq = getTorque(hobj,omg)

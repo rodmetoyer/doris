@@ -99,7 +99,7 @@ classdef simulation < handle
                 tthr = tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch);
                 hobj.addTether(tthr);
                 % add generator
-                gen = generator(gmconst,gflux,grarm,gkvisc); % todo size generator constant so that torque is reasonable
+                gen = generator(gmconst,gflux,grarm,gkvisc,gmass); % todo size generator constant so that torque is reasonable
                 hobj.vhcl.addGenerator(gen);
                 % Compute the mass matrix
                 hobj.vhcl.computeMstar;
@@ -276,6 +276,11 @@ classdef simulation < handle
             nframes = floor(nsamps/nskips);
             hfig = figure('position',[0 0 1728 972]);
             ax = axes('parent',hfig);
+            maxx = max(r_ao_O(:,1)) + max([sim.vhcl.body.length sim.vhcl.rotors(1).blades(1).length sim.vhcl.rotors(2).blades(1).length]);
+            maxy = max(abs(r_ao_O(:,2))) + max([sim.vhcl.body.length sim.vhcl.rotors(1).blades(1).length sim.vhcl.rotors(2).blades(1).length]);
+            maxz = max(abs(r_ao_O(:,3))) + max([sim.vhcl.body.length sim.vhcl.rotors(1).blades(1).length sim.vhcl.rotors(2).blades(1).length]);
+            maxy = max([maxy 0.3*maxx]);
+            maxz = max([maxz 0.3*maxx]);
             for i = 1:1:nframes
                 smp = nskips*(i-1)+1;
                 cthe = cos(theta(smp)); sthe = sin(theta(smp));
@@ -295,10 +300,12 @@ classdef simulation < handle
 %                 r_pa_O = O_C_A*r_pa_A;
 %                 r_qa_O = O_C_A*r_qa_A;
                 
-                
+                % plot the tether
+                r_tpo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.tetherpoint;
+                plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--k','LineWidth',1.0);
+                hold on
                 % plot the body
                 plot3(ax,[r_epo_O(1) r_edo_O(1)],[r_epo_O(2) r_edo_O(2)],[r_epo_O(3) r_edo_O(3)],'k','LineWidth',2.0);
-                hold on
                 % plot each blade in rotors
                 color = ["r","b"];
                 for jj = 1:1:numel(sim.vhcl.rotors)
@@ -316,15 +323,17 @@ classdef simulation < handle
                     end
                 end
                 
-                axis equal
-                axis([-1 7 -2 2 -2 2]);
+                axis equal                
+                axis([-1 maxx -maxy maxy -maxz maxz]);
                 view(-30,20)
                 
                 xlabel('x'); ylabel('y'); zlabel('z');
                 %title(['\fontsize{20}U_\infty = ' num2str(0.5/(1+exp(-0.5*(t(i)-10))),2)]);
                 %water.rampvelocity(t(i));
                 title(['\fontsize{20}RPM1 = ' num2str((p3(smp)/(2*pi)*60),'%5.2f'),...
-                    '\fontsize{20}RPM2 = ' num2str((q3(smp)/(2*pi)*60),'%5.2f'), ' U_\infty = ' num2str(sim.fld.velocity(1),'%5.2f')]);                
+                    ' | \fontsize{20}RPM2 = ' num2str((q3(smp)/(2*pi)*60),'%5.2f'),...
+                    ' | U_\infty = ' num2str(sim.fld.velocity(1),'%5.2f'),...
+                    ' | Time = ' num2str(dat(smp,1),'%5.2f')]);                
                 hold off
                 F(i) = getframe(hfig);    
             end % end loop through data

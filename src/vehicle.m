@@ -139,7 +139,11 @@ classdef vehicle < handle
             end % end rotor loop
             
             % Get aerodynamic loads on body, cross and sum
-            % todo(rodney) add vehicle hydrodynamic loads.
+            % As long as we are assuming that the vehicle is a slender body
+            % and point A is at the center of the slender body, there are
+            % only forces (no moments) using this simple model. If the
+            % model is enhanced or the slender body assumption is relaxed,
+            % this model for body forces should be reevaluated.
             
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
@@ -387,6 +391,7 @@ classdef vehicle < handle
         end
         function addGenerator(hobj,g)
             hobj.generator = g;
+            hobj.mass = hobj.mass + g.mass;
         end
         function computeMstar(hobj)
             if isempty(hobj.rotors)
