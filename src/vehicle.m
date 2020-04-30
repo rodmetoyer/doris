@@ -24,7 +24,7 @@ classdef vehicle < handle
         MstarInv
     end % End private properties    
     properties (Dependent)
-        A_C_O       % 3x3 tranformation matrix from vehicle frame to inertial frame
+        A_C_O       % 3x3 tranformation matrix from inertial frame to vehicle frame
         typeName    % Name of the type
     end % End dependent properties    
     properties
@@ -145,9 +145,20 @@ classdef vehicle < handle
             % model is enhanced or the slender body assumption is relaxed,
             % this model for body forces should be reevaluated.
             
+            % Rotate fluid velocity into the vehicle frame
+            vel_A = hobj.A_C_O*f.velocity;
+            % the normal component is made up of the 1 and 2 components,
+            % and the axial component is the 3 component.
+            q = f.density*hobj.body.radius;
+            velnorm_A = norm(vel_A(1:2))*vel_A(1:2);
+            velax_A = vel_A(3)*vel_A(3);
+            Fn = 1.2*q*velnorm_A;
+            Fa = 0.1*q*velax_A;
+            Fbod = [Fn;Fa];
+            
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
-            hobj.force = sum(sum(frc,2),3);
+            hobj.force = sum(sum(frc,2),3)+Fbod;
             hobj.torque = sum(sum(trq,2),3);
         end % end computeHydroLoads
         %% addTetherLoads
