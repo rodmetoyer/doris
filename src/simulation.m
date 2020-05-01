@@ -256,8 +256,8 @@ classdef simulation < handle
             % make the vectors and everything
             r_ao_O = dat(:,2:4);
             theta = dat(:,5);
-            beta = dat(:,6);
-            gamma = dat(:,7);
+            gamma = dat(:,6);
+            beta = dat(:,7);
             p3 = dat(:,14);
             fi3 = dat(:,15);
             q3 = dat(:,16);

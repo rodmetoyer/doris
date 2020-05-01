@@ -155,10 +155,10 @@ classdef vehicle < handle
             Fn = 1.2*q*velnorm_A;
             Fa = 0.1*q*velax_A;
             Fbod = [Fn;Fa];
-            
+            %Fbod = [0;0;0];
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
-            hobj.force = sum(sum(frc,2),3)+Fbod;
+            hobj.force = sum(sum(frc,2),3) + Fbod;
             hobj.torque = sum(sum(trq,2),3);
         end % end computeHydroLoads
         %% addTetherLoads

@@ -117,7 +117,8 @@ classdef rotor < handle
             % NOTE: This assumes that the number of sections is the same in
             % each blade. I'm OK with that for now because we use the same
             % assumption in the loop. Need to fix this when we generalize.
-            U_relSections = NaN(3,hobj.blades(1).numsects,hobj.numblades); % todo fix this if/when you make the number of sections per blade arbitrary.
+            % todo fix this if/when you make the number of sections per blade arbitrary.
+            U_relSections = NaN(3,hobj.blades(1).numsects,hobj.numblades); 
             LiftSections = U_relSections;
             DragSections = U_relSections;
             ForceSections = U_relSections;
