@@ -372,11 +372,24 @@ function [rp1o_O,rp2o_O,rap1_O,rap2_O,Urel1_O,Urel2_O,L1_O,D1_O,L2_O,D2_O] = get
     for i=1:1:temp(2)
         for j=1:1:temp(3)
             rap1_O(:,i,j) = O_C_P1*v.rotors(1).sectPos(:,i,j);
-            rap2_O(:,i,j) = O_C_P2*v.rotors(2).sectPos(:,i,j);
+            %rap2_O(:,i,j) = O_C_P2*v.rotors(2).sectPos(:,i,j);
             Urel1_O(:,i,j) = O_C_P1*Urel1_P1(:,i,j);
-            Urel2_O(:,i,j) = O_C_P2*Urel2_P2(:,i,j);
+            %Urel2_O(:,i,j) = O_C_P2*Urel2_P2(:,i,j);
             L1_O(:,i,j) = O_C_P1*v.rotors(1).sectLift(:,i,j);
             D1_O(:,i,j) = O_C_P1*v.rotors(1).sectDrag(:,i,j);
+            %L2_O(:,i,j) = O_C_P2*v.rotors(2).sectLift(:,i,j);
+            %D2_O(:,i,j) = O_C_P2*v.rotors(2).sectDrag(:,i,j);
+        end
+    end
+    temp = size(v.rotors(2).sectPos);
+    for i=1:1:temp(2)
+        for j=1:1:temp(3)
+            %rap1_O(:,i,j) = O_C_P1*v.rotors(1).sectPos(:,i,j);
+            rap2_O(:,i,j) = O_C_P2*v.rotors(2).sectPos(:,i,j);
+            %Urel1_O(:,i,j) = O_C_P1*Urel1_P1(:,i,j);
+            Urel2_O(:,i,j) = O_C_P2*Urel2_P2(:,i,j);
+            %L1_O(:,i,j) = O_C_P1*v.rotors(1).sectLift(:,i,j);
+            %D1_O(:,i,j) = O_C_P1*v.rotors(1).sectDrag(:,i,j);
             L2_O(:,i,j) = O_C_P2*v.rotors(2).sectLift(:,i,j);
             D2_O(:,i,j) = O_C_P2*v.rotors(2).sectDrag(:,i,j);
         end
