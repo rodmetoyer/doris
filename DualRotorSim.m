@@ -8,7 +8,7 @@ clear all; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
 
-inputfile = 'tacticalScale23.m';
+inputfile = 'tacticalScale32.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.

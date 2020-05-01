@@ -114,17 +114,31 @@ classdef vehicle < handle
             frc = 0;
             trq = 0;
             % Get aerodynamic loads on rotors, cross and sum
-            for i=1:1:numel(hobj.rotors)
-                urel(:,:,:,i) = hobj.rotors(i).computeHydroLoads(f);
+            % Need to preallocate the arrays based on whichever rotor has
+            % more blades and sections. For now assume all blades have the
+            % same max number of sections as the blades in first rotor.
+            % todo enable each blade to have a different number of sections
+            numrotors = numel(hobj.rotors);
+            maxnumblades = max(hobj.rotors.numblades);
+            numsects = hobj.rotors(1).blades(1).numsects; % this approach assumes all same number of sections
+            sectionforces = zeros(3,numsects,maxnumblades);
+            sectionpositions = sectionforces;
+            %urel = zeros(3,numsects,maxnumblades,numrotors);
+            for i=1:1:numrotors
+                % todo need to fix urel to get showme to work again.
+                %urel(:,:,1:hobj.rotors(i).numblades,i) = hobj.rotors(i).computeHydroLoads(f); % Don't actually need this. 
+                hobj.rotors(i).computeHydroLoads(f);
                 % 3xjxn array of lift and drag at each section expressed in
-                % the rotor frame (j=num sections, n=num blades)
-                sectionforces = hobj.rotors(i).sectLift + hobj.rotors(i).sectDrag;
+                % the rotor frame (j=maxnum sections, n=maxnum blades)
+                % We want to overwrite only the elements that exist in this
+                % rotor                
+                sectionforces(:,:,1:hobj.rotors(i).numblades) = hobj.rotors(i).sectLift + hobj.rotors(i).sectDrag; % this approach assumes all same numner of sections
                 % 3xjxn array of position of each section expressed in the rotor frame
-                sectionpositions = hobj.rotors(i).sectPos;
-                [~,numsecs,numblades] = size(sectionpositions);
+                sectionpositions(:,:,1:hobj.rotors(i).numblades) = hobj.rotors(i).sectPos;
+                %[~,numsecs,numblades] = size(sectionpositions);
                 % Rotate into the vehicle frame
-                for j = 1:1:numsecs
-                    for n = 1:1:numblades
+                for j = 1:1:numsects % this approach assumes all same numner of sections
+                    for n = 1:1:hobj.rotors(i).numblades
                         sectionpositions(:,j,n) = transpose(hobj.rotors(i).P_C_A)*sectionpositions(:,j,n);
                         sectionforces(:,j,n) = transpose(hobj.rotors(i).P_C_A)*sectionforces(:,j,n);
                     end
@@ -155,7 +169,7 @@ classdef vehicle < handle
             Fn = 1.2*q*velnorm_A;
             Fa = 0.1*q*velax_A;
             Fbod = [Fn;Fa];
-            %Fbod = [0;0;0];
+            
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
             hobj.force = sum(sum(frc,2),3) + Fbod;

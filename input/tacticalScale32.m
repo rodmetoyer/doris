@@ -1,9 +1,9 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalScale23';
+runname = 'tacticalScale32';
 
 % Environment
 fluidtype = 'water';
-fluidVelocity = [0.5;0.0;0]; % Approximately river velocity
+fluidVelocity = [0.2;0.0;0];
 
 %% Rotor 1
 bladeMass1 = 0.43; % kg
@@ -13,7 +13,7 @@ bladeLength1 = 0.5;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
-numBlades1 = 2;
+numBlades1 = 3;
 bladeDZfrac1 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;
@@ -28,7 +28,7 @@ bladeLength2 = 0.5;
 secChord2 = bladeLength2/aspectRatio2;
 numSections2 = 12;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
-numBlades2 = 3;
+numBlades2 = 2;
 bladeDZfrac2 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist2.AoAopt_deg = 8.0;
