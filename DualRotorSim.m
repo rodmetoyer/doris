@@ -8,7 +8,7 @@ clear all; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
 
-inputfile = 'tacticalScale.txt';
+inputfile = 'tacticalScale23.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -23,7 +23,7 @@ sim = simulation(inputfile);
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
 tspan = 0:0.005:10;
-sim.simulate('output',[]);
+sim.simulate; % ('output',[])
 %sim.simulate('tspan',tspan,'stats','off','output',[]);
 
 %% Write simulation results to file

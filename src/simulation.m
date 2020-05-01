@@ -27,18 +27,25 @@ classdef simulation < handle
                 % Manual setup
             else
                 % Input file setup
-                fid = fopen(['input\' fn]);
-                if fid < 0
-                    error(['Error opening: input\' fn]);
-                end
-                while true
-                    tline = fgetl(fid);            
-                    if isnumeric(tline)
-                        break;
+                % if it is an m-file execute, otherwise read line by line
+                % and evaluate each line
+                tkn = strsplit(fn,'.');
+                if strcmp(tkn(2),'m')
+                    run(['input\' char(tkn(1))]);
+                else
+                    fid = fopen(['input\' fn]);
+                    if fid < 0
+                        error(['Error opening: input\' fn]);
                     end
-                    eval(tline);
-                end
-                fclose(fid);
+                    while true
+                        tline = fgetl(fid);            
+                        if isnumeric(tline)
+                            break;
+                        end
+                        eval(tline);
+                    end
+                    fclose(fid);
+                end                
                 hobj.name = runname;
                 hobj.timestep = tstep;
                 hobj.duration = totalSimTime;
@@ -47,21 +54,26 @@ classdef simulation < handle
                 % fluid
                 hobj.fld = fluid(fluidtype); % No arguments to fluid gives the obj water properties
                 hobj.fld.velocity = fluidVelocity;
-                % airfoils - same for the entire rotor so we just need one
-                af = airfoil(airfoiltype);
+                % airfoils - same for the entire rotor so we just need two
+                af1 = airfoil(airfoiltype1);
+                af2 = airfoil(airfoiltype2);
                 % blade sections
-                bs = bladesection(secChord,secWidth,af);
+                bs1 = bladesection(secChord1,secWidth1,af1);
+                bs2 = bladesection(secChord2,secWidth2,af2);
                 % Make a blade comprised of the same section.
                 % Rotor 1 blades
-                for i=1:1:numSections
-                    section(i) = bs;
+                for i=1:1:numSections1
+                    section1(i) = bs1;
                 end
-                for i=1:1:numBlades
-                    bld1(i) = blade(section,bladeMass,twist);
+                for i=1:1:numBlades1
+                    bld1(i) = blade(section1,bladeMass1,twist1);
                 end
                 % Rotor 2 blades need to twist in the opposite direction
-                for i=1:1:numBlades
-                    bld2(i) = blade(section,bladeMass,twist);
+                for i=1:1:numSections2
+                    section2(i) = bs2;
+                end
+                for i=1:1:numBlades2
+                    bld2(i) = blade(section2,bladeMass2,twist2);
                     bld2(i).reverseTwist;
                 end
                 % Make a set of rotors
@@ -79,6 +91,7 @@ classdef simulation < handle
                 rotPoints = [rot1point,rot2point];
                 hobj.vhcl = vehicle();
                 hobj.vhcl.init(vbod,[r1,r2],rotPoints,vbcentermass,vbtetherpoint,vbbuoypoint);
+                disp('Vehicle initialized');
                 % Associate rotor objects with vehicle object
                 r1.connectVehicle(hobj.vhcl);
                 r2.connectVehicle(hobj.vhcl);
