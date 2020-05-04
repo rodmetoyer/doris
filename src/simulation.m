@@ -53,7 +53,16 @@ classdef simulation < handle
                 %% Make objects
                 % fluid
                 hobj.fld = fluid(fluidtype); % No arguments to fluid gives the obj water properties
-                hobj.fld.velocity = fluidVelocity;
+                try
+                    hobj.fld.setFlowType(flowtype,flowparms);
+                catch
+                    disp('Assuming steady flow');
+                    flowtype = 1;
+                    flowparms = [];
+                    hobj.fld.setFlowType(flowtype,flowparms);
+                    fluidBaseVelocity = fluidVelocity;
+                end
+                hobj.fld.setMeanVelocity(fluidBaseVelocity);
                 % airfoils - same for the entire rotor so we just need two
                 af1 = airfoil(airfoiltype1);
                 af2 = airfoil(airfoiltype2);
@@ -236,7 +245,7 @@ classdef simulation < handle
             view(-130,20)
             hold off            
         end % end showme
-       
+               
     end % methods
     
     methods(Static)
@@ -268,6 +277,8 @@ classdef simulation < handle
             
             % make the vectors and everything
             r_ao_O = dat(:,2:4);
+            Ov_ao_O = dat(:,11:13);
+            O_omg_A_A = dat(:,8:10);
             theta = dat(:,5);
             gamma = dat(:,6);
             beta = dat(:,7);
@@ -294,8 +305,13 @@ classdef simulation < handle
             maxz = max(abs(r_ao_O(:,3))) + max([sim.vhcl.body.length sim.vhcl.rotors(1).blades(1).length sim.vhcl.rotors(2).blades(1).length]);
             maxy = max([maxy 0.3*maxx]);
             maxz = max([maxz 0.3*maxx]);
+            cmap = colormap(jet(100));
+            cmaxtensionvalue = 2000;
             for i = 1:1:nframes
                 smp = nskips*(i-1)+1;
+                % Update velocity on the fluid object
+                sim.fld.updateVelocity(dat(smp,1));
+                % breakout
                 cthe = cos(theta(smp)); sthe = sin(theta(smp));
                 cgam = cos(gamma(smp)); sgam = sin(gamma(smp));
                 cbet = cos(beta(smp)); sbet = sin(beta(smp));
@@ -315,7 +331,12 @@ classdef simulation < handle
                 
                 % plot the tether
                 r_tpo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.tetherpoint;
-                plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--k','LineWidth',1.0);
+                Ov_tpo_O = O_C_A*Ov_ao_O(smp,:).' + O_C_A*cross(O_omg_A_A(smp,:).',sim.vhcl.tetherpoint);
+                tetherforce = sim.thr.computeTension(r_tpo_O,Ov_tpo_O);
+                str = ['Tether tension: ' num2str(norm(tetherforce),'%10.02f') 'N'];
+                
+                thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce))));
+                plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--','LineWidth',1.0,'Color',cmap(thclr,:));
                 hold on
                 % plot the body
                 plot3(ax,[r_epo_O(1) r_edo_O(1)],[r_epo_O(2) r_edo_O(2)],[r_epo_O(3) r_edo_O(3)],'k','LineWidth',2.0);
@@ -335,20 +356,28 @@ classdef simulation < handle
                             [r_po_O(3) r_po_O(3)+r_tipp_O(3)],color(jj),'LineWidth',2.0);
                     end
                 end
-                
+                % plot the velocity vector at the origin
+                quiver3(ax,0,0,0,sim.fld.velocity(1),sim.fld.velocity(2),sim.fld.velocity(3),'Color','c','LineWidth',2.0,'MaxHeadSize',0.5);
+                %annotation('textbox',[0.3 0.2 0.5 0.2],'String',{'U_\infty Vector'},'FitBoxToText','on');
                 axis equal                
                 axis([-1 maxx -maxy maxy -maxz maxz]);
                 view(-30,20)
                 
                 xlabel('x'); ylabel('y'); zlabel('z');
-                %title(['\fontsize{20}U_\infty = ' num2str(0.5/(1+exp(-0.5*(t(i)-10))),2)]);
-                %water.rampvelocity(t(i));
-                title(['\fontsize{20}RPM1 = ' num2str((p3(smp)/(2*pi)*60),'%5.2f'),...
-                    ' | \fontsize{20}RPM2 = ' num2str((q3(smp)/(2*pi)*60),'%5.2f'),...
-                    ' | U_\infty = ' num2str(sim.fld.velocity(1),'%5.2f'),...
-                    ' | Time = ' num2str(dat(smp,1),'%5.2f')]);                
+%                 
+%                 title(['\fontsize{20}RPM1 = ' num2str((p3(smp)/(2*pi)*60),'%5.2f'),...
+%                     '  |  \fontsize{20}RPM2 = ' num2str((q3(smp)/(2*pi)*60),'%5.2f'),...
+%                     '  |  U_\infty = ' num2str(norm(sim.fld.velocity),'%5.2f'),...
+%                     '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
+%                     '  |  Relative Density = ' num2str(sim.vhcl.body.relDensity,'%2.1f')],'FontSize',12);                
+                title(['\fontsize{20}RPM_R_E_L = ' num2str(((p3(smp)-q3(smp))/(2*pi)*60),'%5.2f'),...
+                    '  |  U_\infty = ' num2str(norm(sim.fld.velocity),'%5.2f'),...
+                    '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
+                    '  |  Relative Density = ' num2str(sim.vhcl.body.relDensity,'%2.1f')],'FontSize',12);
                 hold off
-                F(i) = getframe(hfig);    
+                text(0,0,-1,str,'Fontsize',12);
+                F(i) = getframe(hfig);
+                %clear an;
             end % end loop through data
             % make the movie
             vw = VideoWriter(moviefile);            

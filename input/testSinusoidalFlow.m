@@ -1,11 +1,20 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalScale23';
+runname = 'testSinusoidalFlow';
 
 % Environment
 fluidtype = 'water';
 fluidBaseVelocity = [0.5;0.0;0]; % Approximately river velocity
-flowtype = 'uniform';
-flowparms = [0;0;0];
+%flowtype = 'steady';
+%flowparms = [];
+% ramped - rampspeed(1 to inf), starttime
+%flowtype = 'ramped';
+%flowparms = [2,4];
+% disturbed - rampspeed(1 to inf), starttime, duration, maximum_yvel
+%flowtype = 'disturbed';
+%flowparms = [5,2,4,0.5];
+% sinusoidal - frequency, amplitude, phase
+flowtype = 'sinusoidal';
+flowparms = [0.5,0.5,0];
 
 %% Rotor 1
 bladeMass1 = 0.43; % kg
@@ -15,7 +24,7 @@ bladeLength1 = 0.5;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
-numBlades1 = 2;
+numBlades1 = 3;
 bladeDZfrac1 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;

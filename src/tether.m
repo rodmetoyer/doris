@@ -17,5 +17,22 @@ classdef tether < handle
             hobj.uslength = usl;
         end % constructor
         
+        function t = computeTension(hobj,r,v)
+            usleng = hobj.uslength;
+            currentlength = norm(r);
+            unitvec = r/currentlength;
+            stretch = currentlength-usleng; % If it moves from the origin there is a restoring force
+            stretchd = dot(r,v)/currentlength;
+            if currentlength < 1*10^-13
+                unitvec = [0;0;0];
+                stretchd = 0;
+            end
+            Fmag = 0;
+            if stretch > 0
+                Fmag = -stretch*hobj.stiffness;
+                Fmag = Fmag - stretchd*hobj.damping; % changed to make it damp both out and in as long as it is taut. todo(rodney) investigate what is most accurate
+            end
+            t = [Fmag*unitvec(1);Fmag*unitvec(2);Fmag*unitvec(3)];
+        end
     end % methds
 end% tether

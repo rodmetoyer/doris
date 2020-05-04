@@ -152,13 +152,7 @@ classdef vehicle < handle
                 frc = frc + sectionforces;
             end % end rotor loop
             
-            % Get aerodynamic loads on body, cross and sum
-            % As long as we are assuming that the vehicle is a slender body
-            % and point A is at the center of the slender body, there are
-            % only forces (no moments) using this simple model. If the
-            % model is enhanced or the slender body assumption is relaxed,
-            % this model for body forces should be reevaluated.
-            
+            % Get Hydrodynamic loads on body, cross and sum            
             % Rotate fluid velocity into the vehicle frame
             vel_A = hobj.A_C_O*f.velocity;
             % the normal component is made up of the 1 and 2 components,
@@ -170,10 +164,14 @@ classdef vehicle < handle
             Fa = 0.1*q*velax_A;
             Fbod = [Fn;Fa];
             
+            % Compute the moment coefficient
+            cmc = hobj.getCylinderMomentCoefficient(f,false);
+            Tors = 0.5*f.density*pi*hobj.angvel(3)^2*hobj.body.radius^4*hobj.body.length*cmc;
+            
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
             hobj.force = sum(sum(frc,2),3) + Fbod;
-            hobj.torque = sum(sum(trq,2),3);
+            hobj.torque = sum(sum(trq,2),3) + [0;0;Tors];
         end % end computeHydroLoads
         %% addTetherLoads
         function addTetherLoads(hobj,frc)
@@ -410,6 +408,25 @@ classdef vehicle < handle
         end % end visualizeSectionFrames
         
         %% Other methods
+        function cmc = getCylinderMomentCoefficient(hobj,f,fine)
+            % Second argument lets you use the high-fidlity model for low
+            % Reynolds numbers.
+            if nargin < 3; fine = false; end
+            if fine
+                re = f.getRotationalRe(hobj.angvel(3),hobj.body.radius);
+                if re > 60
+                    syms x
+                    cmc = vpasolve(x==(1/(-0.8572+1.25*log(re*sqrt(x))))^2,x,0.02); % 0.02 is initial guess
+                    clear x;
+                elseif re < 1.0e-6
+                    cmc = 0;
+                else
+                    cmc = 8/re;
+                end
+            else
+                cmc = 0.02;
+            end
+        end
         function sinebuoyforce(hobj,t,a,w)
             % todo this is not a property of the vehicle. Get rid of this.
             hobj.buoyforce = a*sin(w*t);

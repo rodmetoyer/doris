@@ -8,7 +8,7 @@ clear all; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
 
-inputfile = 'tacticalScale32.m';
+inputfile = 'testhydrostatics3.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -55,8 +55,8 @@ legend({'theta','gamma','beta'},'Location','Best');
 
 plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
 figure('Position',[plotlowx plotlowy plotw ploth])
-plot(t,y(:,7)*180/pi,'r',t,y(:,8)*180/pi,'b',t,y(:,9)*180/pi,'g');
-xlabel('Time (s)'); ylabel('Angular Rate (deg/s)');
+plot(t,y(:,7)*30/pi,'r',t,y(:,8)*30/pi,'b',t,y(:,9)*30/pi,'g');
+xlabel('Time (s)'); ylabel('Angular Rate (RPM)');
 legend({'w1','w2','w3'},'Location','Best');
 
 plotlowy = plotlowy+ploth; % Move up

@@ -42,6 +42,9 @@ v.rotors(1).orientation(3) = x(14);
 v.rotors(2).angvel(3) = x(15);
 v.rotors(2).orientation(3) = x(16);
 
+%% Update fluid velocity 
+f.updateVelocity(t);
+
 %% Compute hydrodynamic loads
 v.computeHydroLoads(f);
 
@@ -53,35 +56,20 @@ v.computeHydroLoads(f);
 if thr.numnodes > 0
     error('oops - no tethers allowed (yet)');
 else % no internal nodes
-    k = thr.stiffness;
-    c = thr.damping;
-    usleng = thr.uslength;
     O_C_A = transpose(v.A_C_O);
-    r_ao_O = [x(1); x(2); x(3)];
-    r_to_O = r_ao_O + O_C_A*v.tetherpoint;
-    currentlength = norm(r_to_O);
-    unitvec = r_to_O/currentlength;
-    Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize
-    stretch = currentlength-usleng; % If it moves from the origin there is a restoring force
-    stretchd = dot(r_to_O,Ov_to_O)/currentlength;
-    if currentlength < 1*10^-13
-        unitvec = [0;0;0];
-        stretchd = 0;
-    end
-    Fmag = 0;
-    if stretch > 0
-        Fmag = -stretch*k;
-        Fmag = Fmag - stretchd*c; % changed to make it damp both out and in as long as it is taut. todo(rodney) investigate what is most accurate
-    end
-    tetherforce = [Fmag*unitvec(1);Fmag*unitvec(2);Fmag*unitvec(3)];
+    r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
+    Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize14
+    tetherforce = thr.computeTension(r_to_O,Ov_to_O);
 end
 v.addTetherLoads(v.A_C_O*tetherforce);
 
 %% Compute weight and buoyancy loads
-buoyForceA = transpose(O_C_A)*[0;0;(1-v.body.relDensity)]*v.mass;
+buoyForceA = transpose(O_C_A)*[0;0;(1/v.body.relDensity)*f.gravity*v.mass];
+weightA = transpose(O_C_A)*[0;0;-v.mass*f.gravity];
 buoyTorqueA = cross(v.buoypoint,buoyForceA);
-v.force = v.force + buoyForceA;
-v.torque = v.torque + buoyTorqueA;
+weightTorqueA = cross(v.syscm,weightA);
+v.force = v.force + buoyForceA + weightA;
+v.torque = v.torque + buoyTorqueA + weightTorqueA;
 
 %% prepare to compute state derivatives
 ta1 = v.torque(1); ta2 = v.torque(2); ta3 = v.torque(3);

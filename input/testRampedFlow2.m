@@ -1,11 +1,18 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalScale23';
+runname = 'testRampedFlow2';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [0.5;0.0;0]; % Approximately river velocity
-flowtype = 'uniform';
-flowparms = [0;0;0];
+fluidBaseVelocity = [1.5;0.0;0]; % Approximately river velocity
+%flowtype = 'steady';
+%flowparms = [];
+% ramped - rampspeed(1 to inf), starttime
+flowtype = 'ramped';
+flowparms = [2,4];
+% disturbed - rampspeed(1 to inf), starttime, duration, maximum_yvel
+%flowtype = 'disturbed';
+%flowparms = [5,2,4,0.5];
+
 
 %% Rotor 1
 bladeMass1 = 0.43; % kg
@@ -15,7 +22,7 @@ bladeLength1 = 0.5;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
-numBlades1 = 2;
+numBlades1 = 3;
 bladeDZfrac1 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;
@@ -45,7 +52,7 @@ I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblen
 vbcentermass = [0;0;0];
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0]; % Center of buoyancy
-vbreldensity = 1.0;    % Density of the vehilce body relative to water
+vbreldensity = 0.5;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/2]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/2]; % Point where the 2nd rotor is located [h1,h2,h3]
 rot1rad = bladeLength1;
@@ -75,10 +82,10 @@ tstep = 0.01;
 
 % Initial Conditions
 initialYaw = 0*pi/180;
-initialPitch = 90*pi/180;
+initialPitch = 100*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 10.5;
+initialLongitudinal = 8.5;
 initialVertical = 0;
 initialSway = 0;
 initialSurge = 0;

@@ -74,7 +74,6 @@ classdef rotor < handle
             hobj.blades = bladearray;
             hobj.numblades = nblades;
             hobj.bladeAngls = eta;
-            mass = bladearray.mass;
             hobj.mass = mass;
             hobj.ID = [];
         end % end constructor
