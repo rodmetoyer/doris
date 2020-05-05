@@ -22,6 +22,7 @@ classdef vehicle < handle
         type        % uint identifier | see typeName get method for list of types
         Mstar
         MstarInv
+        relDensity  % The total density of the vehicle (all components) relative to water
     end % End private properties    
     properties (Dependent)
         A_C_O       % 3x3 tranformation matrix from inertial frame to vehicle frame
@@ -162,7 +163,8 @@ classdef vehicle < handle
             velax_A = vel_A(3)*vel_A(3);
             Fn = 1.2*q*velnorm_A;
             Fa = 0.1*q*velax_A;
-            Fbod = [Fn;Fa];
+            %Fbod = [Fn;Fa];
+            Fbod = [0;0;0];
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,false);
@@ -468,6 +470,11 @@ classdef vehicle < handle
                 zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
             hobj.MstarInv = inv(hobj.Mstar);
         end % computeMstar
+        
+        function setRelativeDensity(hobj,rd)
+            hobj.relDensity = rd;
+        end
+        
         %$ Setters
         function setType(hobj,t)
             hobj.type = t;

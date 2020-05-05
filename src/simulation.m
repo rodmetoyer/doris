@@ -92,14 +92,14 @@ classdef simulation < handle
                 r2 = rotor(bld2);
                 r2.setID(2);
                 % Make a vehicle body
-                vbod = vehiclebody(vbmass,I);
-                vbod.setRelativeDensity(vbreldensity);
+                vbod = vehiclebody(vbmass,I);                
                 vbod.setLength(vblength);
                 vbod.setRadius(vbradius);
                 % Make a vehicle
                 rotPoints = [rot1point,rot2point];
                 hobj.vhcl = vehicle();
                 hobj.vhcl.init(vbod,[r1,r2],rotPoints,vbcentermass,vbtetherpoint,vbbuoypoint);
+                hobj.vhcl.setRelativeDensity(vreldensity);
                 disp('Vehicle initialized');
                 % Associate rotor objects with vehicle object
                 r1.connectVehicle(hobj.vhcl);
@@ -340,6 +340,11 @@ classdef simulation < handle
                 hold on
                 % plot the body
                 plot3(ax,[r_epo_O(1) r_edo_O(1)],[r_epo_O(2) r_edo_O(2)],[r_epo_O(3) r_edo_O(3)],'k','LineWidth',2.0);
+                r_cso_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.syscm;
+                r_cbo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.buoypoint;
+                plot3(ax,r_cso_O(1),r_cso_O(2),r_cso_O(3),'kv','MarkerSize',6.0);
+                plot3(ax,r_ao_O(smp,1),r_ao_O(smp,2),r_ao_O(smp,3),'go','MarkerSize',6.0);
+                plot3(ax,r_cbo_O(1),r_cbo_O(2),r_cbo_O(3),'b^','MarkerSize',6.0);
                 % plot each blade in rotors
                 color = ["r","b"];
                 for jj = 1:1:numel(sim.vhcl.rotors)
@@ -370,10 +375,10 @@ classdef simulation < handle
 %                     '  |  U_\infty = ' num2str(norm(sim.fld.velocity),'%5.2f'),...
 %                     '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
 %                     '  |  Relative Density = ' num2str(sim.vhcl.body.relDensity,'%2.1f')],'FontSize',12);                
-                title(['\fontsize{20}RPM_R_E_L = ' num2str(((p3(smp)-q3(smp))/(2*pi)*60),'%5.2f'),...
+                title(['\fontsize{20}RPM_R_e_l = ' num2str(((p3(smp)-q3(smp))/(2*pi)*60),'%5.2f'),...
                     '  |  U_\infty = ' num2str(norm(sim.fld.velocity),'%5.2f'),...
                     '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
-                    '  |  Relative Density = ' num2str(sim.vhcl.body.relDensity,'%2.1f')],'FontSize',12);
+                    '  |  Relative Density = ' num2str(sim.vhcl.relDensity,'%2.1f')],'FontSize',12);
                 hold off
                 text(0,0,-1,str,'Fontsize',12);
                 F(i) = getframe(hfig);
@@ -386,6 +391,90 @@ classdef simulation < handle
             open(vw);
             writeVideo(vw,F); close(vw);
         end % end makeMovie
+        function makePlots(infn, varargin)
+            % makePlots  Static method that makes plots from a data file
+            %   ARGS:
+            %       infn - name of the data file
+            %       varargin - name,value pair to control stuff
+                    % plots - which plots to run
+                        % all (default)
+                        % position, orientation, angrate, speed, rotang,
+                        % rotspeed (one at a time) todo enable string array argument
+                    % figsize - size of the figure [x,y,w,h]
+            % get data 
+            try
+                % Load the simulation object
+                % The mat file has all of the data that is in the corresponding
+                % text file. The text file is for consumption outside of
+                % matlab.
+                svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+                eval(svcmd); clear svcmd;
+            catch
+                disp(['Unable to load ' infn]);
+                % todo log and move on
+                return;
+            end
+            defaultPlots = 'all';
+            defaultFigsize = [50 50 600 400];
+            p = inputParser;
+            %validateOutput = @(x) isa(x,'function_handle');
+            addParameter(p,'plots',defaultPlots,@ischar);
+            addParameter(p,'figsize',defaultFigsize,@isnumeric);
+            parse(p,varargin{:});
+            whatplots = p.Results.plots;
+                        
+            t = sim.times;
+            y = sim.states;
+            % todo make this and other formatting controllable with vararg
+            plotlowx = p.Results.figsize(1); plotlowy = p.Results.figsize(2); plotw = p.Results.figsize(3); ploth = p.Results.figsize(4);
+            
+            if (strcmp(whatplots,'position') || strcmp(whatplots,'all'))
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,1),'r',t,y(:,2),'b',t,y(:,3),'g');
+            xlabel('Time (s)'); ylabel('Position (m)');
+            legend({'x','y','z'},'Location','Best');
+            end
+            
+            if (strcmp(whatplots,'orientation') || strcmp(whatplots,'all'))
+            plotlowy = plotlowy+ploth; % Move up
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,4)*180/pi,'r',t,y(:,5)*180/pi,'b',t,y(:,6)*180/pi,'g');
+            xlabel('Time (s)'); ylabel('Angle (deg)');
+            legend({'\theta','\gamma','\beta'},'Location','Best');
+            end
+
+            if (strcmp(whatplots,'angrate') || strcmp(whatplots,'all'))
+            plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,7)*30/pi,'r',t,y(:,8)*30/pi,'b',t,y(:,9)*30/pi,'g');
+            xlabel('Time (s)'); ylabel('Angular Rate (RPM)');
+            legend({'\omega_1','\omega_2','\omega_3'},'Location','Best');
+            end
+
+            if (strcmp(whatplots,'speed') || strcmp(whatplots,'all'))
+            plotlowy = plotlowy+ploth; % Move up
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,10),'r',t,y(:,11),'b',t,y(:,12),'g');
+            xlabel('Time (s)'); ylabel('Speed (m/s)');
+            legend({'u_1','u_2','u_3'},'Location','Best');
+            end
+
+            if (strcmp(whatplots,'rotang') || strcmp(whatplots,'all'))
+            plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,14)*180/pi,'r',t,y(:,16)*180/pi,'b');
+            xlabel('Time (s)'); ylabel('Angle (deg)');
+            legend({'\phi_3','\psi_3'},'Location','Best');
+            end
+
+            if (strcmp(whatplots,'rotspeed') || strcmp(whatplots,'all'))
+            plotlowy = plotlowy+ploth; % Move up
+            figure('Position',[plotlowx plotlowy plotw ploth])
+            plot(t,y(:,13)*30/pi,'r',t,y(:,15)*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
+            xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Body Frame)');
+            legend({'p_3','q_3'},'Location','Best');
+            end
+        end
     end % static methods
 end
 

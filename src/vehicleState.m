@@ -64,7 +64,7 @@ end
 v.addTetherLoads(v.A_C_O*tetherforce);
 
 %% Compute weight and buoyancy loads
-buoyForceA = transpose(O_C_A)*[0;0;(1/v.body.relDensity)*f.gravity*v.mass];
+buoyForceA = transpose(O_C_A)*[0;0;(1/v.relDensity)*f.gravity*v.mass];
 weightA = transpose(O_C_A)*[0;0;-v.mass*f.gravity];
 buoyTorqueA = cross(v.buoypoint,buoyForceA);
 weightTorqueA = cross(v.syscm,weightA);
