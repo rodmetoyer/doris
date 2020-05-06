@@ -14,8 +14,7 @@ classdef vehicle < handle
         generator   % generator
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
-        centermass  % 3x1 vector location of center of mass of the vehicle body in the vehicle frame (c1,c2,c3) todo put this on the body
-        syscm       % 3x1 vector location of center of mass of the system in the vehicle frame (s1,s2,s3)
+        centermass  % 3x1 vector location of center of mass of the vehicle in the vehicle frame (s1,s2,s3)
         tetherpoint % 3xm vector of location of the tether attachment point(s) in the vehicle frame (t1, t2, t3)
         buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
         mass        % scalar total mass of the vehicle
@@ -41,7 +40,7 @@ classdef vehicle < handle
     
     methods
         %% Constructor
-        function hobj = vehicle(bod,rot,cm,cmsys,tp,bp)
+        function hobj = vehicle(bod,rot,cm,tp,bp)
             if nargin == 0
                 % Make sure to call init
                 warning('Make sure to initialize vehicle');
@@ -50,12 +49,10 @@ classdef vehicle < handle
                hobj.body = bod;
                hobj.rotors = rot;
                hobj.mass = rot.mass;
-               %hobj.buoyforce = 0;
             else
                hobj.rotors = rot;
                hobj.body = bod;
                hobj.centermass = cm;
-               hobj.syscm = cmsys;
                hobj.tetherpoint = tp;
                hobj.buoypoint = bp;
                m = 0;
@@ -63,7 +60,6 @@ classdef vehicle < handle
                    m = m + rot(i).mass;
                end
                hobj.mass = m + bod.mass;
-               %hobj.buoyforce = bf;
             end
             hobj.Mstar = [];
             hobj.MstarInv = [];
@@ -76,11 +72,9 @@ classdef vehicle < handle
                 error('Body-only vehicle not currently supported');
             else
                 hobj.body = bod;
-                hobj.rotors = rot;
-                hobj.centermass = cm;                
+                hobj.rotors = rot;                
                 hobj.tetherpoint = tp;
                 hobj.buoypoint = bp;
-                %hobj.buoyforce = bf;
                 hobj.rotorLocs = rotLocs;
                 m = 0;
                 switch numel(rot)
@@ -100,13 +94,23 @@ classdef vehicle < handle
                     end
                 end
                 hobj.mass = m + bod.mass;
-                rcsa_A = [0;0;0];
-                for i=1:1:numel(rot)
-                    rcsa_A = rcsa_A + rot(i).mass/hobj.mass*rotLocs(:,i);
+                % if you set a cm in the input file then that's what get's
+                % used. Note that if you add a generator later at a point
+                % other than the cm the cm will move.
+                if isempty(cm) 
+                    rcsa_A = [0;0;0];
+                    for i=1:1:numel(rot)
+                        rcsa_A = rcsa_A + rot(i).mass/hobj.mass*rotLocs(:,i);
+                    end
+                    % Compute system center of mass
+                    % todo check if there is a generator and, if so, adjust
+                    % center mass accordingly. For now we assume that the
+                    % generator is added later.
+                    rcsa_A = rcsa_A + bod.mass/hobj.mass*bod.centermass;
+                    hobj.centermass = rcsa_A;
+                else
+                    hobj.centermass = cm;
                 end
-                % Compute system center of mass
-                rcsa_A = rcsa_A + bod.mass/hobj.mass*cm;
-                hobj.syscm = rcsa_A;
             end
         end % End init
         %% computeHydroLoads
@@ -190,6 +194,7 @@ classdef vehicle < handle
         function addRotor(hobj,loc)
             % Concatenate as attached
             hobj.rotorLocs = [hobj.rotorLocs,loc];
+            % todo adjust the center of mass of the vehicle
         end % end addRotor
         %% visualizeSectionLoads
         function frame = visualizeSectionLoads(hobj,hide,scale,totalOnly)
@@ -433,16 +438,19 @@ classdef vehicle < handle
             % todo this is not a property of the vehicle. Get rid of this.
             hobj.buoyforce = a*sin(w*t);
         end
-        function addGenerator(hobj,g)
+        function addGenerator(hobj,g,loc)
             hobj.generator = g;
-            hobj.mass = hobj.mass + g.mass;
+            % Adjuct center mass
+            hobj.centermass = hobj.centermass*hobj.mass/(hobj.mass+g.mass) + loc*g.mass/(hobj.mass+g.mass);
+            % add mass to total
+            hobj.mass = hobj.mass + g.mass;            
         end
         function computeMstar(hobj)
             if isempty(hobj.rotors)
                 error('Need an assembled vehicle to compute the mass matrix');
             end
             M11 = hobj.mass*eye(3);
-            r_csa_A = hobj.syscm;
+            r_csa_A = hobj.centermass;
             r_csa_A_X = makecrossmat(r_csa_A);
             M12 = -r_csa_A_X;
             P_C_A = hobj.rotors(1).P_C_A;

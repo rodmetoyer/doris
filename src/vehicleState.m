@@ -67,7 +67,7 @@ v.addTetherLoads(v.A_C_O*tetherforce);
 buoyForceA = transpose(O_C_A)*[0;0;(1/v.relDensity)*f.gravity*v.mass];
 weightA = transpose(O_C_A)*[0;0;-v.mass*f.gravity];
 buoyTorqueA = cross(v.buoypoint,buoyForceA);
-weightTorqueA = cross(v.syscm,weightA);
+weightTorqueA = cross(v.centermass,weightA);
 v.force = v.force + buoyForceA + weightA;
 v.torque = v.torque + buoyTorqueA + weightTorqueA;
 
@@ -75,14 +75,14 @@ v.torque = v.torque + buoyTorqueA + weightTorqueA;
 ta1 = v.torque(1); ta2 = v.torque(2); ta3 = v.torque(3);
 f1 = v.force(1); f2 = v.force(2); f3 = v.force(3);
 m1 = v.rotors(1).mass; m2 = v.rotors(2).mass; mv = v.body.mass;
-c1 = v.centermass(1); c2 = v.centermass(2);
-c3 = v.centermass(3);  % Only this will be non-zero for a coaxial turbine
+c1 = v.body.centermass(1); c2 = v.body.centermass(2);
+c3 = v.body.centermass(3);  % Only this will be non-zero for a coaxial turbine
 g1 = v.rotorLocs(1,1); g2 = v.rotorLocs(2,1);
 g3 = v.rotorLocs(3,1); % Only this will be non-zero for a coaxial turbine
 h1 = v.rotorLocs(1,2); h2 = v.rotorLocs(2,2);
 h3 = v.rotorLocs(3,2); % Only this will be non-zero for a coaxial turbine
 % Position from point A to CM of system
-s1 = v.syscm(1); s2 = v.syscm(2); s3 = v.syscm(3);
+s1 = v.centermass(1); s2 = v.centermass(2); s3 = v.centermass(3);
 Icv11 = v.body.inertia(1,1);
 Icv22 = v.body.inertia(2,2); 
 Icv33 = v.body.inertia(3,3);
