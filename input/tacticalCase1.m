@@ -1,14 +1,14 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'labBaseline';
+runname = 'tacticalCase1';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [0.2;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [1.5;0.0;0]; % Approximately river velocity
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime
 %flowtype = 'ramped';
-%flowparms = [2,3];
+%flowparms = [2,4];
 % disturbed - rampspeed(1 to inf), starttime, duration, maximum_yvel
 %flowtype = 'disturbed';
 %flowparms = [5,2,4,0.5];
@@ -17,12 +17,12 @@ flowparms = [];
 %flowparms = [0.5,0.5,0];
 
 %% Rotor 1
-bladeMass1 = 0.02; % kg
+bladeMass1 = 0.43; % kg
 airfoiltype1 = 'SG6040';
-aspectRatio1 = 7;
-bladeLength1 = 0.1016;
+aspectRatio1 = 10;
+bladeLength1 = 0.5;
 secChord1 = bladeLength1/aspectRatio1;
-numSections1 = 6;       % Number of sections (whole number)
+numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
 numBlades1 = 3;
 bladeDZfrac1 = 0.0; 
@@ -32,12 +32,12 @@ twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
 
 %% Rotor 2
-bladeMass2 = 0.02; % kg
+bladeMass2 = 0.43; % kg
 airfoiltype2 = 'SG6040';
-aspectRatio2 = 7;
-bladeLength2 = 0.1016;
+aspectRatio2 = 10;
+bladeLength2 = 0.5;
 secChord2 = bladeLength2/aspectRatio2;
-numSections2 = 6;       % Number of sections (whole number)
+numSections2 = 12;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
 numBlades2 = 3;
 bladeDZfrac2 = 0.0; 
@@ -47,9 +47,9 @@ twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
 
 % vehicle
-vblength = 0.1016;
-vbradius = 0.0635;
-vbmass = 0.1;
+vblength = 1.0;
+vbradius = 0.05;
+vbmass = 15.5;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
@@ -66,18 +66,18 @@ rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
 
 % tether
-tspring = 1200;
-tdamp = 300;
-tunstrch = 1;
+tspring = 15000;
+tdamp = 4000;
+tunstrch = 10;
 tnnodes = 0;
 tnodlocs = []; % one column per node
 
 % generator
 gmconst = 0.19;
-gflux = 2;
+gflux = 10;
 grarm = 0.1;
-gkvisc = 1.0e-12;
-gmass = 0.02; % mass in kg
+gkvisc = 1.0e-4;
+gmass = 3.0; % mass in kg
 grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 
@@ -90,7 +90,7 @@ initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 1.05;
+initialLongitudinal = 10.5;
 initialVertical = 0;
 initialSway = 0;
 initialSurge = 0;

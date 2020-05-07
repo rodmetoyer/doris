@@ -1,9 +1,9 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'labBaseline';
+runname = 'labCase2';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [0.2;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [0.1;0.0;0]; % Approximately river velocity
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime
@@ -20,7 +20,7 @@ flowparms = [];
 bladeMass1 = 0.02; % kg
 airfoiltype1 = 'SG6040';
 aspectRatio1 = 7;
-bladeLength1 = 0.1016;
+bladeLength1 = 0.1014;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 6;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
@@ -35,7 +35,7 @@ twist1.bladeDZfrac = bladeDZfrac1;
 bladeMass2 = 0.02; % kg
 airfoiltype2 = 'SG6040';
 aspectRatio2 = 7;
-bladeLength2 = 0.1016;
+bladeLength2 = 0.1018;
 secChord2 = bladeLength2/aspectRatio2;
 numSections2 = 6;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
@@ -51,11 +51,11 @@ vblength = 0.1016;
 vbradius = 0.0635;
 vbmass = 0.1;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0;0;0]; % This is center mass of the vehicle body
+vbcentermass = [0.01;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0]; % Center of buoyancy
-vreldensity = 1.0;    % Density of the vehilce body relative to water
+vreldensity = 0.98;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/2]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/2]; % Point where the 2nd rotor is located [h1,h2,h3]
 rot1rad = bladeLength1;
@@ -90,8 +90,8 @@ initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 1.05;
-initialVertical = 0;
+initialLongitudinal = 0.99;
+initialVertical = 0.354;
 initialSway = 0;
 initialSurge = 0;
 initialHeave = 0;

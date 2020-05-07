@@ -1,9 +1,9 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'labBaseline';
+runname = 'labFastFlow';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [0.2;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [0.5;0.0;0]; % Approximately river velocity
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime

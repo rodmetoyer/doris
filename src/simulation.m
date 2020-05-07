@@ -52,7 +52,8 @@ classdef simulation < handle
                 
                 %% Make objects
                 % fluid
-                hobj.fld = fluid(fluidtype); % No arguments to fluid gives the obj water properties
+                hobj.fld = fluid; % No arguments to fluid gives the obj water properties
+                hobj.fld.init(fluidtype);
                 try
                     hobj.fld.setFlowType(flowtype,flowparms);
                 catch
@@ -123,6 +124,7 @@ classdef simulation < handle
                 % add generator
                 gen = generator(gmconst,gflux,grarm,gkvisc,gmass); % todo size generator constant so that torque is reasonable
                 hobj.vhcl.addGenerator(gen,gpoint);
+                hobj.vhcl.generator.setLoadResistance(grload);
                 % Compute the mass matrix
                 hobj.vhcl.computeMstar;
             end
@@ -249,7 +251,7 @@ classdef simulation < handle
     end % methods
     
     methods(Static)
-        function makeMovie(infn, outfn, varargin)
+        function makeMovie(infn, outfn, fr)
             % makeMovie  Static method that makes a movie out of a data file
             %   ARGS:
             %       infn - name of the data file
@@ -257,6 +259,7 @@ classdef simulation < handle
             %       varargin - name,value pair to control the movie
             if nargin < 2
                 outfn = infn;
+                fr = 24;
             end
 
             moviefile = ['products\videos\' outfn '.avi'];
@@ -293,7 +296,7 @@ classdef simulation < handle
             tottime = dat(end,1); % sim time in seconds
             nsamps = length(dat(:,1));
             tstep = mean(diff(dat(:,1))); % seconds per frame            
-            framerate = 24; % target framerate in frames per second
+            framerate = fr; % target framerate in frames per second
             sPerFrame = 1/framerate;
             nskips = round(sPerFrame/tstep);
             framerate = 1/(nskips*tstep); % Actual frame rate
@@ -378,9 +381,9 @@ classdef simulation < handle
                 title(['\fontsize{20}RPM_R_e_l = ' num2str(((p3(smp)-q3(smp))/(2*pi)*60),'%5.2f'),...
                     '  |  U_\infty = ' num2str(norm(sim.fld.velocity),'%5.2f'),...
                     '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
-                    '  |  Relative Density = ' num2str(sim.vhcl.relDensity,'%2.1f')],'FontSize',12);
+                    '  |  Relative Density = ' num2str(sim.vhcl.relDensity,'%3.2f')],'FontSize',12);
                 hold off
-                text(0,0,-1,str,'Fontsize',12);
+                text(0,0,-0.2*maxz,str,'Fontsize',12);
                 F(i) = getframe(hfig);
                 %clear an;
             end % end loop through data
@@ -517,6 +520,9 @@ classdef simulation < handle
                 export_fig(['products\images\' sim.name '\rotspeed.png'],'-png','-transparent','-m3');
             end
             end
+        end
+        function makeInputFile(varargin)
+            
         end
     end % static methods
 end

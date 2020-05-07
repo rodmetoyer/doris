@@ -23,7 +23,7 @@ classdef tether < handle
             unitvec = r/currentlength;
             stretch = currentlength-usleng; % If it moves from the origin there is a restoring force
             stretchd = dot(r,v)/currentlength;
-            if currentlength < 1*10^-13
+            if currentlength < 0
                 unitvec = [0;0;0];
                 stretchd = 0;
             end

@@ -10,12 +10,13 @@ classdef generator < handle
     % To add a load resistance use the setLoadResistance method.
     
     properties (SetAccess = private)
-        kmach   % machine constant
-        flux    % magnetic flux
-        rarm    % total armature resistance
-        rload   % load resistance
-        kvisc   % damping constant for viscous friction
-        mass    % mass of the generator
+        kmach    % machine constant
+        flux     % magnetic flux
+        rarm     % total armature resistance
+        rload    % load resistance
+        kvisc    % damping constant for viscous friction
+        mass     % mass of the generator
+        rlparams % 3 parameters that control a variable load - empty means constant load, 2 means ramp, 4 means sinusoid [amp,freq,phase,mean] 
     end % end parameters
     
     methods
@@ -44,6 +45,23 @@ classdef generator < handle
         
         function setLoadResistance(hobj,r)
             hobj.rload = r;
+        end
+        function setVariableResistanceParameters(hobj,r)
+            % Set 4 parameters for sinusoid [amp,freq,phase,mean]
+            % Set 2 parameters for a ramp [rate,final] - NOTE it ramps down
+            % from inf
+            hobj.rlparams = r;
+        end
+        
+        function updateLoadResistance(hobj,t)
+            if numel(hobj.rlparams) > 2 % sinusoid
+                hobj.rload = hobj.rlparams(4) + hobj.rlparams(1)*sin(2*pi*hobj.rlparams(2)*t+hobj.rlparams(3));
+            elseif ~isempty(hobj.rlparams) % ramp
+                error('Ramp generator load resistance doesn"t work yet.');
+                % todo ramp down from inf to hobj.rlparmams(2) at
+                % hobj.rlparmams(1) rate
+            end
+            % otherwise just keep the current value
         end
     end % end methods    
 end % end generator

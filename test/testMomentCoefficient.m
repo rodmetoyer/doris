@@ -46,11 +46,12 @@ r2point = [0;0;-1.25];
 rotPoints = [r1point,r2point];
 vbmass = 0.8;
 vblength = 1.0;
-vbradius = 0.1;
+vbradius = 0.01;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;...
     0,1/12*vbmass*(3*vbradius^2+vblength^2),0;...
     0,0,1/2*vbmass*vbradius^2];
-vbod = vehiclebody(vbmass,I);
+vbodcm = [0;0;0];
+vbod = vehiclebody(vbmass,I,vbodcm);
 vbod.setRadius(vbradius);
 vbod.setLength(vblength);
 v = vehicle;

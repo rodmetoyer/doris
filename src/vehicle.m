@@ -118,6 +118,7 @@ classdef vehicle < handle
             % Computes the net hydrodynamic force and torque vectors
             frc = 0;
             trq = 0;
+            bodyTors = 0;
             % Get aerodynamic loads on rotors, cross and sum
             % Need to preallocate the arrays based on whichever rotor has
             % more blades and sections. For now assume all blades have the
@@ -155,6 +156,15 @@ classdef vehicle < handle
                 r_ayxA_A = hobj.rotorLocs(i) + sectionpositions;
                 trq = trq + cross(r_ayxA_A,sectionforces);
                 frc = frc + sectionforces;
+                
+                % In small lab-scale systems you can end up with a numerical
+                % torque on the body even when the rotors are not spinning.
+                % This doesn't correct iteself because the body-rotor loads
+                % are internal and the external viscous torsion is small
+                % compared to the numerical error. As a correction, we 
+                % Todo research and make this functional
+                %viscConst = 0.1; % Todo make this an accessable parameter
+                %bodyTors = bodyTors - viscConst*hobj.body.radius*hobj.rotors(i).angvel(3);
             end % end rotor loop
             
             % Get Hydrodynamic loads on body, cross and sum            
@@ -167,17 +177,17 @@ classdef vehicle < handle
             velax_A = vel_A(3)*vel_A(3);
             Fn = 1.2*q*velnorm_A;
             Fa = 0.1*q*velax_A;
-            %Fbod = [Fn;Fa];
-            Fbod = [0;0;0];
+            Fbod = [Fn;Fa];
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,false);
-            Tors = 0.5*f.density*pi*hobj.angvel(3)^2*hobj.body.radius^4*hobj.body.length*cmc;
-            
+            % Add viscous torsion
+            bodyTors = bodyTors - 0.5*f.density*pi*hobj.angvel(3)*abs(hobj.angvel(3))*hobj.body.radius^4*hobj.body.length*cmc;
+                        
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
             hobj.force = sum(sum(frc,2),3) + Fbod;
-            hobj.torque = sum(sum(trq,2),3) + [0;0;Tors];
+            hobj.torque = sum(sum(trq,2),3) + [0;0;bodyTors];
         end % end computeHydroLoads
         %% addTetherLoads
         function addTetherLoads(hobj,frc)
@@ -190,6 +200,7 @@ classdef vehicle < handle
                 hobj.torque = hobj.torque + cross(hobj.tetherpoint(:,i),frc(:,i));
             end
         end % end addTetherLoads
+        
         %% addRotor
         function addRotor(hobj,loc)
             % Concatenate as attached
@@ -426,7 +437,7 @@ classdef vehicle < handle
                     cmc = vpasolve(x==(1/(-0.8572+1.25*log(re*sqrt(x))))^2,x,0.02); % 0.02 is initial guess
                     clear x;
                 elseif re < 1.0e-6
-                    cmc = 0;
+                    cmc = 10/hobj.body.radius;
                 else
                     cmc = 8/re;
                 end

@@ -8,7 +8,7 @@ addpath('src')
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'testhydrostatics7.m';
+inputfile = 'tacticalBaseline.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -22,9 +22,9 @@ sim = simulation(inputfile);
 %% Simulate
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
-tspan = 0:0.005:10;
+tspan = 0:0.005:1;
 sim.simulate; % ('output',[])
-%sim.simulate('tspan',tspan,'stats','off','output',[]);
+%sim.simulate('tspan',tspan,'stats','on');
 
 %% Write simulation results to file
 % If you want to name the results file something other than the simulation
@@ -36,7 +36,8 @@ sim.write2file;
 % The makeMovie method is static. The first argument is the name of the
 % data and input file combo to use. The second argument is the name of the
 % movie file. If you only pass one name the movie file gets that name.
-simulation.makeMovie(sim.name);
+simulation.makeMovie(sim.name,sim.name,24);
 
 %% Plots
-simulation.makePlots(sim.name);
+simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
+%simulation.makePlots(sim.name,'savefigs',true);

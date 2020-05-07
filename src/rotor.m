@@ -226,6 +226,9 @@ classdef rotor < handle
                 % v = the vehicle object to connect to
             hobj.vehicle = v;
         end % end ConnectVehicle
+        function addGeneratorTorque(hobj,tq)
+            hobj.torqueCM(3) = hobj.torqueCM(3) + tq;
+        end
         
         % Setters
 %         function set.position(hobj,p)

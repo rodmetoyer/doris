@@ -1,14 +1,14 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'labBaseline';
+runname = 'labCase11';
 
 % Environment
-fluidtype = 'water';
-fluidBaseVelocity = [0.2;0.0;0]; % Approximately river velocity
-flowtype = 'steady';
-flowparms = [];
+fluidtype = 'air';
+fluidBaseVelocity = [3.5;0.0;0]; % Approximately river velocity
+%flowtype = 'steady';
+%flowparms = [];
 % ramped - rampspeed(1 to inf), starttime
-%flowtype = 'ramped';
-%flowparms = [2,3];
+flowtype = 'ramped';
+flowparms = [2,2.5];
 % disturbed - rampspeed(1 to inf), starttime, duration, maximum_yvel
 %flowtype = 'disturbed';
 %flowparms = [5,2,4,0.5];
@@ -24,7 +24,7 @@ bladeLength1 = 0.1016;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 6;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
-numBlades1 = 3;
+numBlades1 = 2;
 bladeDZfrac1 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;
@@ -39,7 +39,7 @@ bladeLength2 = 0.1016;
 secChord2 = bladeLength2/aspectRatio2;
 numSections2 = 6;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
-numBlades2 = 3;
+numBlades2 = 2;
 bladeDZfrac2 = 0.0; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist2.AoAopt_deg = 8.0;
@@ -48,14 +48,14 @@ twist2.bladeDZfrac = bladeDZfrac2;
 
 % vehicle
 vblength = 0.1016;
-vbradius = 0.0635;
+vbradius = 0.075;
 vbmass = 0.1;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0;0;0]; % This is center mass of the vehicle body
+vbcentermass = [0.01;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0]; % Center of buoyancy
-vreldensity = 1.0;    % Density of the vehilce body relative to water
+vreldensity = 1000.0;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/2]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/2]; % Point where the 2nd rotor is located [h1,h2,h3]
 rot1rad = bladeLength1;
@@ -87,11 +87,11 @@ tstep = 0.01;
 
 % Initial Conditions
 initialYaw = 0*pi/180;
-initialPitch = 90*pi/180;
+initialPitch = 170*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 1.05;
-initialVertical = 0;
+initialLongitudinal = 0;
+initialVertical = -1.05;
 initialSway = 0;
 initialSurge = 0;
 initialHeave = 0;

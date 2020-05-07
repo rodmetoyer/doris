@@ -42,8 +42,9 @@ v.rotors(1).orientation(3) = x(14);
 v.rotors(2).angvel(3) = x(15);
 v.rotors(2).orientation(3) = x(16);
 
-%% Update fluid velocity 
+%% Update fluid velocity and generator load resistance
 f.updateVelocity(t);
+v.generator.updateLoadResistance(t);
 
 %% Compute hydrodynamic loads
 v.computeHydroLoads(f);
@@ -70,6 +71,15 @@ buoyTorqueA = cross(v.buoypoint,buoyForceA);
 weightTorqueA = cross(v.centermass,weightA);
 v.force = v.force + buoyForceA + weightA;
 v.torque = v.torque + buoyTorqueA + weightTorqueA;
+
+%% Add generator loads
+% All of the hydrodynamic loads are computed and updated in the
+% computeHydroLoads method, but we need to add the generator loads to the
+% rotor torques.
+relRotSpeed = x(13)-x(15);
+gtq = v.generator.getTorque(relRotSpeed);
+v.rotors(1).addGeneratorTorque(gtq);
+v.rotors(2).addGeneratorTorque(-gtq);
 
 %% prepare to compute state derivatives
 ta1 = v.torque(1); ta2 = v.torque(2); ta3 = v.torque(3);
@@ -122,9 +132,9 @@ xdot(3) = dx3;
 xdot(4) = dtheta;
 xdot(5) = dgamma;
 xdot(6) = dbeta;
-xdot(7) = betavec(4);  % betavec(4)
-xdot(8) = betavec(5);  % betavec(5)
-xdot(9) = betavec(6);  % betavec(6)
+xdot(7) = betavec(4);  % omg_1
+xdot(8) = betavec(5);  % omg_2
+xdot(9) = betavec(6);  % omg_3
 xdot(10) = betavec(1); % betavec(1)
 xdot(11) = betavec(2); % betavec(2)
 xdot(12) = betavec(3); % betavec(3)

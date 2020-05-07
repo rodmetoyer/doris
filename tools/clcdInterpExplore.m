@@ -1,18 +1,39 @@
 % clcdInterpExplore.m
 
-clearvars; close all; clc;
+clear all; close all; clc;
 
 % Need to see what getCLCD function is right
 % First make some airfoils
-af = airfoil(1,'S814');
+af = airfoil('NACA0015');
 fig1 = figure;
 plot(af.clcurve(1,:),af.clcurve(2,:),'xr');
 hold on
 plot(af.cdcurve(1,:),af.cdcurve(2,:),'xb');
 hold off
-title('S814 CL/CD data');
+title('NACA0015 CL/CD data');
 
-af2 = airfoil(2,'SG6040');
+af2 = airfoil('NACA0009');
+aoa = -180:1.5:180;
+cl1 = ppval(af.clpp,aoa);
+cd1 = ppval(af.cdpp,aoa);
+cl2 = ppval(af2.clpp,aoa);
+cd2 = ppval(af2.cdpp,aoa);
+if true
+    figure
+    plot(aoa,cl1,'LineWidth',2.0);
+    hold on
+    plot(aoa,cd1,'LineWidth',2.0);
+    plot(aoa,cl2,'LineWidth',2.0);
+    plot(aoa,cd2,'LineWidth',2.0);
+    hold off
+    title(['Force Coefficients for ' af.airfoilName ' airfoil']);
+    xlabel('Angle of Attack (deg)'); ylabel(['\color{red}C_L','\color{black} | ','\color{blue}C_D']);
+    legend('15 C_L','15 C_D','09 C_L','09 C_D','Location','Best');
+end
+
+return
+
+af2 = airfoil('SG6040');
 fig2 = figure;
 plot(af2.clcurve(1,:),af2.clcurve(2,:),'xr');
 hold on
@@ -25,33 +46,33 @@ title('SG6040 CL/CD data');
 aoa = -181:0.25:181;
 % Linear interp
 tic
-cl = interp1(af.clcurve(1,:),af.clcurve(2,:),aoa);
-cd = interp1(af.cdcurve(1,:),af.cdcurve(2,:),aoa);
+cl1 = interp1(af.clcurve(1,:),af.clcurve(2,:),aoa);
+cd1 = interp1(af.cdcurve(1,:),af.cdcurve(2,:),aoa);
 tinterp.af1 = toc;
 hold(fig1.CurrentAxes,'on');
-plot(fig1.CurrentAxes,aoa,cl,'r',aoa,cd,'b');
+plot(fig1.CurrentAxes,aoa,cl1,'r',aoa,cd1,'b');
 hold(fig1.CurrentAxes,'off');
 tic
-cl = interp1(af2.clcurve(1,:),af2.clcurve(2,:),aoa);
-cd = interp1(af2.cdcurve(1,:),af2.cdcurve(2,:),aoa);
+cl1 = interp1(af2.clcurve(1,:),af2.clcurve(2,:),aoa);
+cd1 = interp1(af2.cdcurve(1,:),af2.cdcurve(2,:),aoa);
 tinterp.af2 = toc;
 hold(fig2.CurrentAxes,'on');
-plot(fig2.CurrentAxes,aoa,cl,'r',aoa,cd,'b');
+plot(fig2.CurrentAxes,aoa,cl1,'r',aoa,cd1,'b');
 hold(fig2.CurrentAxes,'off');
 % Spline
 tic
-cl = spline(af.clcurve(1,:),af.clcurve(2,:),aoa);
-cd = spline(af.cdcurve(1,:),af.cdcurve(2,:),aoa);
+cl1 = spline(af.clcurve(1,:),af.clcurve(2,:),aoa);
+cd1 = spline(af.cdcurve(1,:),af.cdcurve(2,:),aoa);
 tspline.af1 = toc;
 hold(fig1.CurrentAxes,'on');
-plot(fig1.CurrentAxes,aoa,cl,':r',aoa,cd,':b');
+plot(fig1.CurrentAxes,aoa,cl1,':r',aoa,cd1,':b');
 hold(fig1.CurrentAxes,'off');
 tic
-cl = spline(af2.clcurve(1,:),af2.clcurve(2,:),aoa);
-cd = spline(af2.cdcurve(1,:),af2.cdcurve(2,:),aoa);
+cl1 = spline(af2.clcurve(1,:),af2.clcurve(2,:),aoa);
+cd1 = spline(af2.cdcurve(1,:),af2.cdcurve(2,:),aoa);
 tspline.af2 = toc;
 hold(fig2.CurrentAxes,'on');
-plot(fig2.CurrentAxes,aoa,cl,':r',aoa,cd,':b');
+plot(fig2.CurrentAxes,aoa,cl1,':r',aoa,cd1,':b');
 hold(fig2.CurrentAxes,'off');
 % Note that spline has trouble on the ends and linear interpolation is
 % obviously faster
