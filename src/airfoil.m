@@ -15,10 +15,11 @@ classdef airfoil < handle
         cdpp        % Piecewise polynomial object for the cd alpha curve
         cmpp        % Piecewise polynomial object for the cm alpha curve
         basecoords  % 3xn base (unit) coordinates for the airfoil geometry in the airfoil frame (xyz by nPoints)
+        aoaopt      % Optimal angle of attack for the airfoil
     end
     
     properties (Dependent)
-        aoaopt      % Optimal angle of attack for the airfoil
+        %aoaopt      % Optimal angle of attack for the airfoil
         airfoilName % Name of the airfoil of this section
     end
     
@@ -36,6 +37,8 @@ classdef airfoil < handle
                         hobj.airfoilID = airfoilID.NACA0015;
                     case 'NACA0009'
                         hobj.airfoilID = airfoilID.NACA0009;
+                    case 'FLAT'
+                        hobj.airfoilID = airfoilID.FLAT;
                     otherwise
                         error('Unknown aifoil');
                 end % switch
@@ -59,22 +62,28 @@ classdef airfoil < handle
             basecoords = getBaseCoords(hobj.airfoilID);
             hobj.basecoords = transpose(basecoords);
         end
+        
+        function setAoAopt(hobj,a)
+            hobj.aoaopt = a;
+        end
         % Other methods
         
         % Getters
-        function a = get.aoaopt(hobj)
-            switch hobj.airfoilID
-                case 0
-                    a = 8.0;
-                case 1
-                    a = 10.0; 
-                case 2
-                    a = 10.0;
-                case 3
-                    a = 8.0;
-                otherwise
-            end
-        end
+%         function a = get.aoaopt(hobj)
+%             switch hobj.airfoilID
+%                 case 0
+%                     a = 8.0;
+%                 case 1
+%                     a = 10.0; 
+%                 case 2
+%                     a = 10.0;
+%                 case 3
+%                     a = 8.0;
+%                 case 4
+%                     a = 8.0;
+%                 otherwise
+%             end
+%         end
         function n = get.airfoilName(hobj)
             switch hobj.airfoilID
                 case 0
@@ -85,10 +94,40 @@ classdef airfoil < handle
                     n = 'NACA0015';
                 case 3
                     n = 'NACA0009';
+                case 4
+                    n = 'FLAT';
                 otherwise
             end
         end
-    end
+        function hfig = showme(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            aoa = -180:1.5:180;
+            cl1 = ppval(hobj.clpp,aoa);
+            cd1 = ppval(hobj.cdpp,aoa);
+            figure
+            plot(aoa,cl1,'LineWidth',2.0);
+            hold on
+            plot(aoa,cd1,'LineWidth',2.0);
+            hold off
+            title(['Force Coefficients for ' hobj.airfoilName ' airfoil']);
+            xlabel('Angle of Attack (deg)'); ylabel('Coefficient Value');
+            legend('C_L','C_D','Location','Best');
+        end % showme
+        function hfig = showmeltod(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            aoa = -180:1.5:180;
+            cl1 = ppval(hobj.clpp,aoa);
+            cd1 = ppval(hobj.cdpp,aoa);
+            figure
+            plot(aoa,cl1./cd1,'LineWidth',2.0);
+            title(['L/D for ' hobj.airfoilName ' airfoil']);
+            xlabel('Angle of Attack (deg)'); ylabel('Ratio');
+        end % showmeltod
+    end % end methods
 end
 
 % Functions outside of the classdef block are not class functions. These
@@ -145,6 +184,17 @@ cm0 = -0.088;
         clcurve = [AoA_cl';CL'];
         cdcurve = [AoA_cd';CD'];
         cmcurve = [AoA_cl';cm0*ones(size(AoA_cl'))]; % todo(rodney) change this when(if) you find cm curve data
+    elseif af == 'FLAT' % Compare to Ortiz, Rival and Wood 2015
+        % todo this is same as SG6040 - fix it
+        AoA_cl = [-180.1;-140.6;-91.246;-40;0;40;91.246;140.6;180.1];
+%         CL = [0;0.8;0.003;-0.8;0;0.8;-0.003;-0.8;0];
+        CL = 0.8*sind(2*AoA_cl);
+        AoA_cd = [-190;-180;-90;0;90;180;190];
+        %CD = [0.052;0.034;1.867;0.034;1.867;0.034;0.052];  
+        CD = 1.8*sind(AoA_cd).^2+0.034;
+        clcurve = [AoA_cl';CL'];
+        cdcurve = [AoA_cd';CD'];
+        cmcurve = [AoA_cl';cm0*ones(size(AoA_cl'))]; % todo(rodney) change this when(if) you find cm curve data
     else
         msg = 'Right now the only airfoils supported are S814(id=1), SG6040(id=2), and SG6040_24thk(id=3)';
         ME = MException('airfoil:badID',msg);
@@ -161,6 +211,8 @@ function coords = getBaseCoords(id)
         coords = getNACA00xx(15);
     elseif id == 3
         coords = getNACA00xx(09);
+    elseif id == 4
+        coords = getNACA00xx(0);
     else
         error('No available coordinates for unknown airfoil id.');
     end

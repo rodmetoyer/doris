@@ -80,10 +80,6 @@ classdef rotor < handle
         
         %% Class methods
         
-        % There were two old methods here that were deleted:
-        % computeAeroLoadsBasic and computeAeroLoadArrays. Last in git
-        % commit 6cd3a50 (13JUN2019).
-        
         function [U_relSections] = computeHydroLoads(hobj,fluid)
             % Computes the hydrodynamic loads at all sections in the rotor
             % as well as the total hydrodynamic torque about the center

@@ -71,7 +71,9 @@ classdef simulation < handle
                 hobj.fld.setMeanVelocity(fluidBaseVelocity);
                 % airfoils - same for the entire rotor so we just need two
                 af1 = airfoil(airfoiltype1);
+                af1.setAoAopt(twist1.AoAopt_deg);
                 af2 = airfoil(airfoiltype2);
+                af2.setAoAopt(twist2.AoAopt_deg);
                 % blade sections
                 bs1 = bladesection(secChord1,secWidth1,af1);
                 bs2 = bladesection(secChord2,secWidth2,af2);

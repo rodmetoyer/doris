@@ -4,5 +4,6 @@ classdef airfoilID < uint32
         S814 (1)
         NACA0015 (2)
         NACA0009 (3)
+        FLAT (4)
     end
 end
