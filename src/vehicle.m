@@ -169,15 +169,18 @@ classdef vehicle < handle
             
             % Get Hydrodynamic loads on body, cross and sum            
             % Rotate fluid velocity into the vehicle frame
-            vel_A = hobj.A_C_O*f.velocity;
+            vF_A = hobj.A_C_O*f.velocity;
+            % Now compute the relative velocity
+            vRel_A = vF_A - hobj.velocity;
             % the normal component is made up of the 1 and 2 components,
             % and the axial component is the 3 component.
             q = f.density*hobj.body.radius;
-            velnorm_A = norm(vel_A(1:2))*vel_A(1:2);
-            velax_A = vel_A(3)*vel_A(3);
-            Fn = 1.2*q*velnorm_A;
-            Fa = 0.1*q*velax_A;
+            vRelnorm_A = norm(vRel_A(1:2))*vRel_A(1:2);
+            vRelax_A = vRel_A(3)*vRel_A(3);
+            Fn = 1.2*q*vRelnorm_A;
+            Fa = 0.1*q*vRelax_A;
             Fbod = [Fn;Fa];
+            %Fbod = [0;0;0];
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,false);

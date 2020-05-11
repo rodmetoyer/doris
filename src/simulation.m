@@ -25,6 +25,7 @@ classdef simulation < handle
         function setup(hobj,fn)
             if isempty(fn)
                 % Manual setup
+                warning('Manual simulation setup');
             else
                 % Input file setup
                 % if it is an m-file execute, otherwise read line by line
@@ -45,7 +46,10 @@ classdef simulation < handle
                         eval(tline);
                     end
                     fclose(fid);
-                end                
+                end
+                if ~strcmp(runname,tkn)
+                    error('Run name does not match the file name passed in');
+                end
                 hobj.name = runname;
                 hobj.timestep = tstep;
                 hobj.duration = totalSimTime;
@@ -54,6 +58,7 @@ classdef simulation < handle
                 % fluid
                 hobj.fld = fluid; % No arguments to fluid gives the obj water properties
                 hobj.fld.init(fluidtype);
+                disp('Fluid Initialized');
                 try
                     hobj.fld.setFlowType(flowtype,flowparms);
                 catch
@@ -247,6 +252,113 @@ classdef simulation < handle
             view(-130,20)
             hold off            
         end % end showme
+        
+        function hfig = showmelift(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            f = hobj.fld;
+            v = hobj.vhcl;
+            % Get plot arrays from subfunction
+            [rp1o_O,rp2o_O,rap1_O,rap2_O,~,~,L1_O,~,L2_O,~] = getPlotArrays(v,f);
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            scale = 1;
+            y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
+            z = v.position(3)+y;
+            [Y,Z] = meshgrid(y, z);
+            X = zeros(size(Y));
+            U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
+            %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
+            quiver3(X,Y,Z,U,V,W,scale,'color','none');
+            hold on
+            vbodyline = [v.position+transpose(v.A_C_O)*[0;0;v.body.length*0.5],v.position+transpose(v.A_C_O)*[0;0;-v.body.length*0.5]];
+            plot3(vbodyline(1,:),vbodyline(2,:),vbodyline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
+            quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),L1_O(1,:,:),L1_O(2,:,:),L1_O(3,:,:),scale,'c')
+            quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),L2_O(1,:,:),L2_O(2,:,:),L2_O(3,:,:),scale,'g')
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            view(-130,20)
+            hold off            
+        end % end showmelift
+        
+        function hfig = showmedrag(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            f = hobj.fld;
+            v = hobj.vhcl;
+            % Get plot arrays from subfunction
+            [rp1o_O,rp2o_O,rap1_O,rap2_O,~,~,~,D1_O,~,D2_O] = getPlotArrays(v,f);
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            scale = 1;
+            y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
+            z = v.position(3)+y;
+            [Y,Z] = meshgrid(y, z);
+            X = zeros(size(Y));
+            U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
+            %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
+            quiver3(X,Y,Z,U,V,W,scale,'color','none');
+            hold on
+            vbodyline = [v.position+transpose(v.A_C_O)*[0;0;v.body.length*0.5],v.position+transpose(v.A_C_O)*[0;0;-v.body.length*0.5]];
+            plot3(vbodyline(1,:),vbodyline(2,:),vbodyline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
+            quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),D1_O(1,:,:),D1_O(2,:,:),D1_O(3,:,:),scale,'c')
+            quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),D2_O(1,:,:),D2_O(2,:,:),D2_O(3,:,:),scale,'g')
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            view(-130,20)
+            hold off            
+        end % end showmedrag
+        
+        function hfig = showmerotors(hobj,vis)
+            %disp('Displaying vehicle');
+            if nargin < 2
+                vis = 'on';
+            end
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            ax1 = axes('Parent',hfig); hold on;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    for k=1:1:numel(hobj.vhcl.rotors(i).blades(j).sections)
+                        a = hobj.vhcl.rotors(i).blades(j).sections(k).coords;                         
+                        % rotate into blade
+                        a = hobj.vhcl.rotors(i).blades(j).b_C_a(:,:,k)*a;
+                        % move to proper location in blade
+                        b = a + hobj.vhcl.rotors(i).blades(j).sectLocs(:,k);
+                        % rotate into rotor
+                        b = hobj.vhcl.rotors(i).P_C_bx(:,:,j)*b;
+                        % rotate into vehicle
+                        b = transpose(hobj.vhcl.rotors(i).P_C_A)*b;
+                        % move to proper location in vehicle
+                        b = b + hobj.vhcl.rotorLocs(:,i);
+                        % finally put in earth frame
+                        b = transpose(hobj.vhcl.A_C_O)*b;
+                        plot3(ax1,b(1,:),b(2,:),b(3,:));                        
+                    end %sections
+                end %blades
+            end %rotors
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+                
+            temp2 = max(hobj.vhcl.body.length,temp);
+            axis([-temp2 temp2 -temp2 temp2]);
+            axis equal;
+            hold off;
+            xlabel('x'); ylabel('y'); zlabel('z');
+            view(-45,30);
+        end
                
     end % methods
     
@@ -280,7 +392,7 @@ classdef simulation < handle
             
             % make the vectors and everything
             r_ao_O = dat(:,2:4);
-            Ov_ao_O = dat(:,11:13);
+            Ov_ao_A = dat(:,11:13);
             O_omg_A_A = dat(:,8:10);
             theta = dat(:,5);
             gamma = dat(:,6);
@@ -334,11 +446,11 @@ classdef simulation < handle
                 
                 % plot the tether
                 r_tpo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.tetherpoint;
-                Ov_tpo_O = O_C_A*Ov_ao_O(smp,:).' + O_C_A*cross(O_omg_A_A(smp,:).',sim.vhcl.tetherpoint);
-                tetherforce = sim.thr.computeTension(r_tpo_O,Ov_tpo_O);
-                str = ['Tether tension: ' num2str(norm(tetherforce),'%10.02f') 'N'];
+                Ov_tpo_O = O_C_A*Ov_ao_A(smp,:).' + O_C_A*cross(O_omg_A_A(smp,:).',sim.vhcl.tetherpoint);
+                tetherforce_O = sim.thr.computeTension(r_tpo_O,Ov_tpo_O);
+                str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.02f') 'N'];
                 
-                thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce))));
+                thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce_O))));
                 plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--','LineWidth',1.0,'Color',cmap(thclr,:));
                 hold on
                 % plot the body
@@ -396,14 +508,16 @@ classdef simulation < handle
         end % end makeMovie
         function makePlots(infn, varargin)
             % makePlots  Static method that makes plots from a data file
-            %   ARGS:
-            %       infn - name of the data file
-            %       varargin - name,value pair to control stuff
-                    % plots - which plots to run
-                        % all (default)
-                        % position, orientation, angrate, speed, rotang,
-                        % rotspeed (one at a time) todo enable string array argument
+            %   makePlots(infn) makes plots of the data in the file infn
+            %   makePlots(infn,Name,Value) specifies properties using one or more Name,Value pair arguments 
+            %       'plots',value - which plots to run
+                        % 'all' (default)
+                        % 'position', 'orientation', 'angrate', 'speed', 'rotang',
+                        % 'rotspeed' 
+                        % 'rotspeedAp' rotor speeds in the A' frame
                     % figsize - size of the figure [x,y,w,h]
+                    % figcolor - color of the figure
+                    
             % get data 
             try
                 % Load the simulation object
@@ -514,6 +628,19 @@ classdef simulation < handle
             plot(t,y(:,13)*30/pi,'r',t,y(:,15)*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Body Frame)');
+            legend({'p_3','q_3'},'Location','Best');
+            title(['Case: ' sim.name]);
+            if p.Results.savefigs
+                export_fig(['products\images\' sim.name '\rotspeed.png'],'-png','-transparent','-m3');
+            end
+            end
+            
+            if (strcmp(whatplots,'rotspeedAp') || strcmp(whatplots,'all'))
+            plotlowx = plotlowx-0.5*plotw; % Move up
+            figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+            plot(t,(y(:,13)+y(:,9))*30/pi,'r',t,(y(:,15)+y(:,9))*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
+            set(gca,'Color',p.Results.axcolor);
+            xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Intermediate Frame)');
             legend({'p_3','q_3'},'Location','Best');
             title(['Case: ' sim.name]);
             if p.Results.savefigs

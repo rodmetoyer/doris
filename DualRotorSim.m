@@ -8,7 +8,7 @@ addpath('src')
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'tacticalBaseline.m';
+inputfile = 'labCase1.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.

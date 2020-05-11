@@ -3,7 +3,7 @@ runname = 'labCase2';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [0.1;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [0.1;0.0;0];
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime

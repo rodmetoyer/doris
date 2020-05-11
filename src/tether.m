@@ -20,10 +20,10 @@ classdef tether < handle
         function t = computeTension(hobj,r,v)
             usleng = hobj.uslength;
             currentlength = norm(r);
-            unitvec = r/currentlength;
+            unitvec = r/currentlength; % From anchor to vehicle attachment point
             stretch = currentlength-usleng; % If it moves from the origin there is a restoring force
             stretchd = dot(r,v)/currentlength;
-            if currentlength < 0
+            if currentlength < 0 % I don't see how this is possible. Norm should always be positive.
                 unitvec = [0;0;0];
                 stretchd = 0;
             end

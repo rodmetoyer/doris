@@ -59,7 +59,7 @@ if thr.numnodes > 0
 else % no internal nodes
     O_C_A = transpose(v.A_C_O);
     r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
-    Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize14
+    Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize
     tetherforce = thr.computeTension(r_to_O,Ov_to_O);
 end
 v.addTetherLoads(v.A_C_O*tetherforce);
@@ -135,12 +135,12 @@ xdot(6) = dbeta;
 xdot(7) = betavec(4);  % omg_1
 xdot(8) = betavec(5);  % omg_2
 xdot(9) = betavec(6);  % omg_3
-xdot(10) = betavec(1); % betavec(1)
-xdot(11) = betavec(2); % betavec(2)
-xdot(12) = betavec(3); % betavec(3)
-xdot(13) = betavec(7); % betavec(7)
+xdot(10) = betavec(1); % u_1
+xdot(11) = betavec(2); % u_2
+xdot(12) = betavec(3); % u_3
+xdot(13) = betavec(7); % p_3
 xdot(14) = dfi3;
-xdot(15) = betavec(8); % betavec(8)
+xdot(15) = betavec(8); % q_3
 xdot(16) = dsy3;
 % Not currently using the following, but may be usefull in the future.
 % One version of the "long expression" can be found in equations_assumptions_dual.txt.

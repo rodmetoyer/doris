@@ -109,6 +109,8 @@ classdef rotor < handle
                 % todo not sure why I do it this way. See if you can just
                 % % return in the rotor frame. That would be easier to
                 % remember. He gets used in vehicle.
+            % Note that rotor.velocity is dependent - it is computed in the
+            % get method.
             OVpo_P = hobj.P_C_A*hobj.velocity; % OVpo_P is O derivative of r_<to><from>_<ExprsdFrame>
             
             % Get aero loads for each blade
@@ -169,14 +171,14 @@ classdef rotor < handle
                     torque = torque + tauprev;
                 end % end bladesection loop               
             end % end blade loop
-            % Compute generator torquw
-            genTorque = hobj.vehicle.generator.getTorque(hobj.angvel);
+            % Compute generator torque
+            %genTorque = hobj.vehicle.generator.getTorque(hobj.angvel);
             % Update class properties
             hobj.sectLift = LiftSections;
             hobj.sectDrag = DragSections;
             % hobj.sectMomt = TorqueSections;
             hobj.force = totforce;
-            hobj.torqueCM = torque + genTorque; % + sum(TorqueSections) I think, right?
+            hobj.torqueCM = torque; % + genTorque; % Not really a hydroload so moved to state.
         end % end computeHydroLoads
         
         function hfig = visualizeSectionLoads(hobj,hide,scale)
