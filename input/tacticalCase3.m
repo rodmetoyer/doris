@@ -1,5 +1,5 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalCase1';
+runname = 'tacticalCase3';
 
 % Environment
 fluidtype = 'water';
@@ -54,7 +54,7 @@ twist2.bladeDZfrac = bladeDZfrac2;
 
 % vehicle body again
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0.0;0;0]; % This is center mass of the vehicle body
+vbcentermass = [0.0;0;0.25*vblength/2]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.15*vblength/2]; % Center of buoyancy
@@ -85,7 +85,7 @@ grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 
 % Simulation
-totalSimTime = 30;
+totalSimTime = 10;
 tstep = 0.01;
 
 % Initial Conditions

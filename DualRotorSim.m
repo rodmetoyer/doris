@@ -5,10 +5,26 @@
 clear all; close all; clc;
 % Tell matlab to look in the src folder for the class files
 addpath('src')
+
+% If you want to batch process use this block. Otherwise, set to false and
+% process input files one at a time following the code that is after this
+% block.
+if false
+    inputfile = ["tacticalCase2.m","tacticalCase3.m","tacticalCase4.m"];
+    for i=1:1:numel(inputfile)
+        sim = simulation(inputfile(i));
+        sim.simulate;
+        sim.write2file;
+        sim.makePlots(sim.name,'figcolor','w');
+        %simulation.makeMovie(sim.name,sim.name,24);
+    end
+    return;
+end
+
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'tacticalCase6.m';
+inputfile = 'tacticalCase5.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -23,7 +39,7 @@ sim = simulation(inputfile);
 %% Simulate
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
-tspan = 0:0.005:1;
+%tspan = 0:0.005:1;
 sim.simulate; % ('output',[])
 %sim.simulate('tspan',tspan,'stats','on');
 

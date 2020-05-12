@@ -83,7 +83,7 @@ gmconst = 0.19;
 gflux = 10;
 grarm = 0.1;
 gkvisc = 1.0e-12;
-gmass = 1.0; % mass in kg
+gmass = 3.0; % mass in kg
 grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 

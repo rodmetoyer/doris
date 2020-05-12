@@ -1,6 +1,6 @@
 classdef simulation < handle
     
-    properties
+    properties % todo make private. No reason all these are exposed.
         % objects
         vhcl % a vehicle object
         fld  % a fluid object
