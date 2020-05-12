@@ -16,6 +16,11 @@ flowparms = [];
 %flowtype = 'sinusoidal';
 %flowparms = [0.5,0.5,0];
 
+% Vehicle body
+vblength = 1.0;
+vbradius = 0.05;
+vbmass = 15.5;
+
 %% Rotor 1
 bladeMass1 = 0.43; % kg
 airfoiltype1 = 'SG6040';
@@ -23,9 +28,11 @@ aspectRatio1 = 10;
 bladeLength1 = 0.5;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
-secWidth1 = bladeLength1/numSections1;
+%secWidth1 = bladeLength1/numSections1;
 numBlades1 = 3;
-bladeDZfrac1 = 0.0; 
+bladeDZfrac1 = 0.1; 
+% Could set based on vbradius
+bladeDZfrac1 = vbradius/bladeLength1; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;
 twist1.numBlades = numBlades1;
@@ -37,19 +44,18 @@ airfoiltype2 = 'SG6040';
 aspectRatio2 = 10;
 bladeLength2 = 1.5;
 secChord2 = bladeLength2/aspectRatio2;
-numSections2 = 12;       % Number of sections (whole number)
-secWidth2 = bladeLength2/numSections2;
+numSections2 = 12;
+% Or do it like this if you want the same resolution per section
+%numSections2 = round(numSections1/bladeLength1*bladeLength2);
+%secWidth2 = bladeLength2/numSections2;
 numBlades2 = 5;
-bladeDZfrac2 = 0.0; 
+bladeDZfrac2 = bladeDZfrac1*bladeLength1/bladeLength2; % Like this to get same as rotor 1
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist2.AoAopt_deg = 8.0;
 twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
 
-% vehicle body
-vblength = 1.0;
-vbradius = 0.05;
-vbmass = 15.5;
+% vehicle body again
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0];
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute

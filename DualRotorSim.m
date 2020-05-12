@@ -8,16 +8,17 @@ addpath('src')
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'labCase1Flat.m';
+inputfile = 'tacticalCase6.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
 % The showme method let's you visualize the simulation in its current
 % state. Note that the state changes during simulation (obviously), so
 % showme after a sim will look different than showme before a sim.
-% hfig = sim.showme;
-% uiwait(hfig) % wait until you close it to continue if you want a close look
-% export_fig([plotsavepath '\figurename.png'],'-png','-transparent','-m3'); % save the figure if you want
+%hfig = sim.showme;
+% There are also showmelift, showmedrag, and showmerotor methods
+%uiwait(hfig) % wait until you close it to continue if you want a close look
+%export_fig([plotsavepath '\figurename.png'],'-png','-transparent','-m3'); % save the figure if you want
 
 %% Simulate
 % No argument to the simulate method will default to simulation parameters

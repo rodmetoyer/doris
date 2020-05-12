@@ -74,23 +74,25 @@ classdef simulation < handle
                 af1.setAoAopt(twist1.AoAopt_deg);
                 af2 = airfoil(airfoiltype2);
                 af2.setAoAopt(twist2.AoAopt_deg);
-                % blade sections
-                bs1 = bladesection(secChord1,secWidth1,af1);
-                bs2 = bladesection(secChord2,secWidth2,af2);
+                % blade sections - moving to blade
+                %bs1 = bladesection(secChord1,secWidth1,af1);
+                %bs2 = bladesection(secChord2,secWidth2,af2);
                 % Make a blade comprised of the same section.
                 % Rotor 1 blades
-                for i=1:1:numSections1
-                    section1(i) = bs1;
-                end
+%                 for i=1:1:numSections1
+%                     section1(i) = bs1;
+%                 end
                 for i=1:1:numBlades1
-                    bld1(i) = blade(section1,bladeMass1,twist1);
+                    bld1(i) = blade;
+                    bld1(i).init(secChord1,af1,bladeLength1,numSections1,bladeMass1,twist1);
                 end
                 % Rotor 2 blades need to twist in the opposite direction
-                for i=1:1:numSections2
-                    section2(i) = bs2;
-                end
+%                 for i=1:1:numSections2
+%                     section2(i) = bs2;
+%                 end
                 for i=1:1:numBlades2
-                    bld2(i) = blade(section2,bladeMass2,twist2);
+                    bld2(i) = blade;
+                    bld2(i).init(secChord2,af2,bladeLength2,numSections2,bladeMass2,twist2);
                     bld2(i).reverseTwist;
                 end
                 % Make a set of rotors
@@ -316,6 +318,52 @@ classdef simulation < handle
             view(-130,20)
             hold off            
         end % end showmedrag
+        
+        function hfig = showmeloads(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            f = hobj.fld;
+            v = hobj.vhcl;
+            % Get plot arrays from subfunction
+            [rp1o_O,rp2o_O,rap1_O,rap2_O,~,~,L1_O,D1_O,L2_O,D2_O] = getPlotArrays(v,f);
+            T1_O = L1_O + D1_O;
+            T2_O = L2_O + D2_O;
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            scale = 1;
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+            temp2 = max(hobj.vhcl.body.length,temp);
+            y = linspace(-v.position(2)-temp2,v.position(2)+temp2,10);
+            z = v.position(3)+y;
+            [Y,Z] = meshgrid(y, z);            
+            
+            X = ones(size(Y))*(v.position(1)-2*temp2);
+            U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
+            %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
+            quiver3(X,Y,Z,U,V,W,scale,'color',[52 195 235]/255);
+            hold on
+            vbodyline = [v.position+transpose(v.A_C_O)*[0;0;v.body.length*0.5],v.position+transpose(v.A_C_O)*[0;0;-v.body.length*0.5]];
+            plot3(vbodyline(1,:),vbodyline(2,:),vbodyline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
+            quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),T1_O(1,:,:),T1_O(2,:,:),T1_O(3,:,:),scale,'k')
+            quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),T2_O(1,:,:),T2_O(2,:,:),T2_O(3,:,:),scale,'k')
+            
+            axis equal
+            axis([v.position(1)-2*temp2 v.position(1)+temp2 v.position(2)-temp2 v.position(2)+temp2 v.position(3)-temp2 v.position(3)+temp2]);
+            
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            view(-45,25)
+            hold off            
+        end % end showmeloads
         
         function hfig = showmerotors(hobj,vis)
             %disp('Displaying vehicle');
@@ -646,12 +694,17 @@ classdef simulation < handle
             legend({'p_3','q_3'},'Location','Best');
             title(['Case: ' sim.name]);
             if p.Results.savefigs
-                export_fig(['products\images\' sim.name '\rotspeed.png'],'-png','-transparent','-m3');
+                export_fig(['products\images\' sim.name '\rotspeedIF.png'],'-png','-transparent','-m3');
             end
             end
         end
         function makeInputFile(varargin)
-            
+            % todo make this
+        end
+        
+        function sim = loadsim(infn)
+            svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+            eval(svcmd); clear svcmd;
         end
     end % static methods
 end

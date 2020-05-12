@@ -32,7 +32,7 @@ classdef blade < handle
     
     methods
         %% Constructor
-        function hobj = blade(section,mass,twist,length,chord,numsects)
+        function hobj = blade(section,mass,twist,ls,chord,numsects)
             % INPUTS:
                 % section = either a vector of blade section objects
                     % (manual construction method) or a 1xn vector of airfoil
@@ -48,7 +48,7 @@ classdef blade < handle
                     % length is scalar.
             if nargin == 0
                 % remember to init
-                error('Currently unalbe to instantiate a blade without arguments.');
+                % warning('Make sure to init blades.');
             elseif nargin == 3
                 % This is manual blade creation where a vector of
                     % bladesection objects is passed in
@@ -56,22 +56,22 @@ classdef blade < handle
                     error('blade: To create a blade manually you need to pass an object vector of bladesections.');
                 end
                 hobj.rootLoc = 0; % Note manual construciton assumes blade root location of 0.
-                length = 0;
+                ls = 0;
                 %mass = 0;
                 secLocs = NaN(3,numel(section));
                 for i=1:1:numel(section)
-                    secLocs(:,i) = [0;length + section(i).width/2;0];
-                    length = length + section(i).width;
+                    secLocs(:,i) = [0;ls + section(i).width/2;0];
+                    ls = ls + section(i).width;
                     %mass = mass + section(i).mass;
                 end
-                hobj.length = length;
-                hobj.tipLoc = length; % See note above.
+                hobj.length = ls;
+                hobj.tipLoc = ls; % See note above.
                 hobj.sections = section;
                 hobj.numsects = numel(hobj.sections);
                 hobj.sectLocs = secLocs;
-                hobj.centermass = [0;length/2;0];
+                hobj.centermass = [0;ls/2;0];
                 hobj.mass = mass;
-                hobj.inertia = thinrod(mass,length);
+                hobj.inertia = thinrod(mass,ls);
                 % todo(rodney) add in the blade.orientation with is
                 % essentially pitch plus some pre-cone and lead-lag
                 if isstruct(twist)
@@ -102,9 +102,34 @@ classdef blade < handle
         end
         
         % Initialization
-%         function init(hobj,s,m)
-%             
-%         end
+        function init(hobj,scrd,af,ltot,numsecs,mass,twist)
+            hobj.rootLoc = twist.bladeDZfrac*ltot;
+            ls = hobj.rootLoc;
+            swdth = (ltot-hobj.rootLoc)/numsecs;
+            %mass = 0;
+            secLocs = NaN(3,numsecs);
+            for i=1:1:numsecs
+                sec(i) = bladesection(scrd,swdth,af);
+                secLocs(:,i) = [0;ls + sec(i).width/2;0];
+                ls = ls + sec(i).width;
+                %mass = mass + section(i).mass;
+            end
+            
+            hobj.length = ls;
+            hobj.tipLoc = ls; % See note above.
+            hobj.sections = sec;
+            hobj.numsects = numel(hobj.sections);
+            hobj.sectLocs = secLocs;
+            hobj.centermass = [0;ls/2;0];
+            hobj.mass = mass;
+            hobj.inertia = thinrod(mass,ls);
+            % todo(rodney) add in the blade.orientation with is
+            % essentially pitch plus some pre-cone and lead-lag
+            if isstruct(twist)
+                twist = hobj.computeTwist(twist.AoAopt_deg,twist.numBlades,twist.bladeDZfrac);
+            end
+            hobj.sectOrnts = [zeros(size(twist));twist;zeros(size(twist))];
+        end
         
         %% Other class methods
         function bladeforce = computeBladeforce(hobj,vr)

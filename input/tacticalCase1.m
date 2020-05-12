@@ -3,7 +3,7 @@ runname = 'tacticalCase1';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [1.5;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [1.1;0.0;0]; % Approximately river velocity
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime
@@ -51,10 +51,10 @@ vblength = 1.0;
 vbradius = 0.05;
 vbmass = 15.5;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0;0;0]; % This is center mass of the vehicle body
+vbcentermass = [0.25;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
-vbbuoypoint = [0;0;0.0]; % Center of buoyancy
+vbbuoypoint = [0;0;0.25]; % Center of buoyancy
 vreldensity = 1.0;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/2]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/2]; % Point where the 2nd rotor is located [h1,h2,h3]
