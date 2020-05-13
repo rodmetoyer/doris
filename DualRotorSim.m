@@ -10,13 +10,13 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if false
-    inputfile = ["tacticalCase2.m","tacticalCase3.m","tacticalCase4.m"];
+    inputfile = ["tacticalCase8.m","tacticalCase9.m","tacticalCase10.m","tacticalCase11.m"];
     for i=1:1:numel(inputfile)
         sim = simulation(inputfile(i));
         sim.simulate;
         sim.write2file;
-        sim.makePlots(sim.name,'figcolor','w');
-        %simulation.makeMovie(sim.name,sim.name,24);
+        sim.makePlots(sim.name,'savefigs',true);
+        simulation.makeMovie(sim.name,sim.name,24);
     end
     return;
 end
@@ -24,7 +24,7 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'tacticalCase5.m';
+inputfile = 'tacticalCase2.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -56,5 +56,5 @@ sim.write2file;
 simulation.makeMovie(sim.name,sim.name,24);
 
 %% Plots
-simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
-%simulation.makePlots(sim.name,'savefigs',true);
+%simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
+simulation.makePlots(sim.name,'savefigs',true);

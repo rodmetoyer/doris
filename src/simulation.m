@@ -257,6 +257,48 @@ classdef simulation < handle
             hold off            
         end % end showme
         
+        function hfig = showmevehicle(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            f = hobj.fld;
+            v = hobj.vhcl;
+            % Get plot arrays from subfunction
+            [rp1o_O,rp2o_O,rap1_O,rap2_O,Urel1_O,Urel2_O,~,~,~,~] = getPlotArrays(v,f);
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            scale = 1;
+            y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
+            z = v.position(3)+y;
+            [Y,Z] = meshgrid(y, z);
+            X = zeros(size(Y));
+            U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
+            %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
+            quiver3(X,Y,Z,U,V,W,scale,'b');
+            hold on
+            bline = [v.position+transpose(v.A_C_O)*[0;0;v.body.length/2],v.position-transpose(v.A_C_O)*[0;0;v.body.length/2]];
+            vline = [v.position+transpose(v.A_C_O)*v.rotorLocs(:,1),v.position+transpose(v.A_C_O)*v.rotorLocs(:,2)];
+            
+            plot3(bline(1,:),bline(2,:),bline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
+            clr = ["r","b"];
+            for i=1:1:numel(v.rotors)
+                for j=1:1:numel(v.rotors(i).blades)
+                    P_C_bx = v.rotors(i).P_C_bx(:,:,j);
+                    P_C_A = v.rotors(i).P_C_A; A_C_P = transpose(P_C_A);
+                    rblines = v.position+transpose(v.A_C_O)*(v.rotorLocs(:,i)+A_C_P*P_C_bx*[0;v.rotors(i).blades(j).tipLoc;0]);
+                    plot3([vline(1,i),rblines(1,:)],[vline(2,i),rblines(2,:)],[vline(3,i),rblines(3,:)],'-','LineWidth',3,'color',clr(i));
+                end
+            end
+            %quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),Urel1_O(1,:,:),Urel1_O(2,:,:),Urel1_O(3,:,:),scale,'c')
+            %quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),Urel2_O(1,:,:),Urel2_O(2,:,:),Urel2_O(3,:,:),scale,'g')
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Rotor 1','','Rotor 2',''},'Location','bestoutside','color','none','Orientation','horizontal');
+            view(-30,15)
+            hold off            
+        end % end showmevehicle
+        
         function hfig = showmelift(hobj,vis)
             if nargin < 2
                 vis = 'on';
@@ -282,8 +324,8 @@ classdef simulation < handle
             quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),L2_O(1,:,:),L2_O(2,:,:),L2_O(3,:,:),scale,'g')
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
-            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Lift Rotor 1','Lift Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-130,20)
             hold off            
         end % end showmelift
@@ -313,8 +355,8 @@ classdef simulation < handle
             quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),D2_O(1,:,:),D2_O(2,:,:),D2_O(3,:,:),scale,'g')
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
-            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Drag Rotor 1','Drag Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-130,20)
             hold off            
         end % end showmedrag
@@ -359,8 +401,8 @@ classdef simulation < handle
             axis([v.position(1)-2*temp2 v.position(1)+temp2 v.position(2)-temp2 v.position(2)+temp2 v.position(3)-temp2 v.position(3)+temp2]);
             
             xlabel('x'); ylabel('y'); zlabel('z');
-            title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-            legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Loads Rotor 1','Loads Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-45,25)
             hold off            
         end % end showmeloads
@@ -409,6 +451,105 @@ classdef simulation < handle
             xlabel('x'); ylabel('y'); zlabel('z');
             view(-45,30);
         end
+        
+        function makeSinglePlot(hobj,plt,varargin)
+            % Makes a sinlge plot of the state data
+            defaultPlots = 'all';
+            defaultFigsize = [50 50 600 400];
+            defaultFigcolor = 'none';
+            defaultAxcolor = 'none';
+            defaultSavefigs = false;
+            defaultVisible = 'on';
+            p = inputParser;
+            %validateOutput = @(x) isa(x,'function_handle');
+            addParameter(p,'figsize',defaultFigsize,@isnumeric);
+            addParameter(p,'figcolor',defaultFigcolor,@ischar);
+            addParameter(p,'axcolor',defaultAxcolor,@ischar);
+            addParameter(p,'savefigs',defaultSavefigs,@islogical);
+            addParameter(p,'visible',defaultVisible,@ischar);
+            parse(p,varargin{:});
+            
+            t = hobj.times;
+            y = hobj.states;
+            % todo make this and other formatting controllable with vararg
+            plotlowx = p.Results.figsize(1); plotlowy = p.Results.figsize(2); plotw = p.Results.figsize(3); ploth = p.Results.figsize(4);
+            if p.Results.savefigs
+                if ~exist(['products\images\' hobj.name],'dir')
+                    mkdir(['products\images\' hobj.name]);
+                end
+            end
+            
+            switch plt
+                case 'x'
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,1),'r');
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Position (m)');
+                    legend({'x'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\xposition.png'],'-png','-transparent','-m3');
+                    end
+                case 'y'
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,2),'b');
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Position (m)');
+                    legend({'y'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\yposition.png'],'-png','-transparent','-m3');
+                    end
+                case 'z'
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,3),'g');
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Position (m)');
+                    legend({'z'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\zposition.png'],'-png','-transparent','-m3');
+                    end
+                case 'theta'
+                    plotlowy = plotlowy+ploth; % Move up
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,4)*180/pi);
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Angle (deg)');
+                    legend({'\theta'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\thetaorientation.png'],'-png','-transparent','-m3');
+                    end
+                case 'gamma'
+                    plotlowy = plotlowy+ploth; % Move up
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,5)*180/pi);
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Angle (deg)');
+                    legend({'\gamma'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\gammaorientation.png'],'-png','-transparent','-m3');
+                    end
+                case 'beta'
+                    plotlowy = plotlowy+ploth; % Move up
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,y(:,6)*180/pi,'g');
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Angle (deg)');
+                    legend({'\beta'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\betaorientation.png'],'-png','-transparent','-m3');
+                    end
+                otherwise
+                    errstr = [plt ' is not a supported plot. Add it or try something else'];
+                    error(errstr);
+            end
+            
+            
+        end % end makeSinglePlot
                
     end % methods
     
@@ -498,7 +639,7 @@ classdef simulation < handle
                 r_tpo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.tetherpoint;
                 Ov_tpo_O = O_C_A*Ov_ao_A(smp,:).' + O_C_A*cross(O_omg_A_A(smp,:).',sim.vhcl.tetherpoint);
                 tetherforce_O = sim.thr.computeTension(r_tpo_O,Ov_tpo_O);
-                str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.02f') 'N'];
+                str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.2f') 'N'];
                 
                 thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce_O))));
                 plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--','LineWidth',1.0,'Color',cmap(thclr,:));
@@ -698,6 +839,7 @@ classdef simulation < handle
             end
             end
         end
+                     
         function makeInputFile(varargin)
             % todo make this
         end
