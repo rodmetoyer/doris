@@ -10,13 +10,17 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if false
-    inputfile = ["tacticalCase8.m","tacticalCase9.m","tacticalCase10.m","tacticalCase11.m"];
+    inputfile = ["tacticalCase10.m","tacticalCase11.m","tacticalCase12.m","tacticalCase13.m","tacticalCase14.m","tacticalCase15.m"];
+    %inputfile = ["tacticalCase5","tacticalCase6","tacticalCase7"];
     for i=1:1:numel(inputfile)
         sim = simulation(inputfile(i));
         sim.simulate;
         sim.write2file;
         sim.makePlots(sim.name,'savefigs',true);
-        simulation.makeMovie(sim.name,sim.name,24);
+        simulation.makeMovie(sim.name,sim.name,60);
+        %simulation.makeMovie(char(inputfile(i)),char(inputfile(i)),60);
+        close all;
+        clear sim;
     end
     return;
 end
@@ -24,7 +28,7 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'tacticalCase2.m';
+inputfile = 'utilityCase2.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -53,7 +57,7 @@ sim.write2file;
 % The makeMovie method is static. The first argument is the name of the
 % data and input file combo to use. The second argument is the name of the
 % movie file. If you only pass one name the movie file gets that name.
-simulation.makeMovie(sim.name,sim.name,24);
+simulation.makeMovie(sim.name,'framerate',60,'speedfactor',60);
 
 %% Plots
 %simulation.makePlots(sim.name,'axcolor','w','figcolor','w');

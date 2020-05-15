@@ -29,7 +29,7 @@ bladeLength1 = 1.5;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 %secWidth1 = bladeLength1/numSections1;
-numBlades1 = 5;
+numBlades1 = 3;
 bladeDZfrac1 = 0.1; 
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 twist1.AoAopt_deg = 8.0;
@@ -84,7 +84,7 @@ grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 
 % Simulation
-totalSimTime = 60;
+totalSimTime = 10;
 tstep = 0.01;
 
 % Initial Conditions

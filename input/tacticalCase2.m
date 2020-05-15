@@ -3,7 +3,7 @@ runname = 'tacticalCase2';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [1.6;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [1.1;0.0;0]; % Approximately river velocity
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime

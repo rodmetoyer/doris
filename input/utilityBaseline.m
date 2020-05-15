@@ -1,14 +1,14 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalCase4';
+runname = 'utilityBaseline';
 
 % Environment
 fluidtype = 'water';
-fluidBaseVelocity = [1.1;0.0;0]; % Approximately river velocity
+fluidBaseVelocity = [0.9;0.0;0]; % Ocean current
 flowtype = 'steady';
 flowparms = [];
 % ramped - rampspeed(1 to inf), starttime
 %flowtype = 'ramped';
-%flowparms = [2,4];
+%flowparms = [2,5];
 % disturbed - rampspeed(1 to inf), starttime, duration, maximum_yvel
 %flowtype = 'disturbed';
 %flowparms = [5,2,4,0.5];
@@ -17,15 +17,15 @@ flowparms = [];
 %flowparms = [0.5,0.5,0];
 
 % Vehicle body
-vblength = 1.0;
-vbradius = 0.05;
-vbmass = 15.5;
+vblength = 10.0;
+vbradius = 0.5;
+vbmass = 150.0;
 
 %% Rotor 1
-bladeMass1 = 0.43; % kg
+bladeMass1 = 2.0; % kg
 airfoiltype1 = 'SG6040';
 aspectRatio1 = 10;
-bladeLength1 = 0.5;
+bladeLength1 = 5.0;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 %secWidth1 = bladeLength1/numSections1;
@@ -37,13 +37,12 @@ twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
 
 %% Rotor 2
-bladeMass2 = 0.43; % kg
+bladeMass2 = 2.0; % kg
 airfoiltype2 = 'SG6040';
 aspectRatio2 = 10;
-bladeLength2 = 0.5;
+bladeLength2 = 5.0;
 secChord2 = bladeLength2/aspectRatio2;
 numSections2 = 12;       % Number of sections (whole number)
-secWidth2 = bladeLength2/numSections2;
 numBlades2 = 3;
 %secWidth2 = bladeLength2/numSections2;
 % twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
@@ -54,7 +53,7 @@ twist2.bladeDZfrac = bladeDZfrac2;
 
 % vehicle body again
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0.0;0;0.5*vblength/2]; % This is center mass of the vehicle body
+vbcentermass = [0.0;0;0.0*vblength/2]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0*vblength/2]; % Center of buoyancy
@@ -69,9 +68,9 @@ rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
 
 % tether
-tspring = 15000;
-tdamp = 4000;
-tunstrch = 10;
+tspring = 160000;
+tdamp = 40000;
+tunstrch = 100;
 tnnodes = 0;
 tnodlocs = []; % one column per node
 
@@ -79,7 +78,7 @@ tnodlocs = []; % one column per node
 gmconst = 0.19;
 gflux = 10;
 grarm = 0.1;
-gkvisc = 1.0e-12;
+gkvisc = 1.0e-8;
 gmass = 3.0; % mass in kg
 grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
@@ -93,7 +92,7 @@ initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 10.5;
+initialLongitudinal = 105.0;
 initialVertical = 0;
 initialSway = 0;
 initialSurge = 0;

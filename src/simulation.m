@@ -280,13 +280,19 @@ classdef simulation < handle
             vline = [v.position+transpose(v.A_C_O)*v.rotorLocs(:,1),v.position+transpose(v.A_C_O)*v.rotorLocs(:,2)];
             
             plot3(bline(1,:),bline(2,:),bline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
-            clr = ["r","b"];
             for i=1:1:numel(v.rotors)
                 for j=1:1:numel(v.rotors(i).blades)
+                    if j == 1
+                        mrk = '-';
+                        clr = [235 158 52;52 185 235]/255;
+                    else
+                        mrk = '-';
+                        clr = [1 0 0;0 0 1];
+                    end
                     P_C_bx = v.rotors(i).P_C_bx(:,:,j);
                     P_C_A = v.rotors(i).P_C_A; A_C_P = transpose(P_C_A);
                     rblines = v.position+transpose(v.A_C_O)*(v.rotorLocs(:,i)+A_C_P*P_C_bx*[0;v.rotors(i).blades(j).tipLoc;0]);
-                    plot3([vline(1,i),rblines(1,:)],[vline(2,i),rblines(2,:)],[vline(3,i),rblines(3,:)],'-','LineWidth',3,'color',clr(i));
+                    plot3([vline(1,i),rblines(1,:)],[vline(2,i),rblines(2,:)],[vline(3,i),rblines(3,:)],mrk,'LineWidth',3,'color',clr(i,:));
                 end
             end
             %quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),Urel1_O(1,:,:),Urel1_O(2,:,:),Urel1_O(3,:,:),scale,'c')
@@ -294,7 +300,7 @@ classdef simulation < handle
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
             title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-            legend({'Freestream Velocity','Vehicle Body','Rotor 1','','Rotor 2',''},'Location','bestoutside','color','none','Orientation','horizontal');
+            legend({'Freestream Velocity','Vehicle Body','','','Rotor 1','','','Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-30,15)
             hold off            
         end % end showmevehicle
@@ -417,6 +423,13 @@ classdef simulation < handle
             ax1 = axes('Parent',hfig); hold on;
             for i=1:1:numel(hobj.vhcl.rotors)
                 for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if j == 1
+                        mrk = '-';
+                        clr = [235 158 52;52 185 235]/255;
+                    else
+                        mrk = '-';
+                        clr = [1 0 0;0 0 1];
+                    end
                     for k=1:1:numel(hobj.vhcl.rotors(i).blades(j).sections)
                         a = hobj.vhcl.rotors(i).blades(j).sections(k).coords;                         
                         % rotate into blade
@@ -431,7 +444,7 @@ classdef simulation < handle
                         b = b + hobj.vhcl.rotorLocs(:,i);
                         % finally put in earth frame
                         b = transpose(hobj.vhcl.A_C_O)*b;
-                        plot3(ax1,b(1,:),b(2,:),b(3,:));                        
+                        plot3(ax1,b(1,:),b(2,:),b(3,:),'color',clr(i,:));                        
                     end %sections
                 end %blades
             end %rotors
@@ -513,7 +526,7 @@ classdef simulation < handle
                 case 'theta'
                     plotlowy = plotlowy+ploth; % Move up
                     figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-                    plot(t,y(:,4)*180/pi);
+                    plot(t,y(:,4)*180/pi,'r');
                     set(gca,'Color',p.Results.axcolor);
                     xlabel('Time (s)'); ylabel('Angle (deg)');
                     legend({'\theta'},'Location','Best');
@@ -524,7 +537,7 @@ classdef simulation < handle
                 case 'gamma'
                     plotlowy = plotlowy+ploth; % Move up
                     figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-                    plot(t,y(:,5)*180/pi);
+                    plot(t,y(:,5)*180/pi,'b');
                     set(gca,'Color',p.Results.axcolor);
                     xlabel('Time (s)'); ylabel('Angle (deg)');
                     legend({'\gamma'},'Location','Best');
@@ -554,18 +567,22 @@ classdef simulation < handle
     end % methods
     
     methods(Static)
-        function makeMovie(infn, outfn, fr)
+        function makeMovie(infn, varargin)
             % makeMovie  Static method that makes a movie out of a data file
             %   ARGS:
             %       infn - name of the data file
-            %       outfn - name for the movie file
             %       varargin - name,value pair to control the movie
-            if nargin < 2
-                outfn = infn;
-                fr = 24;
-            end
+            defaultOutfile = infn;
+            defaultFramerate = 24;
+            defaultSpeedfactor = 1;
+            p = inputParser;
+            %validateOutput = @(x) isa(x,'function_handle');
+            addParameter(p,'outfile',defaultOutfile,@ischar);
+            addParameter(p,'framerate',defaultFramerate,@isnumeric);
+            addParameter(p,'speedfactor',defaultSpeedfactor,@isnumeric);
+            parse(p,varargin{:});           
 
-            moviefile = ['products\videos\' outfn '.avi'];
+            moviefile = ['products\videos\' p.Results.outfile '.avi'];
             % get data
             try
                 dat = importdata(['products\data\' infn '.txt']);
@@ -597,13 +614,19 @@ classdef simulation < handle
             
             % plot the data and grab frames
             tottime = dat(end,1); % sim time in seconds
+            
             nsamps = length(dat(:,1));
-            tstep = mean(diff(dat(:,1))); % seconds per frame            
-            framerate = fr; % target framerate in frames per second
+            tstep = mean(diff(dat(:,1))); % seconds per sample            
+            framerate = p.Results.framerate; % target framerate in frames per second
+            speedfactor = p.Results.speedfactor;
             sPerFrame = 1/framerate;
-            nskips = round(sPerFrame/tstep);
-            framerate = 1/(nskips*tstep); % Actual frame rate
-            nframes = floor(nsamps/nskips);
+            nskips = round(speedfactor*sPerFrame/tstep);
+            if nskips < 1
+                error('Not enough resolution in data to achieve target framerate.');
+            end
+            framerate = round(speedfactor/(nskips*tstep)); % Actual frame rate
+            nframes = floor(nsamps/nskips); % Actual number of frames
+
             hfig = figure('position',[0 0 1728 972]);
             ax = axes('parent',hfig);
             maxx = max(r_ao_O(:,1)) + max([sim.vhcl.body.length sim.vhcl.rotors(1).blades(1).length sim.vhcl.rotors(2).blades(1).length]);
@@ -652,19 +675,23 @@ classdef simulation < handle
                 plot3(ax,r_ao_O(smp,1),r_ao_O(smp,2),r_ao_O(smp,3),'go','MarkerSize',6.0);
                 plot3(ax,r_cbo_O(1),r_cbo_O(2),r_cbo_O(3),'b^','MarkerSize',6.0);
                 % plot each blade in rotors
-                color = ["r","b"];
                 for jj = 1:1:numel(sim.vhcl.rotors)
                     r_pa_A = sim.vhcl.rotorLocs(:,jj);
                     r_pa_O = O_C_A*r_pa_A;
                     r_po_O = r_ao_O(smp,:).' + r_pa_O;
                     P_C_A = [cxi3(jj) sxi3(jj) 0; -sxi3(jj) cxi3(jj) 0; 0 0 1];
-                    A_C_P = transpose(P_C_A);
+                    A_C_P = transpose(P_C_A);                    
                     for ii=1:1:numel(sim.vhcl.rotors(jj).blades)
+                        if ii == 1
+                            clr = [235 158 52;52 185 235]/255;
+                        else
+                            clr = [1 0 0;0 0 1];
+                        end
                         r_tipp_bx = [0;sim.vhcl.rotors(jj).blades(ii).length;0];
                         r_tipp_O = O_C_A*A_C_P*sim.vhcl.rotors(jj).P_C_bx(:,:,ii)*r_tipp_bx;
                         plot3(ax,[r_po_O(1) r_po_O(1)+r_tipp_O(1)],...
                             [r_po_O(2) r_po_O(2)+r_tipp_O(2)],...
-                            [r_po_O(3) r_po_O(3)+r_tipp_O(3)],color(jj),'LineWidth',2.0);
+                            [r_po_O(3) r_po_O(3)+r_tipp_O(3)],'-','color',clr(jj,:),'LineWidth',2.0);
                     end
                 end
                 % plot the velocity vector at the origin
