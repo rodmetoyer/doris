@@ -98,9 +98,11 @@ classdef simulation < handle
                 % Make a set of rotors
                 r1 = rotor(bld1);
                 r1.setID(1);
+                r1.setAxialFlowFactor(axflowfactor1);
                 % Need to make rotor 2 have blades with twist 180-
                 r2 = rotor(bld2);
                 r2.setID(2);
+                r2.setAxialFlowFactor(axflowfactor2);
                 % Make a vehicle body
                 vbod = vehiclebody(vbmass,I,vbcentermass);                
                 vbod.setLength(vblength);

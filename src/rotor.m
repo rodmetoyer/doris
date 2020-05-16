@@ -20,6 +20,7 @@ classdef rotor < handle
         % rotor doesn't know where he is, but he knows which vehicle he belongs to and can get position that way position   % 3x1 Position vector of mass center in the vehicle frame IN METERS
         vehicle    % The vehicle object that the rotor is attached to.
         ID         % Identifier specifying which rotor it is in the vehicle
+        axflowfac  % Axial flow factor, a factor that 
     end % end private parameters and constants that do not change during simulation
     properties (SetAccess = private)
         % Properties that change every timestep that can only be changed by
@@ -131,8 +132,12 @@ classdef rotor < handle
                     % section location.
                         % Need {O_W_A}_P
                     O_W_P = hobj.P_C_A*hobj.vehicle.angvel + hobj.angvel;
-                    V_ap_P = cross(O_W_P,rap_P);
-                    U_rel_P = Ufluid_P - OVpo_P - V_ap_P;
+                    V_ap_P = cross(O_W_P,rap_P); % O velocity of a w.r.t. p in frame P
+                    U_rel_P = Ufluid_P - OVpo_P - V_ap_P; % Velocity of the fluid relative to the section in the rotor frame
+                    % ASSUMPION - Coaxial turbines, therefore z-axes are
+                    % alighed. Therefore we can modify the axial flow with
+                    % the scalar modifier
+                    U_rel_P(3) = hobj.axflowfac*U_rel_P(3);
                     U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
                     
                     % Rotate the relative velocity into the blade section
@@ -226,6 +231,9 @@ classdef rotor < handle
         end % end ConnectVehicle
         function addGeneratorTorque(hobj,tq)
             hobj.torqueCM(3) = hobj.torqueCM(3) + tq;
+        end
+        function setAxialFlowFactor(hobj,ff)
+            hobj.axflowfac = ff;
         end
         
         % Setters

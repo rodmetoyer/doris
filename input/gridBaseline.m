@@ -1,5 +1,5 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalBaseline';
+runname = 'gridBaseline';
 
 % Environment
 fluidtype = 'water';
@@ -17,10 +17,10 @@ flowparms = [];
 %flowparms = [0.5,0.5,0];
 
 %% Rotor 1
-bladeMass1 = 0.43; % kg
+bladeMass1 = 1318; % kg
 airfoiltype1 = 'SG6040';
 aspectRatio1 = 10;
-bladeLength1 = 0.5;
+bladeLength1 = 10;
 secChord1 = bladeLength1/aspectRatio1;
 numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
@@ -33,10 +33,10 @@ twist1.bladeDZfrac = bladeDZfrac1;
 axflowfactor1 = 1.0;
 
 %% Rotor 2
-bladeMass2 = 0.43; % kg
+bladeMass2 = 1318; % kg
 airfoiltype2 = 'SG6040';
 aspectRatio2 = 10;
-bladeLength2 = 0.5;
+bladeLength2 = 10;
 secChord2 = bladeLength2/aspectRatio2;
 numSections2 = 12;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
@@ -49,9 +49,9 @@ twist2.bladeDZfrac = bladeDZfrac2;
 axflowfactor2 = 1.0;
 
 % vehicle
-vblength = 1.0;
-vbradius = 0.05;
-vbmass = 15.5;
+vblength = 7.5;
+vbradius = 0.3;
+vbmass = 1087;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
@@ -64,13 +64,13 @@ rot1rad = bladeLength1;
 rot2rad = bladeLength2;
 rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
-rot1initRPM = 0;
-rot2initRPM = 0; % sign for directionality
+rot1initRPM = 12;
+rot2initRPM = -12; % sign for directionality
 
 % tether
-tspring = 15000;
-tdamp = 4000;
-tunstrch = 10;
+tspring = 1.63e6;
+tdamp = 4.07e5;
+tunstrch = 100;
 tnnodes = 0;
 tnodlocs = []; % one column per node
 
@@ -79,7 +79,7 @@ gmconst = 0.19;
 gflux = 10;
 grarm = 0.1;
 gkvisc = 1.0e-4;
-gmass = 3.0; % mass in kg
+gmass = 530.0; % mass in kg
 grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 
@@ -92,7 +92,7 @@ initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
 initialRoll = 0*pi/180;
 initialLateral = 0;
-initialLongitudinal = 10.5;
+initialLongitudinal = 105.9;
 initialVertical = 0;
 initialSway = 0;
 initialSurge = 0;
