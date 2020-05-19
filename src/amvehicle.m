@@ -25,10 +25,11 @@ classdef amvehicle < handle
         function hfig = showme(hobj,clr)
             %disp('Displaying vehicle');
             if nargin < 2
-                clr = 'r';
+            clr = 'r';
             end
+            
             % show me what the vehicle currently looks like
-            hfig = figure('Position',[200 300 900 600]);
+            hfig = figure('Position',[100 100 900 900]);
             ax1 = axes('Parent',hfig); hold on;
             for i=1:1:numel(hobj.sections)
                 B_C_a = rotate321(hobj.sectOrnts(1,i),hobj.sectOrnts(2,i),hobj.sectOrnts(3,i));
@@ -36,16 +37,24 @@ classdef amvehicle < handle
                 for j = 1:1:length(secpts)
                     pts_B(:,j) = B_C_a*[0;secpts(:,j)] + hobj.sectLocs(:,i);
                 end
-                plot3(ax1,pts_B(1,:),pts_B(2,:),pts_B(3,:),clr);
-                axis equal;
+                plot3(ax1,pts_B(1,:),pts_B(2,:),pts_B(3,:),clr);               
             end % loop over sections
             hold off;
-            view(-45,30);
+            axscale = max(max((pts_B)));
+            axscale2 = min(min((pts_B)));
+            axis([axscale2 axscale axscale2 axscale axscale2 axscale]);
+            axis equal;
+            view(-35,25);
+            title('Sections (in the Body Frame)');
+            xlabel('x'); ylabel('y'); zlabel('z');
         end
         
-        function MA = getAddedMass(hobj)
+        function MA = getAddedMass(hobj,rho)
             MA = zeros(6);
             for i=1:1:numel(hobj.sections)
+                if nargin > 1
+                    computeCoeffs(hobj.sections(i),rho); % Compute added mass for rho density (water is the default medium)
+                end
                 a22 = hobj.sections(i).MA22;
                 a33 = hobj.sections(i).MA33;
                 a44 = hobj.sections(i).MA44;
@@ -101,4 +110,21 @@ function B_C_a = rotate321(psi,theta,phi)
         -sin(psi) cos(psi) 0;...
         0 0 1];
     B_C_a = Rx_phi*Ry_theta*Rz_psi;
+end
+
+function B_C_a = rotate123(theta,phi,psi)
+% For plotting sections in the body frame
+    Rx_theta = ...
+        [1 0 0;...
+        0 cos(theta) sin(theta);...
+        0 -sin(theta) cos(theta)];    
+    Ry_phi =...
+        [cos(phi) 0 -sin(phi);...
+        0 1 0;...
+        sin(phi) 0 cos(phi)];
+    Rz_psi = ...
+        [cos(psi) sin(psi) 0;...
+        -sin(psi) cos(psi) 0;...
+        0 0 1];
+    B_C_a = Rz_psi*Ry_phi*Rx_theta;
 end

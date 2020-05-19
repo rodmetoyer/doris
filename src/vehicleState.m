@@ -56,6 +56,9 @@ v.computeHydroLoads(f);
 % of internal nodes
 if thr.numnodes > 0
     error('oops - no tethers allowed (yet)');
+    % States 16+1 to 16+3N are tether node positions and states 16+3N+1 to
+    % 16+3N+3N are tether node velocities
+    
 else % no internal nodes
     O_C_A = transpose(v.A_C_O);
     r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;

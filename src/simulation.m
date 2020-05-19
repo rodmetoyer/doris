@@ -128,16 +128,31 @@ classdef simulation < handle
                 w30 = -sin(initialYaw)+initialRollRate;
                 hobj.vhcl.angvel = [w10;w20;w30];
                 hobj.vhcl.rotors(1).angvel = [0;0;rot1initRPM/60*2*pi];
-                hobj.vhcl.rotors(2).angvel = [0;0;rot2initRPM/60*2*pi];
-                % add tether
-                tthr = tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch);
-                hobj.addTether(tthr);
+                hobj.vhcl.rotors(2).angvel = [0;0;rot2initRPM/60*2*pi];               
                 % add generator
                 gen = generator(gmconst,gflux,grarm,gkvisc,gmass); % todo size generator constant so that torque is reasonable
                 hobj.vhcl.addGenerator(gen,gpoint);
                 hobj.vhcl.generator.setLoadResistance(grload);
+                % add tether
+                if isempty(tdamp)
+                    tdamp = tdampfac*2*sqrt(tspring*hobj.vhcl.mass);
+                end
+                %tthr = tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch);
+                hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));
                 % Compute the mass matrix
                 hobj.vhcl.computeMstar;
+                
+                % Add apparent mass to the mass matrix
+%                 am = zeros(size(hobj.vhcl.Mstar));
+%                 if isempty(addedMass)
+%                     % todo Compute the added mass matrix
+%                     error('Compute added mass is a todo');
+%                 elseif numel(addedMass) ~= 8
+%                     error('Full 6x6 added mass matrix not yet supported. Provide values for the 6 diagonals or leave empty to compute.');
+%                 else
+%                     am = addedMass;
+%                 end
+                
             end
         end
         
@@ -861,7 +876,7 @@ classdef simulation < handle
             plot(t,(y(:,13)+y(:,9))*30/pi,'r',t,(y(:,15)+y(:,9))*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Intermediate Frame)');
-            legend({'p_3','q_3'},'Location','Best');
+            legend({'$\hat{p}_3$','$\hat{q}_3$'},'Location','Best','Interpreter','latex');
             title(['Case: ' sim.name]);
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\rotspeedIF.png'],'-png','-transparent','-m3');
@@ -873,8 +888,12 @@ classdef simulation < handle
             % todo make this
         end
         
-        function sim = loadsim(infn)
-            svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+        function sim = loadsim(infn,datapath)
+            if nargin < 2
+                svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+            else
+                svcmd = ['load ' datapath '\' infn '.mat'];
+            end
             eval(svcmd); clear svcmd;
         end
     end % static methods

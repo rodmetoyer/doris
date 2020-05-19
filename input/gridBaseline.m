@@ -66,6 +66,7 @@ rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
 rot1initRPM = 12;
 rot2initRPM = -12; % sign for directionality
+addedMass = []; % 8 values of the diagonal terms or leave empty to compute (future support for 6x6 matrix)
 
 % tether
 tspring = 1.63e6;

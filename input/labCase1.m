@@ -30,6 +30,7 @@ bladeDZfrac1 = 0.0;
 twist1.AoAopt_deg = 8.0;
 twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
+axflowfactor1 = 1.0;
 
 %% Rotor 2
 bladeMass2 = 0.005; % kg
@@ -45,6 +46,7 @@ bladeDZfrac2 = 0.0;
 twist2.AoAopt_deg = 8.0;
 twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
+axflowfactor2 = 1.0;
 
 % vehicle
 vblength = 0.1;
@@ -55,7 +57,7 @@ vbcentermass = [0;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0]; % Center of buoyancy
-vreldensity = 1000.0;    % Density of the vehilce body relative to water
+vreldensity = 8000.0;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/8]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/8]; % Point where the 2nd rotor is located [h1,h2,h3]
 rot1rad = bladeLength1;

@@ -121,7 +121,7 @@ classdef amsection < handle
         end % getShapePoints
         
         function computeCoeffs(hobj,rho)
-            [hobj.MA22, hobj.MA33, hobj.MA44] = section.computeAddedMass(rho,hobj.shape,hobj.lenY,hobj.lenZ);
+            [hobj.MA22, hobj.MA33, hobj.MA44] = hobj.computeAddedMass(rho,hobj.shape,hobj.lenY,hobj.lenZ);
         end % computeCoeff
     end % methods
     
