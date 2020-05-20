@@ -66,7 +66,7 @@ rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
-addedMass = [];
+addedMass = []; % leave empty to compute, make it 8x8 to specify
 
 % tether
 tspring = 15000;

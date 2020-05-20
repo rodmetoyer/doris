@@ -28,10 +28,10 @@ classdef fluid < handle
         % Constructor
         function hobj = fluid(density,dynVisc,kinVisc,temp,pressure,velocity)
             % todo make this varargin
-            if nargin == 0
-                % make sure to init
-                warning('Make sure to init the fluid');
-            elseif nargin == 1
+%             if nargin == 0
+%                 % make sure to init or everything will break
+%                 % warning('Make sure to init the fluid');
+            if nargin == 1
                 if ischar(density)
                     switch lower(density)
                         case 'water'
@@ -50,7 +50,7 @@ classdef fluid < handle
                 hobj.temp = 23;
                 hobj.pressure = 103421;
                 hobj.velocity = [0;0;0];
-            else
+            elseif nargin > 1
                 hobj.density = density;
                 hobj.dynVisc = dynVisc;
                 hobj.kinVisc = kinVisc;

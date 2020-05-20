@@ -89,7 +89,11 @@ classdef amvehicle < handle
                            m14 m24 m34 m44 m45 m46;...
                            m15 m25 m35 m45 m55 m56;...
                            m16 m26 m36 m46 m56 m66];
-            end
+            end % section loop
+            % by convention MA is negative definite. The sections loop
+            % gives us the values of the coefficients in the matrix. The
+            % matrix itself is the negative of all those coefficents.
+            MA = -MA; 
         end
     end % methods
     

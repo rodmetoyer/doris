@@ -114,6 +114,7 @@ classdef simulation < handle
                 % Make a vehicle
                 rotPoints = [rot1point,rot2point];
                 hobj.vhcl = vehicle();
+                hobj.vhcl.setType(2); % 2 is coaxial
                 hobj.vhcl.init(vbod,[r1,r2],rotPoints,vcentermass,vbtetherpoint,vbbuoypoint);
                 hobj.vhcl.setRelativeDensity(vreldensity);
                 disp('Vehicle initialized');
@@ -143,19 +144,14 @@ classdef simulation < handle
                 end
                 %tthr = tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch);
                 hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));
-                % Compute the mass matrix
+                % Compute the mass matrices
                 hobj.vhcl.computeMstar;
-                
-                % Add apparent mass to the mass matrix
-%                 am = zeros(size(hobj.vhcl.Mstar));
-%                 if isempty(addedMass)
-%                     % todo Compute the added mass matrix
-%                     error('Compute added mass is a todo');
-%                 elseif numel(addedMass) ~= 8
-%                     error('Full 6x6 added mass matrix not yet supported. Provide values for the 6 diagonals or leave empty to compute.');
-%                 else
-%                     am = addedMass;
-%                 end
+                if isempty(addedMass)
+                    hobj.vhcl.computeAddedMass(hobj.fld);
+                else
+                    hobj.vhcl.Mam = addedMass;
+                end
+                hobj.vhcl.computeMtot;
                 
             end
         end

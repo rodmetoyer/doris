@@ -19,8 +19,11 @@ classdef vehicle < handle
         buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
         mass        % scalar total mass of the vehicle
         type        % uint identifier | see typeName get method for list of types
-        Mstar
-        MstarInv
+        Mstar       % mass inertia matrix of the multibody vehicle
+        MstarInv    % inverse of Mstar
+        Mam         % added mass matrix
+        Mtot        % total inertia matrix, equal to Mstar + Mam
+        MtotInv     % Inverse of the Mtot matrix
         relDensity  % The total density of the vehicle (all components) relative to water
     end % End private properties    
     properties (Dependent)
@@ -41,15 +44,12 @@ classdef vehicle < handle
     methods
         %% Constructor
         function hobj = vehicle(bod,rot,cm,tp,bp)
-            if nargin == 0
-                % Make sure to call init
-                warning('Make sure to initialize vehicle');
-            elseif nargin == 2
+            if nargin == 2
                % assume simple single rotor with cm at body [0;0;0];
                hobj.body = bod;
                hobj.rotors = rot;
                hobj.mass = rot.mass;
-            else
+            elseif nargin > 0
                hobj.rotors = rot;
                hobj.body = bod;
                hobj.centermass = cm;
@@ -63,6 +63,9 @@ classdef vehicle < handle
             end
             hobj.Mstar = [];
             hobj.MstarInv = [];
+            hobj.Mam = [];
+            hobj.Mtot = [];
+            hobj.MtotInv = [];
         end % End constructor
         
         %% Initialization method
@@ -83,8 +86,10 @@ classdef vehicle < handle
                     case 1
                         hobj.type = 1;
                     case 2
+                        if isempty(hobj.type)
                         hobj.type = 2;
                         warning('VEHICLE:construction','Assuming vehicle type is coaxial. Use setType to change after init if this is incorrect.');
+                        end
                     otherwise
                         error('Only 0, 1, or 2 rotor systems currently supported');
                 end
@@ -492,6 +497,81 @@ classdef vehicle < handle
                 zeros(1,3) xi*transpose(M24) 0 xi*M44*xi.'];
             hobj.MstarInv = inv(hobj.Mstar);
         end % computeMstar
+        
+        function computeAddedMass(hobj,fld,bodySecs)
+            if isempty(hobj.rotors)
+                error('Need an assembled vehicle to compute the added mass matrix');
+            end
+            if nargin < 2
+                density = 1000; % assume water if no fluid is passed
+                warning('Assuming water for added mass calculations');
+            else
+                density = fld.density;
+            end
+            if nargin < 3
+                bodySecs = 27;
+            end
+            thickness = 0.15; % this is chord thickness. todo - make a property on the airfoil and get it from there.
+            v = amvehicle; % this is an added mass vehicle object
+            for i=1:1:numel(hobj.rotors)
+                vr(i) = amvehicle;
+            end
+            % body
+            bodySecs = 2*round(bodySecs/2); % in case an odd number is passed in
+            halfEllipse = hobj.body.length/2;
+            sectWidth = hobj.body.length/bodySecs;
+            for i=1:1:bodySecs/2 % add circles in the +x direction
+                z = (i-1)*sectWidth + sectWidth/2;
+                r = hobj.body.radius*sqrt(1-(z)^2/halfEllipse^2);
+                v.addSection(amsection('ellipse',r,r,sectWidth),[0;0;z],[0;pi/2;0]);
+            end
+            for i=1:1:bodySecs/2 % add circles in the -x direction
+                z = -((i-1)*sectWidth + sectWidth/2);
+                r = hobj.body.radius*sqrt(1-(z)^2/halfEllipse^2);
+                v.addSection(amsection('ellipse',r,r,sectWidth),[0;0;z],[0;pi/2;0]);
+            end
+            % rotors
+            for i=1:1:numel(hobj.rotors)
+                for j=1:1:numel(hobj.rotors(i).blades)
+                    for k=1:1:numel(hobj.rotors(i).blades(j).sections)
+                        a_C_s = [0 1 0; -1 0 0; 0 0 1]; % from that amsection frame to our section frame
+                        b_C_a = hobj.rotors(i).blades(j).b_C_a(:,:,k); % section to blade
+                        P_C_b = hobj.rotors(i).P_C_bx(:,:,j); % blade to rotor
+                        A_C_P = transpose(hobj.rotors(i).P_C_A); % rotor to vehicle
+                        A_C_s = A_C_P*P_C_b*b_C_a*a_C_s; % all the way, airborne
+                        % get the Euler angles
+                        beta = atan2(A_C_s(1,2),A_C_s(1,1));
+                        theta = atan2(A_C_s(2,3),A_C_s(3,3));
+                        gamma = -asin(A_C_s(1,3));
+                        v.addSection(amsection('ellipse',hobj.rotors(i).blades(j).sections(k).chord/2,thickness*hobj.rotors(i).blades(j).sections(k).chord/2,hobj.rotors(i).blades(j).sections(k).width),...
+                            hobj.rotorLocs(:,i)+A_C_P*hobj.rotors(i).P_C_bx(:,:,j)*hobj.rotors(i).blades(j).sectLocs(:,k),[beta;gamma;theta]);
+                        vr(i).addSection(amsection('ellipse',hobj.rotors(i).blades(j).sections(k).chord/2,thickness*hobj.rotors(i).blades(j).sections(k).chord/2,hobj.rotors(i).blades(j).sections(k).width),...
+                            A_C_P*hobj.rotors(i).P_C_bx(:,:,j)*hobj.rotors(i).blades(j).sectLocs(:,k),[beta;gamma;theta]);
+                    end %sections
+                end %blades
+            end %rotors
+            % fill in the added mass matrix
+            % This is another place where coaxial is assumed.
+            hobj.Mam = zeros(size(hobj.Mstar));
+            hobj.Mam(1:6,1:6) = v.getAddedMass(density);
+            Mam1 = vr(1).getAddedMass(density);
+            Mam2 = vr(2).getAddedMass(density);
+            hobj.Mam(3,7) = Mam1(3,6);
+            hobj.Mam(3,8) = Mam2(3,6);
+            hobj.Mam(7,7) = Mam1(6,6);
+            hobj.Mam(8,8) = Mam2(6,6);
+            hobj.Mam(7,3) = Mam1(6,3);
+            hobj.Mam(8,3) = Mam2(6,3);
+        end % end computeAddedMass
+        
+        function computeMtot(hobj)
+            if isempty(hobj.Mam)
+                warning('No added mass matrix. Assuming a zero matrix');
+                hobj.Mam = zeros(size(hobj.Mstar));
+            end
+            hobj.Mtot = hobj.Mstar - hobj.Mam;
+            hobj.MtotInv = inv(hobj.Mtot);
+        end
         
         function setRelativeDensity(hobj,rd)
             hobj.relDensity = rd;

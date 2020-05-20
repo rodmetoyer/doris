@@ -173,7 +173,11 @@ classdef blade < handle
         function reverseTwist(hobj)
             % Reverses the blade twist to make a contrarotating rotor by
             % mirroring the location of the blade sections.
-            warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis. Just mirroring the blade by moving sections.');
+            % I'm commenting out the warning because there are assumptions
+            % baked in everywhere. Anyone using this code at this point
+            % recognizes that it is only valid for a dual-rotor coaxial
+            % turbine. 
+            % warning('BLADE:construction','reverseTwist assumes that the twist is only about the blade-j axis. Just mirroring the blade by moving sections.');
             for i=1:1:numel(hobj)
                 hobj(i).sectLocs = -hobj(i).sectLocs;
             end
