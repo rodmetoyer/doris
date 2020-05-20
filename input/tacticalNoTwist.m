@@ -1,5 +1,5 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'tacticalBaseline';
+runname = 'tacticalNoTwist';
 
 % Environment
 fluidtype = 'water';
@@ -26,10 +26,7 @@ numSections1 = 12;       % Number of sections (whole number)
 secWidth1 = bladeLength1/numSections1;
 numBlades1 = 3;
 bladeDZfrac1 = 0.0; 
-% twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
-twist1.AoAopt_deg = 8.0;
-twist1.numBlades = numBlades1;
-twist1.bladeDZfrac = bladeDZfrac1;
+twist1 = zeros(1,numSections1); % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
 axflowfactor1 = 1.0;
 
 %% Rotor 2
@@ -42,10 +39,7 @@ numSections2 = 12;       % Number of sections (whole number)
 secWidth2 = bladeLength2/numSections2;
 numBlades2 = 3;
 bladeDZfrac2 = 0.0; 
-% twist = []; % To prescribe a twist make a 1 X numSections array, otherwise use the struct format and twist will be computed.
-twist2.AoAopt_deg = 8.0;
-twist2.numBlades = numBlades2;
-twist2.bladeDZfrac = bladeDZfrac2;
+twist2 = zeros(1,numSections2);
 axflowfactor2 = 1.0;
 
 % vehicle

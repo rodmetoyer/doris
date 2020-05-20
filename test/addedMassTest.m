@@ -5,10 +5,10 @@ clearvars; close all; clc;
 addpath('..\src');
 
 % set-up
-casetoload = 'tacticalBaseline';
+casetoload = 'tacticalNoTwist';
 datapath = 'D:\School\doris\products\data';
 sim = simulation.loadsim(casetoload,datapath);
-savefigs = false;
+savefigs = true;
 thickness = 0.15;
 
 % First thing is to orient the body and make sure it looks right
@@ -19,6 +19,8 @@ sim.vhcl.rotors(2).orientation = [0;0;0]*pi/180;
 
 % make an added mass vehicle object
 v = amvehicle;
+vr1 = amvehicle; % just rotor 1
+vr2 = amvehicle;
 
 % Now add sections for the body
 % addSection(location,orientation)
@@ -63,24 +65,41 @@ for i=1:1:numel(sim.vhcl.rotors)
             %thS2B = atan2(sim.vhcl.rotors(i).blades(j).b_C_a(1,3,k),sim.vhcl.rotors(i).blades(j).b_C_a(1,1,k));
             v.addSection(amsection('ellipse',sim.vhcl.rotors(i).blades(j).sections(k).chord/2,thickness*sim.vhcl.rotors(i).blades(j).sections(k).chord/2,sim.vhcl.rotors(i).blades(j).sections(k).width),...
                 sim.vhcl.rotorLocs(:,i)+A_C_P*sim.vhcl.rotors(i).P_C_bx(:,:,j)*sim.vhcl.rotors(i).blades(j).sectLocs(:,k),[beta;gamma;theta]);
+            % Do the rotors too. Remember, these need to be about point P,
+            % not point A, so we remove sim.vhcl.rotorLocs(:,i) from the
+            % location argument.
+            if i == 1
+                vr1.addSection(amsection('ellipse',sim.vhcl.rotors(i).blades(j).sections(k).chord/2,thickness*sim.vhcl.rotors(i).blades(j).sections(k).chord/2,sim.vhcl.rotors(i).blades(j).sections(k).width),...
+                A_C_P*sim.vhcl.rotors(i).P_C_bx(:,:,j)*sim.vhcl.rotors(i).blades(j).sectLocs(:,k),[beta;gamma;theta]);
+            else
+                vr2.addSection(amsection('ellipse',sim.vhcl.rotors(i).blades(j).sections(k).chord/2,thickness*sim.vhcl.rotors(i).blades(j).sections(k).chord/2,sim.vhcl.rotors(i).blades(j).sections(k).width),...
+                A_C_P*sim.vhcl.rotors(i).P_C_bx(:,:,j)*sim.vhcl.rotors(i).blades(j).sectLocs(:,k),[beta;gamma;theta]);
+            end
         end %sections
         %v.showme('b');
     end %blades
 end %rotors
 
 hfig1 = v.showme('k');
+hfig2 = vr1.showme('k');
+hfig3 = vr2.showme('k');
 
 if savefigs
     if ~exist('output\figs','dir')
         mkdir('output\figs');
     end
-    hfig1.CurrentAxes.Color = 'none';
     hfig1.CurrentAxes.Title.String = ['Sections for ' casetoload ' in the body frame.'];
-    hfig1.CurrentAxes.XLabel.String = 'x';
-    hfig1.CurrentAxes.YLabel.String = 'y';
-    hfig1.CurrentAxes.ZLabel.String = 'z';
+    hfig1.CurrentAxes.Color = 'none';
+    hfig2.CurrentAxes.Title.String = ['Sections for ' casetoload ' rotor 1 in the rotor 1 frame.'];
+    hfig2.CurrentAxes.Color = 'none';
+    hfig3.CurrentAxes.Title.String = ['Sections for ' casetoload ' rotor 2 in the rotor 2 frame.'];
+    hfig3.CurrentAxes.Color = 'none';
     savefig(hfig1,['output\figs\' casetoload '.fig']);
-    export_fig(['output\figs\' casetoload], '-png', '-transparent','-m5');
+    export_fig(hfig1,['output\figs\' casetoload], '-png', '-transparent','-m4');
+    savefig(hfig2,['output\figs\' casetoload 'Rotor1.fig']);
+    export_fig(hfig2,['output\figs\' casetoload 'Rotor1'], '-png', '-transparent','-m4')
+    savefig(hfig3,['output\figs\' casetoload 'Rotor2.fig']);
+    export_fig(hfig3,['output\figs\' casetoload 'Rotor2'], '-png', '-transparent','-m4')
 end
 
 % OK, let's see the added mass matrix for this guy

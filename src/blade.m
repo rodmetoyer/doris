@@ -103,7 +103,12 @@ classdef blade < handle
         
         % Initialization
         function init(hobj,scrd,af,ltot,numsecs,mass,twist)
-            hobj.rootLoc = twist.bladeDZfrac*ltot;
+            if isstruct(twist)
+                hobj.rootLoc = twist.bladeDZfrac*ltot;
+            else
+                warning('Blade dead zone doesn"t work with numerical twist array');
+                hobj.rootLoc = 0;
+            end
             ls = hobj.rootLoc;
             swdth = (ltot-hobj.rootLoc)/numsecs;
             %mass = 0;
