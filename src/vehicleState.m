@@ -58,12 +58,13 @@ if thr.numnodes > 0
     error('oops - no tethers allowed (yet)');
     % States 16+1 to 16+3N are tether node positions and states 16+3N+1 to
     % 16+3N+3N are tether node velocities
+    % Pass the extra states in and get the end tension out
     
 else % no internal nodes
     O_C_A = transpose(v.A_C_O);
     r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
     Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize
-    tetherforce = thr.computeTension(r_to_O,Ov_to_O);
+    tetherforce = thr.computeLinkTension(r_to_O,Ov_to_O);
 end
 v.addTetherLoads(v.A_C_O*tetherforce);
 
@@ -81,8 +82,8 @@ v.torque = v.torque + buoyTorqueA + weightTorqueA;
 % rotor torques.
 relRotSpeed = x(13)-x(15);
 gtq = v.generator.getTorque(relRotSpeed);
-v.rotors(1).addGeneratorTorque(gtq);
-v.rotors(2).addGeneratorTorque(-gtq);
+v.rotors(1).addTorque(gtq);
+v.rotors(2).addTorque(-gtq);
 
 %% prepare to compute state derivatives
 ta1 = v.torque(1); ta2 = v.torque(2); ta3 = v.torque(3);

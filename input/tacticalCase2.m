@@ -35,6 +35,7 @@ bladeDZfrac1 = 0.1;
 twist1.AoAopt_deg = 8.0;
 twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
+axflowfactor1 = 1.0;
 
 %% Rotor 2
 bladeMass2 = 0.43; % kg
@@ -51,6 +52,7 @@ bladeDZfrac2 = 0.1;
 twist2.AoAopt_deg = 8.0;
 twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
+axflowfactor2 = 1.0;
 
 % vehicle body again
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
@@ -67,10 +69,13 @@ rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
+addedMass = [];
+rotorVisc = 0;
 
 % tether
 tspring = 15000;
-tdamp = 4000;
+tdamp = [];
+tdampfac = 1.0;
 tunstrch = 10;
 tnnodes = 0;
 tnodlocs = []; % one column per node

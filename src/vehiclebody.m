@@ -9,6 +9,10 @@ classdef vehiclebody < handle
         inertia    % 3x3 array intertia matrix in the vehicle frame
         length     % the length of a slender body
         radius     % the radius of a slender body
+        torsionMod % to modify the dissipating viscous torsion (e.g. baffles)
+        torsSelect % section parameter to choose between hifi and low-fi torsion model
+        normCoeff  % normal force coefficient
+        axCoeff    % axial force coeficient
     end % properties
     
     methods
@@ -29,6 +33,14 @@ classdef vehiclebody < handle
         
         function setRadius(hobj,r)
             hobj.radius = r;
+        end
+        function setViscTorsionModifier(hobj,tm,hf)
+            hobj.torsionMod = tm;
+            hobj.torsSelect = hf;
+        end
+        function setViscDamping(hobj,n,a)
+            hobj.normCoeff = n;
+            hobj.axCoeff = a;
         end
     end % methods   
 end % vehiclebody

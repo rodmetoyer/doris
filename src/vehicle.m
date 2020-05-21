@@ -25,6 +25,7 @@ classdef vehicle < handle
         Mtot        % total inertia matrix, equal to Mstar + Mam
         MtotInv     % Inverse of the Mtot matrix
         relDensity  % The total density of the vehicle (all components) relative to water
+        rotorFric   % Viscosity constant between vehicle body and rotor(s)
     end % End private properties    
     properties (Dependent)
         A_C_O       % 3x3 tranformation matrix from inertial frame to vehicle frame
@@ -123,7 +124,6 @@ classdef vehicle < handle
             % Computes the net hydrodynamic force and torque vectors
             frc = 0;
             trq = 0;
-            bodyTors = 0;
             % Get aerodynamic loads on rotors, cross and sum
             % Need to preallocate the arrays based on whichever rotor has
             % more blades and sections. For now assume all blades have the
@@ -162,14 +162,21 @@ classdef vehicle < handle
                 trq = trq + cross(r_ayxA_A,sectionforces);
                 frc = frc + sectionforces;
                 
+                % Add a viscous force to the rotors to simulate bearing
+                % friction. This is basically a low-fidelity journal
+                % bearnign model, but this load is so small compared to
+                % everything else that I'm sacrificing a little fidelity
+                % for parsimony.
+                rtrspeed = hobj.rotors(i).angvel(3);
+                viscConst = hobj.rotorFric;
+                % The way the model is formulated, this torque needs to be
+                % added to the rotors.
+                hobj.rotors(i).addTorque(-viscConst*0.5*f.density*pi*rtrspeed*abs(rtrspeed)*hobj.body.radius^4*hobj.body.length);
                 % In small lab-scale systems you can end up with a numerical
                 % torque on the body even when the rotors are not spinning.
                 % This doesn't correct iteself because the body-rotor loads
                 % are internal and the external viscous torsion is small
-                % compared to the numerical error. As a correction, we 
-                % Todo research and make this functional
-                %viscConst = 0.1; % Todo make this an accessable parameter
-                %bodyTors = bodyTors - viscConst*hobj.body.radius*hobj.rotors(i).angvel(3);
+                % compared to the numerical error.
             end % end rotor loop
             
             % Get Hydrodynamic loads on body, cross and sum            
@@ -182,15 +189,15 @@ classdef vehicle < handle
             q = f.density*hobj.body.radius;
             vRelnorm_A = norm(vRel_A(1:2))*vRel_A(1:2);
             vRelax_A = vRel_A(3)*vRel_A(3);
-            Fn = 1.2*q*vRelnorm_A;
-            Fa = 0.1*q*vRelax_A;
+            Fn = hobj.body.normCoeff*q*vRelnorm_A; %1.2
+            Fa = hobj.body.axCoeff*q*vRelax_A;   %0.1
             Fbod = [Fn;Fa];
             %Fbod = [0;0;0];
             
             % Compute the moment coefficient
-            cmc = hobj.getCylinderMomentCoefficient(f,false);
+            cmc = hobj.getCylinderMomentCoefficient(f,hobj.body.torsSelect);
             % Add viscous torsion
-            bodyTors = bodyTors - 0.5*f.density*pi*hobj.angvel(3)*abs(hobj.angvel(3))*hobj.body.radius^4*hobj.body.length*cmc;
+            bodyTors = -hobj.body.torsionMod*0.5*f.density*pi*hobj.angvel(3)*abs(hobj.angvel(3))*hobj.body.radius^4*hobj.body.length*cmc;
                         
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads
@@ -576,7 +583,12 @@ classdef vehicle < handle
         function setRelativeDensity(hobj,rd)
             hobj.relDensity = rd;
         end
-        
+        function setAddedMassMatrix(hobj,am)
+            hobj.Mam = am;
+        end
+        function setRotorFricConst(hobj,c)
+            hobj.rotorFric = c;
+        end
         %$ Setters
         function setType(hobj,t)
             hobj.type = t;

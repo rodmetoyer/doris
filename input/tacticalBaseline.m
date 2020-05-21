@@ -67,6 +67,8 @@ rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
 addedMass = []; % leave empty to compute, make it 8x8 to specify
+rotorVisc = 0.02;
+vtMod = 1.0; % to modify the viscous torsion about the body (like baffles or something)
 
 % tether
 tspring = 15000;

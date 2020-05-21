@@ -179,7 +179,7 @@ classdef rotor < handle
             hobj.sectDrag = DragSections;
             % hobj.sectMomt = TorqueSections;
             hobj.force = totforce;
-            hobj.torqueCM = torque; % + genTorque; % Not really a hydroload so moved to state.
+            hobj.torqueCM = torque;
         end % end computeHydroLoads
         
         function hfig = visualizeSectionLoads(hobj,hide,scale)
@@ -229,7 +229,7 @@ classdef rotor < handle
                 % v = the vehicle object to connect to
             hobj.vehicle = v;
         end % end ConnectVehicle
-        function addGeneratorTorque(hobj,tq)
+        function addTorque(hobj,tq)
             hobj.torqueCM(3) = hobj.torqueCM(3) + tq;
         end
         function setAxialFlowFactor(hobj,ff)

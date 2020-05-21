@@ -111,12 +111,15 @@ classdef simulation < handle
                 vbod = vehiclebody(vbmass,I,vbcentermass);                
                 vbod.setLength(vblength);
                 vbod.setRadius(vbradius);
+                vbod.setViscTorsionModifier(vtMod,hifiTors);
+                vbod.setViscDamping(vbnorm,vbax);
                 % Make a vehicle
                 rotPoints = [rot1point,rot2point];
                 hobj.vhcl = vehicle();
                 hobj.vhcl.setType(2); % 2 is coaxial
                 hobj.vhcl.init(vbod,[r1,r2],rotPoints,vcentermass,vbtetherpoint,vbbuoypoint);
                 hobj.vhcl.setRelativeDensity(vreldensity);
+                hobj.vhcl.setRotorFricConst(rotorVisc);
                 disp('Vehicle initialized');
                 % Associate rotor objects with vehicle object
                 r1.connectVehicle(hobj.vhcl);
@@ -149,7 +152,7 @@ classdef simulation < handle
                 if isempty(addedMass)
                     hobj.vhcl.computeAddedMass(hobj.fld);
                 else
-                    hobj.vhcl.Mam = addedMass;
+                    hobj.vhcl.setAddedMassMatrix(addedMass);
                 end
                 hobj.vhcl.computeMtot;
                 

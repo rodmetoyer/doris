@@ -17,7 +17,7 @@ classdef tether < handle
             hobj.uslength = usl;
         end % constructor
         
-        function t = computeTension(hobj,r,v)
+        function t = computeLinkTension(hobj,r,v)
             usleng = hobj.uslength;
             currentlength = norm(r);
             unitvec = r/currentlength; % From anchor to vehicle attachment point

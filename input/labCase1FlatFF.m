@@ -50,13 +50,15 @@ axflowfactor2 = 0.4;
 
 % vehicle
 vblength = 0.1;
-vbradius = 0.005;
+vbradius = 0.025;
 vbmass = 0.025;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0]; % This is center mass of the vehicle body
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
 vbbuoypoint = [0;0;0.0]; % Center of buoyancy
+vbnorm = 1.2;
+vbax = 0.1;
 vreldensity = 8000.0;    % Density of the vehilce body relative to the fluid
 rot1point = [0;0;-vblength/8]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/8]; % Point where the 2nd rotor is located [h1,h2,h3]
@@ -67,6 +69,9 @@ rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
 addedMass = [];
+rotorVisc = 0.0; % Viscosity between rotor and body - 0.02 is reasonable for Re > 100
+vtMod = 100;
+hifiTors = false;
 
 % tether
 tspring = 10000;

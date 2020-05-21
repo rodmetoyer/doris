@@ -1,5 +1,5 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'labCase1Flat';
+runname = 'labCase1FlatFF';
 
 % Environment
 fluidtype = 'air';
@@ -30,7 +30,7 @@ bladeDZfrac1 = 0.05;
 twist1.AoAopt_deg = 6.0;
 twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
-axflowfactor1 = 1.0;
+axflowfactor1 = 0.8;
 
 %% Rotor 2
 bladeMass2 = 0.005; % kg
@@ -46,11 +46,11 @@ bladeDZfrac2 = 0.05;
 twist2.AoAopt_deg = 6.0;
 twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
-axflowfactor2 = 1.0;
+axflowfactor2 = 0.4;
 
 % vehicle
 vblength = 0.1;
-vbradius = 0.005;
+vbradius = 0.025;
 vbmass = 0.025;
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
 vbcentermass = [0;0;0]; % This is center mass of the vehicle body
@@ -66,13 +66,13 @@ rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
-rotorVisc = 0;
-addedMass = zeros(8);
-vtMod = 1.0;
+addedMass = [];
+rotorVisc = 0.02;
 
 % tether
 tspring = 10000;
-tdamp = 500;
+tdamp = [];
+tdampfac = 1.0;
 tunstrch = 0.3;
 tnnodes = 0;
 tnodlocs = []; % one column per node
