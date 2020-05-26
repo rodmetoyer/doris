@@ -43,13 +43,14 @@ classdef fluid < handle
                     end
                 else
                     hobj.type = density;
-                end                            
-                hobj.density = 997;
-                hobj.dynVisc = 9.482*10^-4;
-                hobj.kinVisc = 9.504*10^-7;
-                hobj.temp = 23;
-                hobj.pressure = 103421;
-                hobj.velocity = [0;0;0];
+                end       
+                hobj.init(hobj.type);
+%                 hobj.density = 997;
+%                 hobj.dynVisc = 9.482*10^-4;
+%                 hobj.kinVisc = 9.504*10^-7;
+%                 hobj.temp = 23;
+%                 hobj.pressure = 103421;
+%                 hobj.velocity = [0;0;0];
             elseif nargin > 1
                 hobj.density = density;
                 hobj.dynVisc = dynVisc;
@@ -64,6 +65,9 @@ classdef fluid < handle
         
         % Initialization
         function init(hobj,type)
+            if isnumeric(type)
+                type = hobj.typeName;
+            end
                 switch type
                     case 'water'
                         hobj.density = 997;

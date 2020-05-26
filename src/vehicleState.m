@@ -54,21 +54,26 @@ v.computeHydroLoads(f);
 % todo(rodney) make a tether class. Number nodes = number links-1. End
 % nodes are part of the signal. Output is loads on end links and position
 % of internal nodes
+O_C_A = transpose(v.A_C_O);
+r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
+Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint);
+[A,B] = thr.getAnchorPoint(t);
 if thr.numnodes > 0
-    error('oops - no tethers allowed (yet)');
-    % States 16+1 to 16+3N are tether node positions and states 16+3N+1 to
-    % 16+3N+3N are tether node velocities
-    % Pass the extra states in and get the end tension out
-    
+    % States for two rotors 16+1=17 to 16+3N are tether node positions and states 16+3N+1 to
+    % 16+3N+3N=16+6N are tether node velocities
+    numstates = numel(x);
+    % First update the tether states with the current information x(numstates+1:numstates+6*thr.numnodes)
+    thr.nodelocs = x(numstates+1:numstates+3*thr.numnodes);
+    thr.nodevels = x(numstates+3*thr.numnodes+1:numstates+6*thr.numnodes);
+    % now compute the state derivatives
+    [tetherforce,xdot(numstates+1+3*thr.numnodes:numstates+6*thr.numnodes)] = thr.computeTension(A,B,r_to_O,Ov_to_O,f);
+    xdot(numstates+1:numstates+3*thr.numnodes) = x(numstates+1+3*thr.numnodes:numstates+6*thr.numnodes);
 else % no internal nodes
-    O_C_A = transpose(v.A_C_O);
-    r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
-    Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint); % CAUTION assumes one tether. todo(rodney) generalize
-    tetherforce = thr.computeLinkTension(r_to_O,Ov_to_O);
+    [tetherforce,~] = thr.computeTension(A,B,r_to_O,Ov_to_O,f);
 end
 v.addTetherLoads(v.A_C_O*tetherforce);
 
-%% Compute weight and buoyancy loads
+%% Compute hydrostatic loads
 buoyForceA = transpose(O_C_A)*[0;0;(1/v.relDensity)*f.gravity*v.mass];
 weightA = transpose(O_C_A)*[0;0;-v.mass*f.gravity];
 buoyTorqueA = cross(v.buoypoint,buoyForceA);
