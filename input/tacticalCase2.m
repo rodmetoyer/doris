@@ -20,6 +20,8 @@ flowparms = [];
 vblength = 1.0;
 vbradius = 0.05;
 vbmass = 15.5;
+vbnorm = 1.2;
+vbax = 0.1;
 
 %% Rotor 1
 bladeMass1 = 0.43; % kg
@@ -70,7 +72,9 @@ rot2ornt = [0;0;0];
 rot1initRPM = 0;
 rot2initRPM = 0; % sign for directionality
 addedMass = [];
-rotorVisc = 0;
+rotorVisc = 0.02;
+vtMod = 1.0;
+hifiTors = false;
 
 % tether
 tspring = 15000;
@@ -90,7 +94,7 @@ grload = inf; % inf for no load, 0 for closed circuit
 gpoint = [0;0;0];
 
 % Simulation
-totalSimTime = 10;
+totalSimTime = 60;
 tstep = 0.01;
 
 % Initial Conditions

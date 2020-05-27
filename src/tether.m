@@ -16,6 +16,7 @@ classdef tether < handle
         % tether data. You should update using setEndpoints or setPointA
         % and setPointB
         endpnts   % 3x2 location of the endpoints of the tether
+        endvels % 3x2 velocity of the endpoints
     end
     properties
         name    % name of the tether
@@ -33,7 +34,7 @@ classdef tether < handle
             end
         end % constructor
         
-        function [xd] = computeTension(hobj,A,Ad,B,Bd,f)
+        function [xd] = computeTension(hobj,f)
             % A is 3x1 position vector of one end of the tether
             % Ad is 3x1 velocity vector of the A end
             % B and Bd are for the other end
@@ -46,8 +47,8 @@ classdef tether < handle
                 % Note that, for the single-length tether, we currently
                 % neglect the hydrodyamic loads on the tether.
                 % todo add hydro loads for a single length if you want to.
-                r = B-A;
-                v = Bd-Ad;
+                r = hobj.endpnts(:,2)-hobj.endpnts(:,1);
+                v = hobj.endvels(:,2)-hobj.endvels(:,1);
                 usleng = hobj.uslength;
                 currentlength = norm(r);
                 unitvec = r/currentlength; % From anchor to vehicle attachment point
@@ -72,20 +73,20 @@ classdef tether < handle
                     xd(3*i-2:3*i) = hobj.nodevels(:,i);                     
                     % now compute the internal loads
                     if i==1                        
-                        rminus = A;
-                        vminus = Ad;
+                        rminus = hobj.endpnts(:,1);
+                        vminus = hobj.endvels(:,1);
                         if hobj.numnodes == 1
-                            rplus = B;
-                            vplus = Bd;
+                            rplus = hobj.endpnts(:,2);
+                            vplus = hobj.endvels(:,2);
                         else
                             rplus = x(3*(i+1)-2:3*(i+1)).';
                             vplus = x(3*hobj.numnodes+3*(i+1)-2:3*hobj.numnodes+3*(i+1)).';
                         end
                     elseif i==hobj.numnodes
-                        rplus = B;
+                        rplus = hobj.endpnts(:,2);
                         rminus = x(3*(i-1)-2:3*(i-1)).';
                         vminus = x(3*hobj.numnodes+3*(i-1)-2:3*hobj.numnodes+3*(i-1)).';
-                        vplus = Bd;
+                        vplus = hobj.endvels(:,2);
                     else
                         rminus = x(3*(i-1)-2:3*(i-1)).';
                         rplus = x(3*(i+1)-2:3*(i+1)).';
@@ -224,11 +225,17 @@ classdef tether < handle
             end
             hobj.endpnts = pts;
         end
-        function setPointA(hobj,pt)
+        function setLocationA(hobj,pt)
             hobj.endpnts(:,1) = pt;
         end
-        function setPointB(hobj,pt)
+        function setLocationB(hobj,pt)
             hobj.endpnts(:,2) = pt;
+        end
+        function setVelocityA(hobj,pt)
+            hobj.endvels(:,1) = pt;
+        end
+        function setVelocityB(hobj,pt)
+            hobj.endvels(:,2) = pt;
         end
         function hfig = showme(hobj,axlims,vis)
             if nargin < 2

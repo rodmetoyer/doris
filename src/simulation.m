@@ -681,7 +681,11 @@ classdef simulation < handle
                 % plot the tether
                 r_tpo_O = r_ao_O(smp,:).' + O_C_A*sim.vhcl.tetherpoint;
                 Ov_tpo_O = O_C_A*Ov_ao_A(smp,:).' + O_C_A*cross(O_omg_A_A(smp,:).',sim.vhcl.tetherpoint);
-                tetherforce_O = sim.thr.computeTension(r_tpo_O,Ov_tpo_O);
+                sim.thr.setLocationA([0;0;0]);
+                sim.thr.setVelocityA([0;0;0]);
+                sim.thr.setLocationB(r_tpo_O);
+                sim.thr.setVelocityB(Ov_tpo_O);
+                tetherforce_O = sim.thr.computeTension(sim.fld);
                 str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.2f') 'N'];
                 
                 thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce_O))));

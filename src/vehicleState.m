@@ -57,7 +57,11 @@ v.computeHydroLoads(f);
 O_C_A = transpose(v.A_C_O);
 r_to_O = [x(1); x(2); x(3)] + O_C_A*v.tetherpoint;
 Ov_to_O = O_C_A*v.velocity + O_C_A*cross(v.angvel,v.tetherpoint);
-[A,B] = thr.getAnchorPoint(t);
+[A,Ad] = thr.getAnchorPoint(t);
+thr.setLocationA(A);
+thr.setVelocityA(Ad);
+thr.setLocationB(r_to_O);
+thr.setVelocityB(Ov_to_O);
 if thr.numnodes > 0
     % States for two rotors 16+1=17 to 16+3N are tether node positions and states 16+3N+1 to
     % 16+3N+3N=16+6N are tether node velocities
@@ -69,7 +73,8 @@ if thr.numnodes > 0
     [tetherforce,xdot(numstates+1+3*thr.numnodes:numstates+6*thr.numnodes)] = thr.computeTension(A,B,r_to_O,Ov_to_O,f);
     xdot(numstates+1:numstates+3*thr.numnodes) = x(numstates+1+3*thr.numnodes:numstates+6*thr.numnodes);
 else % no internal nodes
-    [tetherforce,~] = thr.computeTension(A,B,r_to_O,Ov_to_O,f);
+    thr.computeTension(f);
+    tetherforce = thr.tension(:,2);
 end
 v.addTetherLoads(v.A_C_O*tetherforce);
 
