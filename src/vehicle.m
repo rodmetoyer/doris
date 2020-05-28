@@ -189,10 +189,14 @@ classdef vehicle < handle
             q = f.density*hobj.body.radius;
             vRelnorm_A = norm(vRel_A(1:2))*vRel_A(1:2);
             vRelax_A = vRel_A(3)*vRel_A(3);
+            % Compute normal coefficient - see huston1981representation
+            %Re = f.getRe(norm(vRel_A(1:2)),2*hobj.body.radius);
+            %hobj.body.computeNormalCoeff(Re);
+            % todo enable computation. For now these are constant
             Fn = hobj.body.normCoeff*q*vRelnorm_A; %1.2
             Fa = hobj.body.axCoeff*q*vRelax_A;   %0.1
-            Fbod = [Fn;Fa];
-            %Fbod = [0;0;0];
+            %Fbod = [Fn;Fa];
+            Fbod = [0;0;0];
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,hobj.body.torsSelect);

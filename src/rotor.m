@@ -20,7 +20,8 @@ classdef rotor < handle
         % rotor doesn't know where he is, but he knows which vehicle he belongs to and can get position that way position   % 3x1 Position vector of mass center in the vehicle frame IN METERS
         vehicle    % The vehicle object that the rotor is attached to.
         ID         % Identifier specifying which rotor it is in the vehicle
-        axflowfac  % Axial flow factor, a factor that 
+        axflowfac  % Axial flow factor (1-induction factor)
+        BEMT       % 3x1 bool array [use BEMT, use Prandtl's factor, use Glauert correction]
     end % end private parameters and constants that do not change during simulation
     properties (SetAccess = private)
         % Properties that change every timestep that can only be changed by
@@ -123,6 +124,7 @@ classdef rotor < handle
             % Init torque sum
             torque = [0;0;0];
             totforce = [0;0;0];
+            opts = optimset('Display','off'); % fzero options for BEMT empirical
             for i=1:1:hobj.numblades
                 % Get section aero loads
                 for j=1:1:hobj.blades(i).numsects
@@ -136,27 +138,111 @@ classdef rotor < handle
                     U_rel_P = Ufluid_P - OVpo_P - V_ap_P; % Velocity of the fluid relative to the section in the rotor frame
                     % ASSUMPION - Coaxial turbines, therefore z-axes are
                     % alighed. Therefore we can modify the axial flow with
-                    % the scalar modifier
-                    U_rel_P(3) = hobj.axflowfac*U_rel_P(3);
-                    U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
+                    % the scalar modifier.
                     
-                    % Rotate the relative velocity into the blade section
-                    % frame. First, compute bx_C_a
-                    ang = hobj.blades(i).sectOrnts(2,j); 
-                    % Note that this assumes only twist about y axis. todo(rodney) make this more generic.
-                    bx_C_a = [cos(ang),0,-sin(ang);0,1,0;sin(ang),0,cos(ang)];
-                    % U in section frame =
-                    % section_C_blade*blade_C_rotor*U_rotor
-                    U_rel_a = transpose(bx_C_a)*hobj.bx_C_P(:,:,i)*U_rel_P;
-                    
-                    % Get loads from each section of the blade. INFO: The
-                    % computeLoads method only uses the x and z components
-                    % of the relative velocity vector.
-                    [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_a,fluid);
-                    %[lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
-                    % No moments right now so I'm not dealing with them.
-                    % todo(rodney) add section moment functionality.                    
-                                        
+                    % If we are using BEMT, compute the axial flow factor
+                    % Get relative velocity at this section in the blade frame
+                    U_rel_bx = hobj.bx_C_P(:,:,i)*U_rel_P;
+                    % The blade z is the axial component (more coaxial
+                    % assumption baked in here) and the blade x is the
+                    % omega*r component. We are only doing axial induction.
+                    if hobj.BEMT(1)
+                        BEMTitr = 0;
+                        aprev = 1;
+                        a = 0;
+                        diff_aaprev = 1;
+                        while diff_aaprev > 1.0e-3
+                            BEMTitr = BEMTitr + 1;
+                            if BEMTitr > 100
+                                wstr = ['BEMT reached 100 iterations. Final a: ' num2str(a,3)];
+                                warning(wstr);
+                                break;
+                            end
+                            try
+                            phi = atan2((1-a)*U_rel_bx(3),U_rel_bx(1));
+                            if phi < 0
+                                error('phi is negative. Stop for a second.');
+                            end
+                            catch
+                                error('what?');
+                            end
+                            r = abs(hobj.blades(i).sectLocs(2));
+                            F = 1;
+                            if hobj.BEMT(2) % Use Prandtl tip loss factor
+                                f = hobj.numblades/2*(hobj.blades(i).length - r)/(r*sin(phi));
+                                F = 2/pi*acos(exp(-f));
+                            end                                                    
+                            bx_C_a = hobj.blades(i).b_C_a(:,:,j);
+                            U_rel_a = transpose(bx_C_a)*hobj.bx_C_P(:,:,i)*U_rel_P;
+                            [cl,cd,~] = hobj.blades(i).sections(j).computeForceCoeffs(U_rel_a,fluid);
+                            cn = cl*cos(phi)+cd*sin(phi);
+                            sigma = hobj.numblades*hobj.blades(i).sections(j).chord/(2*pi*r);
+                            a = 1/((4*F*sin(phi)^2)/(sigma*cn)+1); 
+                            ac = 0.2;
+                            a = min(a,1);
+%                             if a > 0.4 && a < 1 % Using the equation described Buhl2004new eqn. 18
+%                                 buhlf = @(a,F,sigma,phi,cn) (1-a)^2*sigma*cn/sin(phi)^2 - (8/9+(4*F-40/9)*a+(50/9-4*F)*a^2);
+%                                 f = @(a) buhlf(a,F,sigma,phi,cn);
+%                                 [a,~,flg,~] = fzero(f,0.6,opts);
+%                                 if flg ~= 1
+%                                     % no solution, if it was close just use
+%                                     % the last known value
+%                                     if diff_aaprev < 0.1
+%                                         a = aprev;
+%                                     else
+%                                         error('BEMT failed to converge.');
+%                                     end
+%                                 end
+%                             end
+                            % Using the Wilson-Walker equation described in
+                            % Hansen2007aerodynamics
+                            if abs(a) > ac
+                                K = 4*F*sin(phi)^2/(sigma*cn);
+                                K = max(K,0);
+                                Kb = sqrt((K*(1-2*ac) + 2)^2 + 4*(K*ac^2-1));
+                                a = 0.5*(2 + K*(1-2*ac)-Kb);
+                            end
+                            diff_aaprev  = abs(a-aprev);
+                            aprev = a;
+                        end
+                        temp = 0.5*fluid.density*norm([U_rel_a(3),U_rel_a(1)],2)^2*hobj.blades(i).sections(j).chord*hobj.blades(i).sections(j).width;
+                        Lmag = cl*temp;
+                        Dmag = cd*temp; 
+                        temp = sqrt(U_rel_a(1)^2+U_rel_a(3)^2); % Magnitude of the relative velocity in the section frame
+                        salpha = 0;
+                        calpha = 0;
+                        if temp > 1.0e-12
+                            salpha = U_rel_a(3)/temp;
+                            calpha = U_rel_a(1)/temp;
+                        end
+                        % loads in the section frame
+                        drag = [Dmag*calpha;0;Dmag*salpha];
+                        lift = [-Lmag*salpha;0;Lmag*calpha];
+                        %hobj.computeAxialFlowFactor(U_rel_P
+                        hobj.axflowfac = 1-a;
+                        U_rel_P(3) = hobj.axflowfac*U_rel_P(3);
+                        U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
+                    else % not using BEMT
+                        % Another baked-in assumption of coaxial
+                        U_rel_P(3) = hobj.axflowfac*U_rel_P(3);
+                        U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
+
+                        % Rotate the relative velocity into the blade section
+                        % frame. First, compute bx_C_a
+                        ang = hobj.blades(i).sectOrnts(2,j); 
+                        bx_C_a = hobj.blades(i).b_C_a(:,:,j);
+                        % U in section frame =
+                        % section_C_blade*blade_C_rotor*U_rotor
+                        U_rel_a = transpose(bx_C_a)*hobj.bx_C_P(:,:,i)*U_rel_P;
+
+                        % Get loads from each section of the blade. INFO: The
+                        % computeLoads method only uses the x and z components
+                        % of the relative velocity vector.
+                        [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_a,fluid);
+                        %[lift,drag,~] = hobj.blades(i).sections(j).computeLoadsFast(U_rel_bs,fluid);
+                        % No moments right now so I'm not dealing with them.
+                        % todo(rodney) add section moment functionality.                    
+                    end                    
                     % Transform these loads into the rotor frame
                     drag = hobj.P_C_bx(:,:,i)*bx_C_a*drag;
                     lift = hobj.P_C_bx(:,:,i)*bx_C_a*lift;
@@ -284,6 +370,15 @@ classdef rotor < handle
         
         function setID(hobj,ID)
             hobj.ID = ID;
+        end
+        function setBEMT(hobj,ba)
+            if length(ba) < 2
+                warning('BEMT model has two choices, assuming you don"t want to use tip loss correction.');
+                hobj.BEMT(1) = boolean(ba);
+                hobj.BEMT(2) = false;
+            else
+                hobj.BEMT = boolean(ba);
+            end
         end
         
         % Getters

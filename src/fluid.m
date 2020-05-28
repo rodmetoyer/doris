@@ -141,6 +141,9 @@ classdef fluid < handle
         function re = getRotationalRe(hobj,om,r)
             re = hobj.density*om*r^2/hobj.dynVisc;
         end
+        function re = getRe(hobj,v,d)
+            re = hobj.density*d*v/hobj.dynVisc;
+        end
         
         % setters
         function set.velocity(hobj,v)

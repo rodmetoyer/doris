@@ -27,6 +27,28 @@ classdef vehiclebody < handle
             hobj.centermass = cm;
         end                   
         
+        function computeNormalCoeff(hobj,Re)
+            % todo finish this
+            % using the equations in huston1981representation
+            if Re < 1
+                hobj.normCoeff = 10;
+            elseif Re < 30
+                hobj.normCoeff = 1.45+8.55*Re^(-0.4);
+            elseif Re < 100
+                hobj.normCoeff = 1.0+4*Re^(-0.5);
+            elseif Re < 1000
+                hobj.normCoeff = 2.25 - 0.45*log10(Re);
+            elseif Re < 4000
+                hobj.normCoeff = 0.9;
+            elseif Re < 15000
+                hobj.normCoeff = -1.05 + 0.54*log10(Re);
+            elseif Re < 150000
+                hobj.normCoeff = 1.21;
+            else
+                hobj.normCoeff = 0.3;
+            end
+        end
+        
         function setLength(hobj,l)
             hobj.length = l;
         end

@@ -358,8 +358,8 @@ classdef tether < handle
                 % update tether position and locations
                 hobj.setNodePosition(tetherdat(smp,1:3*hobj.numnodes));
                 hobj.setNodeVelocity(tetherdat(smp,3*hobj.numnodes+1:6*hobj.numnodes));
-                hobj.setPointA(A);
-                hobj.setPointB(B);
+                hobj.setLocationA(A);
+                hobj.setLocationB(B);
                 hold(ax1,'on');
                 if ~isempty(hobj.nodelocs) && ~isempty(hobj.endpnts)
                     % Has ends and nodes

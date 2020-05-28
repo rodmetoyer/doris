@@ -103,10 +103,12 @@ classdef simulation < handle
                 r1 = rotor(bld1);
                 r1.setID(1);
                 r1.setAxialFlowFactor(axflowfactor1);
+                r1.setBEMT([useBEMT,usePrandtl]);
                 % Need to make rotor 2 have blades with twist 180-
                 r2 = rotor(bld2);
                 r2.setID(2);
                 r2.setAxialFlowFactor(axflowfactor2);
+                r2.setBEMT([useBEMT,usePrandtl]);
                 % Make a vehicle body
                 vbod = vehiclebody(vbmass,I,vbcentermass);                
                 vbod.setLength(vblength);
@@ -336,10 +338,20 @@ classdef simulation < handle
             x = 300; y = 100; w = x+600; h = y+600;
             hfig = figure('position',[x y w h],'visible',vis);
             scale = 1;
-            y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+            temp2 = max(hobj.vhcl.body.length,temp);
+            y = linspace(-v.position(2)-temp2,v.position(2)+temp2,10);
             z = v.position(3)+y;
-            [Y,Z] = meshgrid(y, z);
-            X = zeros(size(Y));
+            [Y,Z] = meshgrid(y, z);            
+            
+            X = ones(size(Y))*(v.position(1)-2*temp2);
             U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
             %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
             quiver3(X,Y,Z,U,V,W,scale,'color','none');
@@ -349,6 +361,7 @@ classdef simulation < handle
             quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),L1_O(1,:,:),L1_O(2,:,:),L1_O(3,:,:),scale,'c')
             quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),L2_O(1,:,:),L2_O(2,:,:),L2_O(3,:,:),scale,'g')
             axis equal
+            axis([v.position(1)-2*temp2 v.position(1)+temp2 v.position(2)-temp2 v.position(2)+temp2 v.position(3)-temp2 v.position(3)+temp2]);
             xlabel('x'); ylabel('y'); zlabel('z');
             title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
             legend({'Freestream Velocity','Vehicle Body','Lift Rotor 1','Lift Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
@@ -367,10 +380,20 @@ classdef simulation < handle
             x = 300; y = 100; w = x+600; h = y+600;
             hfig = figure('position',[x y w h],'visible',vis);
             scale = 1;
-            y = linspace(-v.rotors(1).blades(1).length,v.rotors(1).blades(1).length,10);
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+            temp2 = max(hobj.vhcl.body.length,temp);
+            y = linspace(-v.position(2)-temp2,v.position(2)+temp2,10);
             z = v.position(3)+y;
-            [Y,Z] = meshgrid(y, z);
-            X = zeros(size(Y));
+            [Y,Z] = meshgrid(y, z);            
+            
+            X = ones(size(Y))*(v.position(1)-2*temp2);
             U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
             %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
             quiver3(X,Y,Z,U,V,W,scale,'color','none');
@@ -380,6 +403,7 @@ classdef simulation < handle
             quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),D1_O(1,:,:),D1_O(2,:,:),D1_O(3,:,:),scale,'c')
             quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),D2_O(1,:,:),D2_O(2,:,:),D2_O(3,:,:),scale,'g')
             axis equal
+            axis([v.position(1)-2*temp2 v.position(1)+temp2 v.position(2)-temp2 v.position(2)+temp2 v.position(3)-temp2 v.position(3)+temp2]);
             xlabel('x'); ylabel('y'); zlabel('z');
             title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
             legend({'Freestream Velocity','Vehicle Body','Drag Rotor 1','Drag Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
@@ -685,8 +709,9 @@ classdef simulation < handle
                 sim.thr.setVelocityA([0;0;0]);
                 sim.thr.setLocationB(r_tpo_O);
                 sim.thr.setVelocityB(Ov_tpo_O);
-                tetherforce_O = sim.thr.computeTension(sim.fld);
-                str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.2f') 'N'];
+                sim.thr.computeTension(sim.fld);
+                tetherforce_O = sim.thr.tension(:,2);
+                str = ['Tether tension: ' num2str(norm(tetherforce_O),'%10.2g') 'N'];
                 
                 thclr = round(interp1([0,cmaxtensionvalue],[1,100],min(cmaxtensionvalue,norm(tetherforce_O))));
                 plot3(ax,[0 r_tpo_O(1)],[0 r_tpo_O(2)],[0 r_tpo_O(3)],'--','LineWidth',1.0,'Color',cmap(thclr,:));
