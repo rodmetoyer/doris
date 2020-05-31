@@ -474,10 +474,11 @@ classdef simulation < handle
                         mrk = '-';
                         clr = [1 0 0;0 0 1];
                     end
+                    b_C_a = hobj.vhcl.rotors(i).blades(j).b_C_a;
                     for k=1:1:numel(hobj.vhcl.rotors(i).blades(j).sections)
                         a = hobj.vhcl.rotors(i).blades(j).sections(k).coords;                         
                         % rotate into blade
-                        a = hobj.vhcl.rotors(i).blades(j).b_C_a(:,:,k)*a;
+                        a = b_C_a(:,:,k)*a;
                         % move to proper location in blade
                         b = a + hobj.vhcl.rotors(i).blades(j).sectLocs(:,k);
                         % rotate into rotor
@@ -507,6 +508,73 @@ classdef simulation < handle
             hold off;
             xlabel('x'); ylabel('y'); zlabel('z');
             view(-45,30);
+        end % end showmerotors
+        
+        function hfig = showmesection(hobj,rbs,vis)
+            % rbs is (rotor, blade, section)
+            %disp('Displaying vehicle');
+            if nargin < 3
+                vis = 'on';
+            end
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            ax1 = axes('Parent',hfig); hold on;
+            a = hobj.vhcl.rotors(rbs(1)).blades(rbs(2)).sections(rbs(3)).coords;                         
+            % rotate into blade
+            b = hobj.vhcl.rotors(rbs(1)).blades(rbs(2)).b_C_a(:,:,rbs(3))*a;
+%             % rotate into rotor
+%             b = hobj.vhcl.rotors(rbs(1)).P_C_bx(:,:,rbs(2))*b;
+%             % rotate into vehicle
+%             b = transpose(hobj.vhcl.rotors(rbs(1)).P_C_A)*b;
+%             % finally put in earth frame
+%             b = transpose(hobj.vhcl.A_C_O)*b;
+            plot(ax1,a(1,:),a(3,:),'r',b(1,:),b(3,:),'b');                        
+            axis equal;
+            xlabel('x'); ylabel('z');
+        end % end showmesection
+        
+        function showmesectionvrel(hobj)
+             if nargin < 2
+                vis = 'on';
+            end
+            f = hobj.fld;
+            v = hobj.vhcl;
+            % Get plot arrays from subfunction
+            [rp1o_O,rp2o_O,rap1_O,rap2_O,Urel1,Urel2,~,~,~,~] = getPlotArrays(v,f);
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            scale = 1;
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+            temp2 = max(hobj.vhcl.body.length,temp);
+            y = linspace(-v.position(2)-temp2,v.position(2)+temp2,10);
+            z = v.position(3)+y;
+            [Y,Z] = meshgrid(y, z);            
+            
+            X = ones(size(Y))*(v.position(1)-2*temp2);
+            U = ones(size(X))*f.velocity(1); V = ones(size(Y))*f.velocity(2); W = ones(size(Z))*f.velocity(3);
+            %quiver3(0,0,0,f.velocity(1),f.velocity(2),f.velocity(3),scale,'b');
+            quiver3(X,Y,Z,U,V,W,scale,'color',[52 195 235]/255);
+            hold on
+            vbodyline = [v.position+transpose(v.A_C_O)*[0;0;v.body.length*0.5],v.position+transpose(v.A_C_O)*[0;0;-v.body.length*0.5]];
+            plot3(vbodyline(1,:),vbodyline(2,:),vbodyline(3,:),':','LineWidth',3,'color',[0.6350 0.0780 0.1840]);
+            quiver3(rp1o_O(1)+rap1_O(1,:,:),rp1o_O(2)+rap1_O(2,:,:),rp1o_O(3)+rap1_O(3,:,:),Urel1(1,:,:),Urel1(2,:,:),Urel1(3,:,:),scale,'r')
+            quiver3(rp2o_O(1)+rap2_O(1,:,:),rp2o_O(2)+rap2_O(2,:,:),rp2o_O(3)+rap2_O(3,:,:),Urel2(1,:,:),Urel2(2,:,:),Urel2(3,:,:),scale,'b')
+            
+            axis equal
+            axis([v.position(1)-2*temp2 v.position(1)+temp2 v.position(2)-temp2 v.position(2)+temp2 v.position(3)-temp2 v.position(3)+temp2]);
+            
+            xlabel('x'); ylabel('y'); zlabel('z');
+            title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
+            legend({'Freestream Velocity','Vehicle Body','Loads Rotor 1','Loads Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            view(-45,25)
+            hold off  
         end
         
         function makeSinglePlot(hobj,plt,varargin)

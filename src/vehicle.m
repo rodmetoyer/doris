@@ -252,7 +252,8 @@ classdef vehicle < handle
                         raA_A(:,i,j,k) = A_C_P*hobj.rotors(k).sectPos(:,i,j) + hobj.rotorLocs(:,k);                        
                         L_A(:,i,j,k) = A_C_P*hobj.rotors(k).sectLift(:,i,j);
                         D_A(:,i,j,k) = A_C_P*hobj.rotors(k).sectDrag(:,i,j);
-                        R_A(:,i,j,k) = A_C_P*L_A(:,i,j,k) + D_A(:,i,j,k);
+                        R_A(:,i,j,k) = L_A(:,i,j,k) + D_A(:,i,j,k);
+                        %R_A(:,i,j,k) = A_C_P*L_A(:,i,j,k) + D_A(:,i,j,k);
                     end
                 end
                 % Show the forces and/or velocity vectors as quivers applied at the section
@@ -286,7 +287,9 @@ classdef vehicle < handle
             end
             axis equal
             xlabel('x'); ylabel('y'); zlabel('z');
-            title({'Force Vectors',['Vehicle Angular Rate = [' num2str(hobj.angvel(1)*30/pi,3) ' ' num2str(hobj.angvel(2)*30/pi,3) ' ' num2str(hobj.angvel(3)*30/pi,3) '] RPM']});
+            title({'Force Vectors',...
+                ['Vehicle Angular Rate = [' num2str(hobj.angvel(1)*30/pi,3) ' ' num2str(hobj.angvel(2)*30/pi,3) ' ' num2str(hobj.angvel(3)*30/pi,3) '] RPM'],...
+                ['Rotor1 Angular Rate = ' num2str(hobj.rotors(1).angvel(3)*30/pi) ' | Rotor2 Angular Rate = ' num2str(hobj.rotors(2).angvel(3)*30/pi)]});
             legndstr = "Total Hydrodynamic Load";
             if ~totalOnly
                 legndstr = ["Total","Drag","Lift"];

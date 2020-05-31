@@ -24,6 +24,7 @@ classdef blade < handle
         % todo(rodney) Do we need this? meanChord  % Mean chord of the blade (m)
         bladeforce   % The force on the blade not due to blade sections expressed in the blade frame
         blademoment  % The moment on the blade not due to blade sections expressed in the blade frame
+        pitch        % Pitch of the blade todo implement
         % id         % Unique integer identifier - maybe don't need
     end % end private properties
     properties (Dependent) % Calculated only when asked for
@@ -133,6 +134,7 @@ classdef blade < handle
             if isstruct(twist)
                 twist = hobj.computeTwist(twist.AoAopt_deg,twist.numBlades,twist.bladeDZfrac);
             end
+            % todo add pitch property here
             hobj.sectOrnts = [zeros(size(twist));twist;zeros(size(twist))];
         end
         
@@ -204,6 +206,11 @@ classdef blade < handle
             % todo need to document the specific sequence.
             % As of 17JUN2019 we assume that the rotation is only about the
             % j_b = j_a axis.
+            % REMEMBER: This matrix is analogous to the O_C_B matrix using
+            % the Mazzoleni convention. In other words, when you go from
+            % the section frame to the blade frame you rotate th about j_a,
+            % which is a pitch-up maneuver of the section/
+            % To go from the blade to the section you rotate -th about j_b.
             temp = size(hobj.sectOrnts);
             m = NaN(3,3,temp(2));
             for i=1:1:temp(2)

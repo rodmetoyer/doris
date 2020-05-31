@@ -92,16 +92,16 @@ classdef bladesection < handle
             temp = 0.5*fluid.density*norm([vrel(3),vrel(1)],2)^2*hobj.chord*hobj.width;
             Lmag = cl*temp;
             Dmag = cd*temp;
-            Mmag = cm*temp*hobj.chord; 
-            temp = sqrt(vrel(1)^2+vrel(3)^2);
-            salpha = 0;
-            calpha = 0;
-            if temp > 1.0e-12
-                salpha = vrel(3)/temp;
-                calpha = vrel(1)/temp;
-            end
-            drag = [Dmag*calpha;0;Dmag*salpha];
-            lift = [-Lmag*salpha;0;Lmag*calpha];
+            Mmag = -cm*temp*hobj.chord; 
+%             temp = sqrt(vrel(1)^2+vrel(3)^2);
+%             salpha = 0;
+%             calpha = 0;
+%             if temp > 1.0e-12
+%                 salpha = vrel(3)/temp;
+%                 calpha = vrel(1)/temp;
+%             end
+            drag = [Dmag*cosd(aoa);0;Dmag*sind(aoa)];
+            lift = [-Lmag*sind(aoa);0;Lmag*cosd(aoa)];
             moment = [0;Mmag;0];
 %             hobj.lift = Lmag;
 %             hobj.drag = Dmag;

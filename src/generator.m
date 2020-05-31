@@ -42,6 +42,15 @@ classdef generator < handle
         function i = getArmatureCurrent(hobj,omg)
             i = (hobj.kmach*hobj.flux*omg)/(hobj.rarm + hobj.rload);
         end
+        function setMachineConstant(hobj,k)
+            hobj.kmach = k;
+        end
+        function setFlux(hobj,f)
+            hobj.flux = f;
+        end
+        function setViscosity(hobj,c)
+            hobj.kvisc = c;
+        end
         
         function setLoadResistance(hobj,r)
             hobj.rload = r;
