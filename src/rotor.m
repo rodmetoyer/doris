@@ -21,6 +21,7 @@ classdef rotor < handle
         vehicle    % The vehicle object that the rotor is attached to.
         ID         % Identifier specifying which rotor it is in the vehicle
         axflowfac  % Axial flow factor (1-induction factor)
+        tnflowfac  % Tangential flow factor (1+induction factor)
         BEMT       % 3x1 bool array [use BEMT, use Prandtl's factor, use Glauert correction]
     end % end private parameters and constants that do not change during simulation
     properties (SetAccess = private)
@@ -110,6 +111,7 @@ classdef rotor < handle
             % Note that rotor.velocity is dependent - it is computed in the
             % get method.
             OVpo_P = hobj.P_C_A*hobj.velocity; % OVpo_P is O derivative of r_<to><from>_<ExprsdFrame>
+            U_relP_P = Ufluid_P - OVpo_P; % relative velocity of any blade root in the P frame.
             
             % Get aero loads for each blade
             % Preallocate the output and container arrays
@@ -135,51 +137,101 @@ classdef rotor < handle
                     % Compute relative velocity in the rotor frame at the
                     % section location.
                         % Need {O_W_A}_P
-                    O_W_P = hobj.P_C_A*hobj.vehicle.angvel + hobj.angvel;
-                    V_ap_P = cross(O_W_P,rap_P); % O velocity of a w.r.t. p in frame P
-                    U_rel_P = Ufluid_P - OVpo_P - V_ap_P; % Velocity of the fluid relative to the section in the rotor frame
+                    O_W_P_P = hobj.P_C_A*hobj.vehicle.angvel + hobj.angvel;
+                    V_ap_P = cross(O_W_P_P,rap_P); % O velocity of a w.r.t. p in frame P
+                    U_relSec_P = Ufluid_P - OVpo_P - V_ap_P; % Velocity of the fluid relative to the section in the rotor frame
                     % ASSUMPION - Coaxial turbines, therefore z-axes are
                     % alighed. Therefore we can modify the axial flow with
                     % the scalar modifier.
                     
                     % If we are using an axial flow factor then we are
                     % modifying the axial flow a priori.
-                    U_rel_P(3) = hobj.axflowfac*U_rel_P(3);
-                    
-                    % Save the user modified flow for visualization
-                    % todo we may also want to see the BEMT results at each
-                    % section, both the modified velocity and the induction
-                    % factors.
-                    U_relSections(:,j,i) = U_rel_P; % Velocity vectors for blade i section j in the rotor frame.
+                    U_relSec_P(3) = hobj.axflowfac*U_relSec_P(3);
                     
                     % Then, whether or not we are using BEMT, we need the
-                    % relative velocity in the section frame. If we are
-                    % using BEMT, we need it in the blade frame as well.
-                    U_rel_bx = hobj.bx_C_P(:,:,i)*U_rel_P;
-                    U_rel_a = transpose(bx_C_a(:,:,j))*hobj.bx_C_P(:,:,i)*U_rel_P;
+                    % relative velocity in the blade frame. If we are not
+                    % using BEMT we need it in the section frame as well.
+                    U_relSec_bx = hobj.bx_C_P(:,:,i)*U_relSec_P;
+                    % Modify it by the a prior tangential flow factor
+                    U_relSec_bx(1) = hobj.tnflowfac*U_relSec_bx(1);
+                    U_relSec_a = transpose(bx_C_a(:,:,j))*hobj.bx_C_P(:,:,i)*U_relSec_P;
                     % The blade z is the axial component (more coaxial
                     % assumption baked in here) and the blade x is the
                     % omega*r component. We are only doing axial induction.
                     if hobj.BEMT(1)
-                        r = abs(hobj.blades(i).sectLocs(2,j));
-                        F = 1;
-%                         if hobj.BEMT(2) % Use Prandtl tip loss factor
-%                             F = getTipLossFactor(hobj,phi,bld)
-%                         end 
-                        epsitol = 1.0e-6;
+                        bld = i;
+                        sec = j;
+                        r = abs(hobj.blades(bld).sectLocs(2,sec));
                         
-                        [cl,cd,~] = hobj.blades(i).sections(j).computeForceCoeffs(U_rel_a,fluid);
-                        cn = cl*cos(phi)+cd*sin(phi);
-                    else % not using BEMT
+                        % Need the local TSR w.r.t. the axial component.
+                        % Since the vehicle is also rotating, get from the z
+                        % component of O_W_P_P.
+                        localAxialTSR = abs(O_W_P_P(3))*r/(hobj.axflowfac*U_relP_P(3));                        
+                        nearZeroPlusSide = 1.0e-6; % Avoiding exactly zero - see Ning2014Simple
+                        % Find the bounds for the search.
+                        % First, check 0 < phi < pi/2                         
+                        resids = hobj.getBEMTresids(pi/2,bld,sec,localAxialTSR);
+                        if resids > 0 % solution is in the first (most likely) half of the momentum/empirical windmill region
+                            fun = @(phi) hobj.getBEMTresids(phi,bld,sec,localAxialTSR);
+                            phistar = fzero(fun,[nearZeroPlusSide pi/2]);
+                        else % if not, search the propeller brake region
+                            phi_0 = nearZeroPlusSide;
+                            resids1 = hobj.getBEMTresidsPropBrake(-pi/4,bld,sec,localAxialTSR);
+                            resids2 = hobj.getBEMTresidsPropBrake(nearZeroPlusSide,bld,sec,localAxialTSR);
+                            % compute fpb for -pi/4 and nearZeroPlusSide
+                            if resids1 < 0 && resids2 > 0 % solution is in the propeller brake region
+                                fun = @(phi) hobj.getBEMTresidsPropBrake(phi,bld,sec,localAxialTSR);
+                                phistar = fzero(fun,[-pi/4 -nearZeroPlusSide]);
+                            else % solution is in the remaining region
+                                fun = @(phi) hobj.getBEMTresids(phi,bld,sec,localAxialTSR);
+                                phistar = fzero(fun,[pi/2 pi]);
+                            end
+                        end
+                        % now we do one more fuction evaluation with
+                        % phistar to get the lift, drag, and whatever else
+                        % we need.
+                        [a,ap,~,~,cl,cd] = hobj.getBEMTparams(phistar,bld,sec);
+                        % The lift and drag coefficients are in the section
+                        % frame. They get rotated outside of the BEMT if
+                        % block (a few lines down).
+                        vrelx_bx = U_relSec_bx(1)*(1+ap);
+                        vrelz_bx = U_relSec_bx(3)*(1-a);
+%                         vrelx_bx = U_rel_bx(1)*(1+ap);
+%                         vrelz_bx = U_rel_bx(3)*(1-a);
+                        vrelmagsqrd = vrelx_bx^2 + vrelz_bx^2;
+%                         aoa = atan2d(vrelz,vrelx);
+                        aoa = phistar - hobj.blades(i).sectOrnts(2,j);
+                        temp = 0.5*fluid.density*vrelmagsqrd*hobj.blades(i).sections(j).chord*hobj.blades(i).sections(j).width;
+                        Lmag = cl*temp;
+                        Dmag = cd*temp;
+                        % Put the lift and drag into the section frame (not
+                        % the BEMT frame)!
+                        drag = [Dmag*cos(aoa);0;Dmag*sin(aoa)];
+                        lift = [-Lmag*sin(aoa);0;Lmag*cos(aoa)];
+                    else % not using BEMT - but we can still use tip-loss
                         % Another baked-in assumption of coaxial
                         % Get loads from each section of the blade. INFO: The
                         % computeLoads method only uses the x and z components
                         % of the relative velocity vector.
-                        [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_rel_a,fluid);
+                        F = 1;
+                        if hobj.BEMT(2)
+                        phi = atan2(U_relSec_bx(3),U_relSec_bx(1));
+                        F = getTipLossFactor(hobj,phi,i,j);
+                        end
+                        [lift,drag,~] = hobj.blades(i).sections(j).computeLoads(U_relSec_a*F,fluid);
                         % No moments right now so I'm not dealing with them.
                         % todo(rodney) add section moment functionality.                    
-                    end                    
-                    % Transform these loads into the rotor frame
+                    end
+                    
+                    % Save the user modified flow for visualization
+                    % Not showing the BEMT modification to the relative
+                    % flow, only the user specified modification.
+                    % todo we may also want to see the BEMT results at each
+                    % section, both the modified velocity and the induction
+                    % factors.
+                    U_relSections(:,j,i) = U_relSec_P; % Velocity vectors for blade i section j in the rotor frame.
+                    
+                    % Transform the loads into the rotor frame
                     drag = hobj.P_C_bx(:,:,i)*bx_C_a(:,:,j)*drag;
                     lift = hobj.P_C_bx(:,:,i)*bx_C_a(:,:,j)*lift;
                     
@@ -246,6 +298,42 @@ classdef rotor < handle
                 set(ax,'color','none');
         end % end visualizeSectionLoads
         
+        function hfig = showmetorquecurve(hobj,speed,fld)
+            % Makes a figure showing the torque curve for a rotor in the
+            % current orientation in the passed fluid
+            % speed = array of speed to plot
+            % fld = fluid object
+            
+            for i=1:1:length(speed)    
+                hobj.angvel = [0;0;speed(i)];
+                hobj.computeHydroLoads(fld);
+                torque(:,i) = hobj.torqueCM;
+            end
+            hfig = figure('Color','w');
+            temp1 = hobj.blades(1).length/norm(fld.velocity);
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity);
+            plot(speed*temp1,torque(3,:)/temp2,'r');
+            xlabel('TSR'); ylabel('C_T_R_Q')
+        end
+        
+        function hfig = showmepowercurve(hobj,speed,fld)
+            % Makes a figure showing the torque curve for a rotor in the
+            % current orientation in the passed fluid
+            % speed = array of speed to plot
+            % fld = fluid object
+            
+            for i=1:1:length(speed)    
+                hobj.angvel = [0;0;speed(i)];
+                hobj.computeHydroLoads(fld);
+                torque(:,i) = hobj.torqueCM;
+            end
+            hfig = figure('Color','w');
+            temp1 = hobj.blades(1).length/norm(fld.velocity);
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity);
+            plot(speed*temp1,torque(3,:).*speed/temp2,'r');
+            xlabel('TSR'); ylabel('C_P')
+        end
+        
         function connectVehicle(hobj,v)
             % Arguments:
                 % v = the vehicle object to connect to
@@ -256,6 +344,10 @@ classdef rotor < handle
         end
         function setAxialFlowFactor(hobj,ff)
             hobj.axflowfac = ff;
+        end
+        
+        function setTangentialFlowFactor(hobj,ff)
+            hobj.tnflowfac = ff;
         end
         
         % Setters
@@ -317,9 +409,67 @@ classdef rotor < handle
             end
         end
         
-        function F = getTipLossFactor(hobj,phi,bld)
+        function setBladePitch(hobj,p)
+            for i=1:1:numel(hobj.blades)
+                hobj.blades(i).adjustPitch(p);
+            end
+        end
+        
+        function F = getTipLossFactor(hobj,phi,bld,sec)
+            % Computes the Prandtl tip loss factor using Glauert's
+            % approximation.
+            % phi = angle that the relative velocity makes with the rotor plane
+            % bld = blade number in the rotor
+            
+            % Because of the way that we define sections there will never
+            % be a 0/0 here even if there is a zero in the denomenator
+            % (i.e. inf).
+            r = abs(hobj.blades(bld).sectLocs(2,sec));
             f = hobj.numblades/2*(hobj.blades(bld).length - r)/(r*sin(phi));
             F = 2/pi*acos(exp(-f));
+        end
+        
+        function [a,ap,kappa,kappaprime,cl,cd] = getBEMTparams(hobj,phi,bld,sec)
+            r = abs(hobj.blades(bld).sectLocs(2,sec));
+            localSolidity = hobj.numblades*hobj.blades(bld).sections(sec).chord/(2*pi*r);
+            F = 1;
+            if hobj.BEMT(2) % Use Prandtl tip loss factor
+                F = hobj.getTipLossFactor(phi,bld,sec);
+            end
+            aoa = phi - hobj.blades(bld).sectOrnts(2,sec);
+            [cl,cd,~] = hobj.blades(bld).sections(sec).computeForceCoeffs(aoa,fluid);
+            cn = cl*cos(phi) + cd*sin(phi);
+            ct = cl*sin(phi) - cd*cos(phi);
+            kappa = localSolidity*cn/(4*F*sin(phi)^2);
+            kappaprime = localSolidity*ct/(4*F*sin(phi)*cos(phi));
+            if kappa < 2/3
+                a = kappa/(1+kappa);
+            else
+                % Glauert/Buhl correction for empirical region
+                gam1 = 2*F*kappa-(10/9-F);
+                gam2 = 2*F*kappa-F*(4/3-F);
+                gam3 = 2*F*kappa-(25/9-2*F);
+                a = (gam1 - sqrt(gam2))/gam3;
+            end
+            ap = kappaprime/(1-kappaprime);
+        end
+        
+        function resids = getBEMTresids(hobj,phi,bld,sec,locTSR)
+            [a,~,~,kapp] = getBEMTparams(hobj,phi,bld,sec);
+            %resids = sin(phi)/(1-a) - cos(phi)/(locTSR*(1+ap));
+            locTSR = max(1.0e-12,locTSR); % The rotor must be moving a little to avoid inf for the fzero solution
+            cosphi = cos(phi);
+            if abs(cosphi) < 1.0e-12
+                cosphi = 0;
+            end
+            resids = sin(phi)/(1-a) - cosphi*(1-kapp)/locTSR; % this way is better and mathematically equivalent
+        end
+        
+        function resids = getBEMTresidsPropBrake(hobj,phi,bld,sec,locTSR)
+            [~,~,kap,kapp] = getBEMTparams(hobj,phi,bld,sec);
+            %resids = sin(phi)/(1-a) - cos(phi)/(locTSR*(1+ap));
+            locTSR = max(1.0e-12,locTSR); % The rotor must be moving a little to avoid inf for the fzero solution
+            resids = sin(phi)/(1-kap) - cos(phi)*(1-kapp)/locTSR; % this way is better and mathematically equivalent
         end
         
         % Getters

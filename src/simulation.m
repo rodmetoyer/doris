@@ -69,6 +69,7 @@ classdef simulation < handle
                     fluidBaseVelocity = fluidVelocity;
                 end
                 hobj.fld.setMeanVelocity(fluidBaseVelocity);
+                hobj.fld.updateVelocity(0);
                 % airfoils - same for the entire rotor so we just need two
                 af1 = airfoil(airfoiltype1);
                 if isstruct(twist1)
@@ -103,11 +104,13 @@ classdef simulation < handle
                 r1 = rotor(bld1);
                 r1.setID(1);
                 r1.setAxialFlowFactor(axflowfactor1);
+                r1.setTangentialFlowFactor(tnflowfactor1);
                 r1.setBEMT([useBEMT,usePrandtl]);
                 % Need to make rotor 2 have blades with twist 180-
                 r2 = rotor(bld2);
                 r2.setID(2);
                 r2.setAxialFlowFactor(axflowfactor2);
+                r1.setTangentialFlowFactor(tnflowfactor2);
                 r2.setBEMT([useBEMT,usePrandtl]);
                 % Make a vehicle body
                 vbod = vehiclebody(vbmass,I,vbcentermass);                
@@ -572,7 +575,7 @@ classdef simulation < handle
             
             xlabel('x'); ylabel('y'); zlabel('z');
             title(['Rotor Speed in Body Frame | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
-            legend({'Freestream Velocity','Vehicle Body','Loads Rotor 1','Loads Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
+            legend({'Freestream Velocity','Vehicle Body','Velocity Rotor 1','Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-45,25)
             hold off  
         end

@@ -3,9 +3,11 @@
 clear all; close all; clc;
 
 %fn = ["dropTestBig0water.mat","dropTestBig1water.mat","dropTestBig5water.mat","dropTestBig10water.mat"];
-fn = ["circTest0air.mat","circTest2air.mat","circTest5air.mat"];
-savefn = 'circTestAirComp';
-makePlots(fn,savefn);
+% fn = ["circTest0air.mat","circTest2air.mat","circTest5air.mat"];
+% savefn = 'circTestAirComp';
+% makePlots(fn,savefn);
+fn = ["circTestFast0air.mat"];
+makeMovies(fn);
 
 function makePlots(fn,savefn)
     % this one makes a set of plots for all the files in fns
@@ -44,7 +46,7 @@ end
 function makeMovies(fn)
     for i=1:1:length(fn)
         % load the mat file
-        load(fn(i));
+        load(['output\tetherTestData\' char(fn(i))]);        
         %numnodes = str2num(regexp(fn(i), '\d+', 'match'));
         % make a movie
         [~,yend] = size(y);

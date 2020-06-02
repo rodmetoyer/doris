@@ -108,18 +108,15 @@ classdef bladesection < handle
 %             hobj.momentqc = Mmag;
         end
         
-        function [cl,cd,cm] = computeForceCoeffs(hobj,vrel,fluid)
-            % Computes the aerodynamic loads on the section from the airfoil cl
-                % and cd curves. Only the rotor knows the position of the
-                % blade sections in space.
+        function [cl,cd,cm] = computeForceCoeffs(hobj,aoa,fluid)
+            % Computes the force coefficents from the curves for an AoA.
             % INPUTS:
-                % vrel = 3x1 relative velocity vector expressed in the blade
-                    % section frame (i_a, j_a, k_a).
+                % aoa = angle of attack
                 % fluid = a fluid object
             % OUTPUTS:
                 % [cl,cd,cm] = force coefficients
 
-            aoa = atan2d(vrel(3),vrel(1)); % Section aerodynamic loads are due only to in-plane velocity.
+            aoa = aoa*180/pi; %curves are in degrees
             cl = ppval(hobj.airfoil.clpp,aoa);
             cd = ppval(hobj.airfoil.cdpp,aoa);
             cm = ppval(hobj.airfoil.cmpp,aoa);

@@ -3,12 +3,12 @@
 clear all; close all; clc;
 
 addpath('..\src');
-tottime = 60;
+tottime = 30;
 timestep = 1/60;
 %nnodes=[0 1 2 5 10];
-nnodes = 2;
+nnodes = 0;
 amp = 2.0;
-omg = 1.0;
+omg = 2.1;
 for i=1:1:length(nnodes)
     thr = runSim(nnodes(i),tottime,timestep,'air',amp,omg);
 end
@@ -18,7 +18,7 @@ function thr = runSim(nnodes,tottime,timestep,ft,amp,omg)
 fld = fluid(ft);
 thr = tether;
 numnodes = nnodes;
-thr.name = ['circTest' num2str(numnodes) fld.typeName];
+thr.name = ['circTestFast' num2str(numnodes) fld.typeName];
 length = 10;
 radius = 0.01; % meters
 theta = 90;

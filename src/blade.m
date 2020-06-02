@@ -134,7 +134,6 @@ classdef blade < handle
             if isstruct(twist)
                 twist = hobj.computeTwist(twist.AoAopt_deg,twist.numBlades,twist.bladeDZfrac);
             end
-            % todo add pitch property here
             hobj.sectOrnts = [zeros(size(twist));twist;zeros(size(twist))];
         end
         
@@ -183,6 +182,10 @@ classdef blade < handle
             for i=1:1:numel(hobj)
                 hobj(i).sectLocs = -hobj(i).sectLocs;
             end
+        end
+        
+        function adjustPitch(hobj,p)
+            hobj.sectOrnts(2,:) = hobj.sectOrnts(2,:)+p;
         end
         
         %% Setters
