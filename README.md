@@ -1,8 +1,9 @@
 # doris
-Modeling and simulation software for a cabled fluid-energy extraction vehicles
+Modeling and simulation software for a tethered fluid kinetic-energy extraction device.
+Documentation is on the way.
 
 ## What to run something
-The rotorSim script runs a simualtion for a single rotor turbine. It takes minutes per seconds of simualtion (about 2 minutes to simulate 10 seconds on my machine).
+The DualRotorSim.m script is how you run simulation scenarios. Open that file in Matlab and click run and you should see something happen.
 
 ## Info
-For now all of the code is just dumped into one place. I'm also keeping random stuff like pdfs from my profiling because I need it and I'm the only one developing right now. I'll clean it up when I have time and\or when it becomes an issue.
+In case you have stumbled on this by accident: This code is still in development. It is not currently meant for public consumption. There are probably bugs. And there is no documentation.
