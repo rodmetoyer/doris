@@ -105,13 +105,23 @@ classdef simulation < handle
                 r1.setID(1);
                 r1.setAxialFlowFactor(axflowfactor1);
                 r1.setTangentialFlowFactor(tnflowfactor1);
-                r1.setBEMT([useBEMT,usePrandtl]);
+                try
+                    r1.setBEMT([useBEMT,usePrandtl]);
+                catch
+                    % assume no BEMT
+                    r1.setBEMT([false,false]);
+                end
                 % Need to make rotor 2 have blades with twist 180-
                 r2 = rotor(bld2);
                 r2.setID(2);
                 r2.setAxialFlowFactor(axflowfactor2);
-                r1.setTangentialFlowFactor(tnflowfactor2);
-                r2.setBEMT([useBEMT,usePrandtl]);
+                r2.setTangentialFlowFactor(tnflowfactor2);
+                try
+                    r2.setBEMT([useBEMT,usePrandtl]);
+                catch
+                    % assume no BEMT
+                    r2.setBEMT([false,false]);
+                end                
                 % Make a vehicle body
                 vbod = vehiclebody(vbmass,I,vbcentermass);                
                 vbod.setLength(vblength);
