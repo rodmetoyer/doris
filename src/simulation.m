@@ -67,7 +67,7 @@ classdef simulation < handle
                     flowparms = [];
                     hobj.fld.setFlowType(flowtype,flowparms);
                     fluidBaseVelocity = fluidVelocity;
-                end
+                end                
                 hobj.fld.setMeanVelocity(fluidBaseVelocity);
                 hobj.fld.updateVelocity(0);
                 % airfoils - same for the entire rotor so we just need two
@@ -156,6 +156,12 @@ classdef simulation < handle
                 gen = generator(gmconst,gflux,grarm,gkvisc,gmass); % todo size generator constant so that torque is reasonable
                 hobj.vhcl.addGenerator(gen,gpoint);
                 hobj.vhcl.generator.setLoadResistance(grload);
+                % add ballast
+                try
+                    hobj.vhcl.addBallast(ballastMass,ballastLoc);
+                catch % No ballast specified
+                    warning('No ballast specified. Best practice is to at least specify zero mass ballast.');
+                end
                 % add tether
                 if isempty(tdamp)
                     tdamp = tdampfac*2*sqrt(tspring*hobj.vhcl.mass);

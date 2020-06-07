@@ -24,8 +24,8 @@ vbnorm = 1.2;
 vbax = 0.062;
 
 % BEMT properties may be set for each rotor individually, but in the setup we assume that we want the same choice for both
-useBEMT = true;
-usePrandtl = true; % Yes, you can do tip loss without BEMT if you want, though I don't know why you would
+useBEMT = false;
+usePrandtl = false; % Yes, you can do tip loss without BEMT if you want, though I don't know why you would
 
 %% Rotor 1
 bladeMass1 = 1000.0; % kg

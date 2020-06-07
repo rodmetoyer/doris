@@ -1,6 +1,11 @@
 % symmanip_dualrotor_matrix.m
 % Symbolic solution of EOMs for coaxial system
-%clearvars; close all; clc;
+% NOTE that the coaxial assumption is embedded in the resultant equations.
+% While the dynamic model does not make any assumption about the system
+% (other than rigid bodies and axisymmetric rotors), the implementation
+% (i.e. simulation model) does assume coaxial.
+
+clear all; close all; clc;
 
 % Create mass symbols
 syms m1 m2 mv
@@ -15,6 +20,7 @@ O_C_A = A_C_O.';
 % P_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1]*...
 %     [1 0 0; 0 cos(fi1) sin(fi1); 0 -sin(fi1) cos(fi1)]*...
 %     [cos(fi2) 0 -sin(fi2); 0 1 0; sin(fi2) 0 cos(fi2)];
+% ASSUMPTION!!! Coaxial rotors.
 % For the coaxial rotor, fi1 and fi2 are zero.
 P_C_A = [cos(fi3) sin(fi3) 0; -sin(fi3) cos(fi3) 0; 0 0 1];
 A_C_P = P_C_A.';
@@ -35,11 +41,16 @@ r_ao_O = [x1; x2; x3];
 % For the coaxial system the center mass of both the vehicle body and the
 % system are along the z axis.
 % syms c1 c2 c3 s1 s2 s3
-syms c3 s3
+syms c1 c3 s1 s3
 % r_cva_A = [c1; c2; c3];
 % r_csa_A = [s1; s2; s3];
-r_cva_A = [0; 0; c3];
-r_csa_A = [0; 0; s3];
+% To reduce the size of the equations, we are restricting the center of
+% mass of the vehcile body to be along the k axis and the center of mass of
+% the system to be in the i-k plane. The idea here is that you have a
+% slender body like a cylinder or spheroid with a ballast placed off of the
+% axis to allow for desirable hydrostatic conditions.
+r_cva_A = [c1; 0; c3]; % If point A is at the cm of the vehicle body, these are zero.
+r_csa_A = [s1; 0; s3];
 r_csa_A_X = makecrossmat(r_csa_A);
 % For the coaxial system the rotors are on the z axis.
 % syms g1 g2 g3 h1 h2 h3
@@ -85,12 +96,20 @@ A_a_Q_Q = [0; 0; dq3];
 A_a_Q_A = A_C_Q*A_a_Q_Q;
 
 % Create inertia matrices
-% ASSUMPTION: All frames are aligned with their respective principal axes
-syms Icv11 Icv22 Icv33
-Icv_A = [Icv11,0,0;0,Icv22,0;0,0,Icv33];
+% Icv is the inertia matrix of the vehicle body about the center of mass of
+% the vehicle body. This formulation relaxes the assumption that the body
+% frame is aligned with the principal axes. The idea, as stated above, is
+% that the inertia matrix of the body is the slender body plus the balast
+% which may be anywhere in the i-k plane.
+syms Icv11 Icv22 Icv33 Icv13
+Icv_A = [Icv11,0,-Icv13;0,Icv22,0;-Icv13,0,Icv33];
 temp = makecrossmat(-r_cva_A);
-Ia_A = Icv_A-mv*temp*temp; % Move vehicle inertia matrix to point A
+Ia_A = Icv_A-mv*temp*temp; % Move vehicle body inertia matrix to point A
 clear temp;
+% ASSUMPTION: Rotor frames are aligned with their respective principal
+% axes. This is easy for 3- or more bladed rotor which act like disks.
+% 2-bladed rotors obviously have 3 axes, so the assumption is more for
+% them.
 syms Ip11 Ip22 Ip33 Iq11 Iq22 Iq33
 Ip_P = [Ip11,0,0;0,Ip22,0;0,0,Ip33];
 Ip_A = A_C_P*Ip_P*P_C_A; % Rotate rotor inertia matrix into A frame
@@ -169,8 +188,8 @@ xdot = O_C_A*Ov_ao_A;
 % their derivatives are zero). Same for dsy1 and dsy2
 dfi = [0;0;p3];
 dsy = [0;0;q3];
-S = (Mstar.')*tauMinusCvec;
-S = simplify(S);
+% S = (Mstar.')*tauMinusCvec;
+% S = simplify(S);
 
 % disp('Simplifying S.dw1');
 % aa1 = simplify(S.dw1); %simplify(expand(S.dw_1));
@@ -237,47 +256,49 @@ aa19 = strrep(string(dfi(3)),'p3',"x(13)");
 aa20 = strrep(string(dsy(3)),'q3',"x(15)");
 
 disp('Replacing with states used in vehicleState.m');
-tauMinusCvecStr = string(tauMinusCvec);
-tauMinusCvecStr = strrep(tauMinusCvecStr,"w1","x(7)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"w2","x(8)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"w3","x(9)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"u1","x(10)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"u2","x(11)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"u3","x(12)");
-% tauMinusCvecStr = strrep(tauMinusCvecStr,"p3","x(13)");
-% tauMinusCvecStr = strrep(tauMinusCvecStr,"q3","x(15)");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi1)","cosfi1");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi1)","sinfi1");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy1)","cossy1");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy1)","sinsy1");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi2)","cosfi2");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi2)","sinfi2");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy2)","cossy2");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy2)","sinsy2");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(fi3)","cosfi3");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(fi3)","sinfi3");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"cos(sy3)","cossy3");
-tauMinusCvecStr = strrep(tauMinusCvecStr,"sin(sy3)","sinsy3");
+cvecstar = string(cvecstar);
+cvecstar = strrep(cvecstar,"w1","x(7)");
+cvecstar = strrep(cvecstar,"w2","x(8)");
+cvecstar = strrep(cvecstar,"w3","x(9)");
+cvecstar = strrep(cvecstar,"u1","x(10)");
+cvecstar = strrep(cvecstar,"u2","x(11)");
+cvecstar = strrep(cvecstar,"u3","x(12)");
+cvecstar = strrep(cvecstar,"p3 ","x(13) ");
+cvecstar = strrep(cvecstar,"p3*","x(13)*");
+cvecstar = strrep(cvecstar,"q3 ","x(15) ");
+cvecstar = strrep(cvecstar,"q3*","x(15)*");
+cvecstar = strrep(cvecstar,"cos(fi1)","cosfi1");
+cvecstar = strrep(cvecstar,"sin(fi1)","sinfi1");
+cvecstar = strrep(cvecstar,"cos(sy1)","cossy1");
+cvecstar = strrep(cvecstar,"sin(sy1)","sinsy1");
+cvecstar = strrep(cvecstar,"cos(fi2)","cosfi2");
+cvecstar = strrep(cvecstar,"sin(fi2)","sinfi2");
+cvecstar = strrep(cvecstar,"cos(sy2)","cossy2");
+cvecstar = strrep(cvecstar,"sin(sy2)","sinsy2");
+cvecstar = strrep(cvecstar,"cos(fi3)","cosfi3");
+cvecstar = strrep(cvecstar,"sin(fi3)","sinfi3");
+cvecstar = strrep(cvecstar,"cos(sy3)","cossy3");
+cvecstar = strrep(cvecstar,"sin(sy3)","sinsy3");
 
 disp('Sending to file');  
-fid = fopen('equations_coaxAssum_matApproach.txt','w');
-fprintf(fid,'%s %s;\n','tauMinusCvec(1) = ', tauMinusCvecStr(1));
-fprintf(fid,'%s %s;\n','tauMinusCvec(2) = ', tauMinusCvecStr(2));
-fprintf(fid,'%s %s;\n','tauMinusCvec(3) = ', tauMinusCvecStr(3));
-fprintf(fid,'%s %s;\n','tauMinusCvec(4) = ', tauMinusCvecStr(4));
-fprintf(fid,'%s %s;\n','tauMinusCvec(5) = ', tauMinusCvecStr(5));
-fprintf(fid,'%s %s;\n','tauMinusCvec(6) = ', tauMinusCvecStr(6));
-fprintf(fid,'%s %s;\n','tauMinusCvec(7) = ', tauMinusCvecStr(7));
-fprintf(fid,'%s %s;\n','tauMinusCvec(8) = ', tauMinusCvecStr(8));
+fid = fopen('equations_coaxAssumGen_matApproach.txt','w');
+fprintf(fid,'%s %s;\n','cvecstar(1) = ', cvecstar(1));
+fprintf(fid,'%s %s;\n','cvecstar(2) = ', cvecstar(2));
+fprintf(fid,'%s %s;\n','cvecstar(3) = ', cvecstar(3));
+fprintf(fid,'%s %s;\n','cvecstar(4) = ', cvecstar(4));
+fprintf(fid,'%s %s;\n','cvecstar(5) = ', cvecstar(5));
+fprintf(fid,'%s %s;\n','cvecstar(6) = ', cvecstar(6));
+fprintf(fid,'%s %s;\n','cvecstar(7) = ', cvecstar(7));
+fprintf(fid,'%s %s;\n','cvecstar(8) = ', cvecstar(8));
 
-fprintf(fid,'%s %s;\n',char(betastar(1)), char(S(1)));
-fprintf(fid,'%s %s;\n',char(betastar(2)), char(S(2)));
-fprintf(fid,'%s %s;\n',char(betastar(3)), char(S(3)));
-fprintf(fid,'%s %s;\n',char(betastar(4)), char(S(4)));
-fprintf(fid,'%s %s;\n',char(betastar(5)), char(S(5)));
-fprintf(fid,'%s %s;\n',char(betastar(6)), char(S(6)));
-fprintf(fid,'%s %s;\n',char(betastar(7)), char(S(7)));
-fprintf(fid,'%s %s;\n',char(betastar(8)), char(S(8)));
+% fprintf(fid,'%s %s;\n',char(betastar(1)), char(S(1)));
+% fprintf(fid,'%s %s;\n',char(betastar(2)), char(S(2)));
+% fprintf(fid,'%s %s;\n',char(betastar(3)), char(S(3)));
+% fprintf(fid,'%s %s;\n',char(betastar(4)), char(S(4)));
+% fprintf(fid,'%s %s;\n',char(betastar(5)), char(S(5)));
+% fprintf(fid,'%s %s;\n',char(betastar(6)), char(S(6)));
+% fprintf(fid,'%s %s;\n',char(betastar(7)), char(S(7)));
+% fprintf(fid,'%s %s;\n',char(betastar(8)), char(S(8)));
 
 
 % fprintf(fid,'%s %s;\n','dw1 = ', aa1);

@@ -473,10 +473,18 @@ classdef vehicle < handle
         end
         function addGenerator(hobj,g,loc)
             hobj.generator = g;
-            % Adjuct center mass
+            % Adjust center mass
+            % mtot*r_cm = m1*r1 + m2*r2 + ...
             hobj.centermass = hobj.centermass*hobj.mass/(hobj.mass+g.mass) + loc*g.mass/(hobj.mass+g.mass);
             % add mass to total
             hobj.mass = hobj.mass + g.mass;            
+        end
+        function addBallast(hobj,bm,loc)
+            % Adjust center mass
+            % mtot*r_cm = m1*r1 + m2*r2 + ...
+            hobj.centermass = hobj.centermass*hobj.mass/(hobj.mass+bm) + loc*bm/(hobj.mass+bm);
+            % add mass to total
+            hobj.mass = hobj.mass + bm;            
         end
         function computeMstar(hobj)
             if isempty(hobj.rotors)

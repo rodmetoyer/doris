@@ -1,5 +1,5 @@
 % Simulation input file for a dual rotor simualtion
-runname = 'template';
+runname = 'ballastTest';
 
 % Environment
 fluidtype = 'water';
@@ -25,8 +25,8 @@ vbax = 0.1;
 
 % Rotors
 % BEMT properties may be set for each rotor individually, but in the sim setup method we assume that we want the same choice for both
-useBEMT = true;
-usePrandtl = true; % Yes, you can do tip loss without BEMT if you want, though I don't know why you would
+useBEMT = false;
+usePrandtl = false; % Yes, you can do tip loss without BEMT if you want, though I don't know why you would
 
 %% Rotor 1
 bladeMass1 = 0.43; % kg
@@ -43,7 +43,7 @@ twist1.AoAopt_deg = 8.0;
 twist1.numBlades = numBlades1;
 twist1.bladeDZfrac = bladeDZfrac1;
 axflowfactor1 = 1.0;
-tnflowfactor1 = 1.0;
+tnflowfactor1 = 0.8;
 
 %% Rotor 2
 bladeMass2 = 0.43; % kg
@@ -61,17 +61,17 @@ twist2.AoAopt_deg = 8.0;
 twist2.numBlades = numBlades2;
 twist2.bladeDZfrac = bladeDZfrac2;
 axflowfactor2 = 1.0;
-tnflowfactor2 = 1.0;
+tnflowfactor2 = 0.6;
 
 % vehicle
 I = [1/12*vbmass*(3*vbradius^2+vblength^2),0,0;0,1/12*vbmass*(3*vbradius^2+vblength^2),0;0,0,1/2*vbmass*vbradius^2];
-vbcentermass = [0.0;0;0.25*vblength/2]; % This is center mass of the vehicle body
+vbcentermass = [0.0;0;0.0*vblength/2]; % This is center mass of the vehicle body
 % There's no ballast class, this is just an adjustment to the total mass and the cm that is based on the physical placing of a ballast mass
 ballastMass = 10;
-ballastLoc = [0;0;0];
+ballastLoc = [1.0*vbradius;0;0.0*vblength/2];
 vcentermass = []; % This is center mass of the vehicle - leave empty to compute
 vbtetherpoint = [0;0;-vblength/2];
-vbbuoypoint = [0;0;-0.25*vblength/2]; % Center of buoyancy
+vbbuoypoint = [0;0;0.0*vblength/2]; % Center of buoyancy
 vreldensity = 1.0;    % Density of the vehilce body relative to water
 rot1point = [0;0;-vblength/2]; % Point where the 1st rotor is located [g1,g2,g3]
 rot2point = [0;0;vblength/2]; % Point where the 2nd rotor is located [h1,h2,h3]
@@ -79,11 +79,11 @@ rot1rad = bladeLength1;
 rot2rad = bladeLength2;
 rot1ornt = [0;0;0];
 rot2ornt = [0;0;0];
-rot1initRPM = 0;
-rot2initRPM = 0; % sign for directionality
+rot1initRPM = 100;
+rot2initRPM = -100; % sign for directionality
 addedMass = [];
 rotorVisc = 0.02; % viscous friction coeffiecient between rotors and body
-vtMod = 1.0;      % to modify the torsional viscosity constant (cm - cylinder moment coefficient) 
+vtMod = 100.0;      % to modify the torsional viscosity constant (cm - cylinder moment coefficient) 
 hifiTors = false; % Use the high-fidelity torsion coefficient model - better model for low Re
 
 % tether
@@ -106,13 +106,13 @@ grload = inf;    % inf for no load, 0 for closed circuitmass in kg
 gpoint = [0;0;0];% Where it is located in the body (adjusts center of mass) inf for no load, 0 for closed circuit
 
 % Simulation
-totalSimTime = 60;
+totalSimTime = 30;
 tstep = 0.01;
 
 % Initial Conditions
 initialYaw = 0*pi/180;
 initialPitch = 90*pi/180;
-initialRoll = 0*pi/180;
+initialRoll = 10*pi/180;
 initialLateral = 0;
 initialLongitudinal = 10.5;
 initialVertical = 0;
