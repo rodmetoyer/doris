@@ -28,7 +28,11 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'utilityBaseline.m';
+% inputfile = 'utilityBaseline.m';
+% inputfile = 'ballastTest.m';
+% inputfile = 'rampedDemo.m';
+% inputfile = 'sinusoidDemo.m';
+inputfile = 'disturbedDemo.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
