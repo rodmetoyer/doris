@@ -62,6 +62,46 @@ classdef generator < handle
             hobj.rlparams = r;
         end
         
+        function hfig = plotPower(hobj,omg,lr)
+            originalResistance = hobj.rload;
+            for i=1:1:length(lr)
+                hobj.setLoadResistance(lr(i));
+                for j=1:1:length(omg)
+                    pwr(i,j) = hobj.getPower(1.57*j/omg(end));
+                end
+            end
+            hfig = figure;
+            ax = axes('Parent',hfig);
+            hold(ax,'on');
+            for i=1:1:length(omg)
+                plot(ax,lr,pwr(:,i),'DisplayName',['\omega = ' num2str(omg(i)*30/pi,'%4.2f') ' RPM']);
+            end
+            ax.XScale = 'log';
+            legend('Location','Best');
+            xlabel('Load Resistance (Ohm)'); ylabel('Power (W)');
+            hobj.setLoadResistance(originalResistance);
+        end
+        
+        function hfig = plotTorque(hobj,omg,lr)
+            originalResistance = hobj.rload;
+            for i=1:1:length(lr)
+                hobj.setLoadResistance(lr(i));
+                for j=1:1:length(omg)
+                    trq(i,j) = hobj.getTorque(1.57*j/omg(end));
+                end
+            end
+            hfig = figure;
+            ax = axes('Parent',hfig);
+            hold(ax,'on');
+            for i=1:1:length(omg)
+                plot(ax,lr,trq(:,i),'DisplayName',['\omega = ' num2str(omg(i)*30/pi,'%4.2f') ' RPM']);
+            end
+            ax.XScale = 'log';
+            legend('Location','Best');
+            xlabel('Load Resistance (Ohm)'); ylabel('Torque (Nm)');
+            hobj.setLoadResistance(originalResistance);
+        end
+        
         function updateLoadResistance(hobj,t)
             if numel(hobj.rlparams) > 2 % sinusoid
                 hobj.rload = hobj.rlparams(4) + hobj.rlparams(1)*sin(2*pi*hobj.rlparams(2)*t+hobj.rlparams(3));

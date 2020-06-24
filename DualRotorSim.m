@@ -28,7 +28,7 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfile = 'ballastTest.m';
+inputfile = 'utilityBaseline.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.
@@ -61,4 +61,4 @@ simulation.makePlots(sim.name,'savefigs',true);
 % The makeMovie method is static. The first argument is the name of the
 % data and input file combo to use. The second argument is the name of the
 % movie file. If you only pass one name the movie file gets that name.
-simulation.makeMovie(sim.name,'framerate',60,'speedfactor',1);
+simulation.makeMovie(sim.name,'framerate',60,'speedfactor',10);

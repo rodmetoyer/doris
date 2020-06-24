@@ -298,7 +298,7 @@ classdef rotor < handle
                 set(ax,'color','none');
         end % end visualizeSectionLoads
         
-        function hfig = showmetorquecurve(hobj,speed,fld)
+        function hfig = showmeCTQcurve(hobj,speed,fld)
             % Makes a figure showing the torque curve for a rotor in the
             % current orientation in the passed fluid
             % speed = array of speed to plot
@@ -314,6 +314,22 @@ classdef rotor < handle
             temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity);
             plot(speed*temp1,torque(3,:)/temp2,'r');
             xlabel('TSR'); ylabel('C_T_R_Q')
+        end
+        
+        function hfig = showmetorquecurve(hobj,speed,fld)
+            % Makes a figure showing the torque curve for a rotor in the
+            % current orientation in the passed fluid
+            % speed = array of speed to plot
+            % fld = fluid object
+            
+            for i=1:1:length(speed)    
+                hobj.angvel = [0;0;speed(i)];
+                hobj.computeHydroLoads(fld);
+                torque(:,i) = hobj.torqueCM;
+            end
+            hfig = figure('Color','w');
+            plot(speed*30/pi,torque(3,:),'r');
+            xlabel('Rotor Speed (RPM)'); ylabel('Torque (Nm)')
         end
         
         function hfig = showmepowercurve(hobj,speed,fld)
