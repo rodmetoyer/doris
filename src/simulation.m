@@ -1,20 +1,19 @@
 classdef simulation < handle
     
-    properties % todo make private. No reason all these are exposed.
+    properties (SetAccess = 'private')
         % objects
         vhcl % a vehicle object
         fld  % a fluid object
         thr  % a tether object
-        % other
-        name     % str unique name for the simulation case
-        % caseID % is this needed?
-        timestep % real timestep
-        duration % real duration of simulation (total sim time)
-    end % end public properties
-    properties (SetAccess = 'private')
+        % Sim control
+        name      % str unique name for the simulation case
+        timestep  % real timestep
+        duration  % real duration of simulation (total sim time)
+        visuals = struct('makeplots',false,'makemovie',false,'speedfactor',1);
+        % data
         times  % numSteps,1 array of simulation times
         states % numSteps,numStates array of states
-    end % end private properties
+    end % end public properties
     
     methods
         % Constructor
@@ -177,13 +176,19 @@ classdef simulation < handle
                 end
                 hobj.vhcl.computeMtot;
                 
+                % Simulation control - todo organize. all sim contorl in
+                % one spot.
+                hobj.visuals.makeplots = makeplots;
+                hobj.visuals.makemovie = makemovie;
+                hobj.visuals.speedfactor = speedfactor;
             end
         end
         
-        function write2file(hobj,datflnm)
-            % Optional argument is the name of the file that you want to
+        function written = write2file(hobj,datflnm)
+            % First optional argument is the name of the file that you want to
             % save to. Otherwise the filename will be whatever the
             % simulation name is.
+            
             outDir = 'products\data\';
             if ~exist(outDir,'dir')
                 mkdir(outDir);
@@ -193,6 +198,21 @@ classdef simulation < handle
                 flnm = [outDir hobj.name '.txt'];
             else
                 flnm = [outDir datflnm '.txt'];
+            end
+            if exist(flnm,'file')
+                opts.Interpreter = 'tex';
+                opts.Default = 'No';
+%                 quest = ['You are about to overwrite an existing data file.' newline,...
+%                     'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.' newline,...
+%                     '\fontsize{20}Do you want to overwrite ' flnm '?'];
+                quest = ['You are about to overwrite an existing data file.', newline,...
+                    'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.', newline,...
+                    '\color{red}\fontsize{16}Do you want to overwrite ' hobj.name '?'];
+                answer = questdlg(quest,'Data File Overwrite Confirmation','Yes','No',opts);
+                if strcmp(answer,'No') || isempty(answer)
+                    written = false;
+                    return;
+                end
             end
             % Break into states for writing
             [~,nStates] = size(hobj.states);
@@ -228,6 +248,7 @@ classdef simulation < handle
             svcmd = ['save ' pwd '\products\data\' hobj.name '.mat sim'];
             eval(svcmd); clear sim;
             fprintf(['\nDone writing configuration file: ' hobj.name '.mat\n']);
+            written = true;
         end
         
         function simulate(hobj,varargin)
@@ -1167,6 +1188,10 @@ classdef simulation < handle
         
         function sim = loadsim(infn,datapath)
             if nargin < 2
+                infnc = char(infn);
+                if strcmp(infnc(end-1:end),'.m')
+                    infn = infnc(1:end-2);
+                end
                 svcmd = ['load ' pwd '\products\data\' infn '.mat'];
             else
                 svcmd = ['load ' datapath '\' infn '.mat'];

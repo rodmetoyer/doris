@@ -9,16 +9,25 @@ addpath('src')
 % If you want to batch process use this block. Otherwise, set to false and
 % process input files one at a time following the code that is after this
 % block.
-if false
-    inputfile = ["depCase6.m","depCase7.m","depCase8.m"];
+if true
+    inputfile = ["utilityBaseline.m"];
     %inputfile = ["tacticalCase5","tacticalCase6","tacticalCase7"];
     for i=1:1:numel(inputfile)
         sim = simulation(inputfile(i));
         sim.simulate('output',[]);
-        sim.write2file;
-        sim.makePlots(sim.name,'savefigs',true);
-        %simulation.makeMovie(sim.name,'framerate',60,'speedfactor',10);
-        %simulation.makeMovie(char(inputfile(i)),char(inputfile(i)),60);
+        if ~sim.write2file
+            disp('I didn"t write to file. I" assuming you don"t want to make plots or movies either.');
+            return;
+        end
+        if sim.visuals.makeplots
+            sim.makePlots(sim.name,'savefigs',true);
+        end
+        if sim.visuals.makemovie
+            simulation.makeMovie(sim.name,'framerate',24,'speedfactor',sim.visuals.speedfactor);
+        end
+        % save data in a workspace var for plotting
+        
+        % and we're done
         %close all;
         clear sim;
     end
@@ -32,7 +41,7 @@ end
 % inputfile = 'ballastTest.m';
 % inputfile = 'rampedDemo.m';
 % inputfile = 'sinusoidDemo.m';
-inputfile = 'disturbedDemo.m';
+% inputfile = 'disturbedDemo.m';
 sim = simulation(inputfile);
 
 %% Make sure the vehicle we just built is what we were trying to build.

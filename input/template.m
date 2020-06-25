@@ -126,4 +126,4 @@ initialRollRate = 0;
 % Products
 makeplots = true;
 makemovie = true;
-speedfactor = 1; % How much to slow the video by. e.g. 1/8;
+speedfactor = 1; % How much to slow (e.g. 1/8) or speed up (e.g. 20) the video
