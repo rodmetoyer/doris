@@ -10,5 +10,15 @@ sandbox/
 tools/*.txt
 tools/*.csv
 tools/*.xlsm
-input/developmentArchive
+tools/*.fig
+input/
 test/output
+
+# Don't ignore these
+!.gitignore
+input/template.m
+input/ballastTest.m
+input/disturbedDemo.m
+input/rampedDemo.m
+input/sinusoidDemo.m
+input/utilityBaseline.m

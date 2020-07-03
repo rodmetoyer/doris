@@ -10,10 +10,16 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    inputfile = ["utilityBaseline.m"];
+    inputfiles = ["caseBO1.m","caseBO2.m","caseBO3.m","caseBO4.m","caseBO5.m",...
+            "caseBO6.m","caseBO7.m","caseBO8.m","caseBO9.m","caseBO10.m"];
+%             "case1.m","case2.m","case3.m","case4.m","case5.m",...
+%             "case6.m","case7.m","case8.m","case9.m","case10.m","case11.m"];
+%     inputfiles = ["case14.m","case15.m","case16.m","case17.m","case18.m",...
+%         "case19.m","case20.m","case21.m","case22.m","case23.m"];
     %inputfile = ["tacticalCase5","tacticalCase6","tacticalCase7"];
-    for i=1:1:numel(inputfile)
-        sim = simulation(inputfile(i));
+    ssitr = 1;
+    for i=1:1:numel(inputfiles)
+        sim = simulation(inputfiles(i));
         sim.simulate('output',[]);
         if ~sim.write2file
             disp('I didn"t write to file. I" assuming you don"t want to make plots or movies either.');
@@ -25,10 +31,6 @@ if true
         if sim.visuals.makemovie
             simulation.makeMovie(sim.name,'framerate',24,'speedfactor',sim.visuals.speedfactor);
         end
-        % save data in a workspace var for plotting
-        
-        % and we're done
-        %close all;
         clear sim;
     end
     return;
@@ -42,7 +44,8 @@ end
 % inputfile = 'rampedDemo.m';
 % inputfile = 'sinusoidDemo.m';
 % inputfile = 'disturbedDemo.m';
-sim = simulation(inputfile);
+inputfiles = 'case15b.m';
+sim = simulation(inputfiles);
 
 %% Make sure the vehicle we just built is what we were trying to build.
 % The showme method let's you visualize the simulation in its current
@@ -57,21 +60,26 @@ sim = simulation(inputfile);
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
 %tspan = 0:0.005:1;
-sim.simulate; % ('output',[])
+sim.simulate('output',[]);
 %sim.simulate('tspan',tspan,'stats','on');
 
 %% Write simulation results to file
 % If you want to name the results file something other than the simulation
 % name just pass the filename as an argument with no extension (the method
 % will append .txt).
-sim.write2file;
+if ~sim.write2file
+    disp('I didn"t write to file. I" assuming you don"t want to make plots or movies either.');
+    return;
+end
 
 %% Plots
-%simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
-simulation.makePlots(sim.name,'savefigs',true);
+simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
+%simulation.makePlots(sim.name,'savefigs',true);
 
 %% Make a video of the simulation results
 % The makeMovie method is static. The first argument is the name of the
 % data and input file combo to use. The second argument is the name of the
 % movie file. If you only pass one name the movie file gets that name.
-simulation.makeMovie(sim.name,'framerate',60,'speedfactor',10);
+if sim.makeMovie
+    simulation.makeMovie(sim.name,'framerate',60,'speedfactor',10);
+end
