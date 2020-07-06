@@ -4,7 +4,7 @@
 clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
-ballastPlots = true;
+ballastPlots = false;
 reldensPlots = true;
 
 %% Ballast Only
@@ -42,7 +42,7 @@ steadyTolDeg = 1/10;
         ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
         relativeDensity(i) = sim.vhcl.relDensity;
  end
-skewfig = figure('Position',[100 100 600 400]);
+skewfig = figure('Position',[100 100 400 400]);
 skewax = axes('Parent',skewfig);
 scatter(skewax,cm(3,:)*100,skew*180/pi,'*r');
 c = skewax.Children.CData;
@@ -56,9 +56,10 @@ skewax.Children.CData = c;
 xlabel('Center mass axial loction (%Body Length)');
 ylabel('Skew angle (deg)');
 skewax.Color = 'none';
+skewax.FontSize = 12;
 export_fig(skewfig,['products\analysis\ballastOnly\skew.png'],'-png','-transparent','-m3');
 
-thetafig = figure('Position',[100 100 600 400]);
+thetafig = figure('Position',[100 100 400 400]);
 thetaax = axes('Parent',thetafig);
 scatter(thetaax,cm(3,:)*100,meantheta*180/pi-90,'*r');
 c = thetaax.Children.CData;
@@ -72,9 +73,10 @@ thetaax.Children.CData = c;
 xlabel('Center mass axial loction (%Body Length)');
 ylabel('Pitch angle (deg)');
 thetaax.Color = 'none';
+thetaax.FontSize = 12;
 export_fig(thetafig,['products\analysis\ballastOnly\pitch.png'],'-png','-transparent','-m3');
 
-gammafig = figure('Position',[100 100 600 400]);
+gammafig = figure('Position',[100 100 400 400]);
 gammaax = axes('Parent',gammafig);
 scatter(gammaax,cm(3,:)*100,meangamma*180/pi,'*r');
 c = gammaax.Children.CData;
@@ -88,6 +90,7 @@ gammaax.Children.CData = c;
 xlabel('Center mass axial loction (%Body Length)');
 ylabel('Yaw angle (deg)');
 gammaax.Color = 'none';
+gammaax.FontSize = 12;
 export_fig(gammafig,['products\analysis\ballastOnly\yaw.png'],'-png','-transparent','-m3');
 
 %  save(['products\data\' blockname '.mat'],'skew','nosteady','cm',...
@@ -129,7 +132,7 @@ steadyTolDeg = 1/10;
         ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
         relativeDensity(i) = sim.vhcl.relDensity;
  end
-skewfig = figure('Position',[100 100 600 400]);
+skewfig = figure('Position',[100 100 400 400]);
 skewax = axes('Parent',skewfig);
 scatter(skewax,relativeDensity,skew*180/pi,'*r');
 c = skewax.Children.CData;
@@ -143,9 +146,10 @@ skewax.Children.CData = c;
 xlabel('Relative Density');
 ylabel('Skew angle (deg)');
 skewax.Color = 'none';
-export_fig(skewfig,['products\analysis\ballastOnly\skew.png'],'-png','-transparent','-m3');
+skewax.FontSize = 12;
+export_fig(skewfig,['products\analysis\relDensOnly\skew.png'],'-png','-transparent','-m3');
 
-thetafig = figure('Position',[100 100 600 400]);
+thetafig = figure('Position',[100 100 400 400]);
 thetaax = axes('Parent',thetafig);
 scatter(thetaax,relativeDensity,meantheta*180/pi-90,'*r');
 c = thetaax.Children.CData;
@@ -159,10 +163,11 @@ thetaax.Children.CData = c;
 xlabel('Relative Density');
 ylabel('Pitch angle (deg)');
 thetaax.Color = 'none';
-export_fig(thetafig,['products\analysis\ballastOnly\pitch.png'],'-png','-transparent','-m3');
+thetaax.FontSize = 12;
+export_fig(thetafig,['products\analysis\relDensOnly\pitch.png'],'-png','-transparent','-m3');
 
 
-gammafig = figure('Position',[100 100 600 400]);
+gammafig = figure('Position',[100 100 400 400]);
 gammaax = axes('Parent',gammafig);
 scatter(gammaax,relativeDensity,meangamma*180/pi,'*r');
 c = gammaax.Children.CData;
@@ -176,7 +181,8 @@ gammaax.Children.CData = c;
 xlabel('Relative Density');
 ylabel('Yaw angle (deg)');
 gammaax.Color = 'none';
-export_fig(gammafig,['products\analysis\ballastOnly\yaw.png'],'-png','-transparent','-m3');
+gammaax.FontSize = 12;
+export_fig(gammafig,['products\analysis\relDensOnly\yaw.png'],'-png','-transparent','-m3');
 
 
 end %reldensplots
