@@ -4,17 +4,17 @@
 clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
-ballastPlots = false;
-reldensPlots = false;
+ballastPlots = true;
+reldensPlots = true;
 ballastAndReldensPlots = true;
 
 %% Ballast Only
 if ballastPlots
 % loop through the simulations of interest, load them up, get the numbers
 inputfiles = ["caseBO1Extended.m","caseBO2Extended.m","caseBO3Extended.m","caseBO4Extended.m","caseBO5Extended.m",...
-        "caseBO6Extended.m","caseBO7Extended.m","caseBO8Extended.m","caseBO9Extended.m","caseBO10Extended.m",...
-        "case1Extended.m","case2Extended.m","case3Extended.m","case4Extended.m","case5Extended.m",...
-        "case6Extended.m","case7Extended.m","case8Extended.m","case9Extended.m","case10Extended.m","case11Extended.m"];
+        "case7Extended.m","case8Extended.m","case9Extended.m","case10Extended.m","case11Extended.m",...
+        "BLUcase1.m","BLUcase2.m","BLUcase3.m","BLUcase4.m","BLUcase5.m",...
+        "BLUcase6.m","BLUcase7.m","BLUcase8.m","BLUcase9.m","BLUcase10.m","BLUcase11.m"];
 ssitr = 1;
 steadyTolTime_s = 10;
 steadyTolDeg = 1/10;
@@ -103,8 +103,8 @@ end
 if reldensPlots
     clearvars -except ballastPlots reldensPlots ballastAndReldensPlots
 % loop through the simulations of interest, load them up, get the numbers 
-inputfiles = ["case1Extended.m","case14Extended.m","case15Extended.m","case16Extended.m","case17Extended.m","case18Extended.m",...
-    "case19Extended.m","case20Extended.m","case21Extended.m","case22Extended.m","case23Extended.m"];
+inputfiles = ["BLUcase1.m","BLUcase12.m","BLUcase23.m","case16Extended.m","case17Extended.m","BLUcase56.m",...
+    "BLUcase45.m","BLUcase34.m","case21Extended.m","case22Extended.m","case23Extended.m"];
 
 ssitr = 1;
 steadyTolTime_s = 10;
