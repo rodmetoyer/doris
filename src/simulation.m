@@ -289,7 +289,7 @@ classdef simulation < handle
             hobj.thr = t;
         end         
         
-        function hfig = showme(hobj,vis)
+        function hfig = showmeold(hobj,vis)
             if nargin < 2
                 vis = 'on';
             end
@@ -317,6 +317,59 @@ classdef simulation < handle
             title(['Velocity Vectors | p_3 = ' num2str(v.rotors(1).angvel(3)) ' and q_3 = ' num2str(v.rotors(2).angvel(3))]);
             legend({'Freestream Velocity','Vehicle Body','Relative Velocity Rotor 1','Relative Velocity Rotor 2'},'Location','bestoutside','color','none','Orientation','horizontal');
             view(-130,20)
+            hold off            
+        end % end showmeold
+        
+        function hfig = showme(hobj,vis)
+            if nargin < 2
+                vis = 'on';
+            end
+            x = 300; y = 100; w = x+600; h = y+600;
+            hfig = figure('position',[x y w h],'visible',vis);
+            ax1 = axes('Parent',hfig); hold on;
+            v = hobj.vhcl;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if j == 1
+                        clr = [235 158 52;52 185 235]/255;
+                    else
+                        clr = [1 0 0;0 0 1];
+                    end
+                    b_C_a = hobj.vhcl.rotors(i).blades(j).b_C_a;
+                    for k=1:1:numel(hobj.vhcl.rotors(i).blades(j).sections)
+                        a = hobj.vhcl.rotors(i).blades(j).sections(k).coords;                         
+                        % rotate into blade
+                        a = b_C_a(:,:,k)*a;
+                        % move to proper location in blade
+                        b = a + hobj.vhcl.rotors(i).blades(j).sectLocs(:,k);
+                        % rotate into rotor
+                        b = hobj.vhcl.rotors(i).P_C_bx(:,:,j)*b;
+                        % rotate into vehicle
+                        b = transpose(hobj.vhcl.rotors(i).P_C_A)*b;
+                        % move to proper location in vehicle
+                        b = b + hobj.vhcl.rotorLocs(:,i);
+                        % finally put in earth frame
+                        b = transpose(hobj.vhcl.A_C_O)*b;
+                        plot3(ax1,hobj.vhcl.position(1)+b(1,:),hobj.vhcl.position(2)+b(2,:),hobj.vhcl.position(3)+b(3,:),'color',clr(i,:));                        
+                    end %sections
+                end %blades
+            end %rotors
+            temp = 0;
+            for i=1:1:numel(hobj.vhcl.rotors)
+                for j=1:1:numel(hobj.vhcl.rotors(i).blades)
+                    if hobj.vhcl.rotors(i).blades(j).length > temp
+                        temp = hobj.vhcl.rotors(i).blades(j).length;
+                    end
+                end
+            end
+            vline = [hobj.vhcl.position+transpose(hobj.vhcl.A_C_O)*hobj.vhcl.rotorLocs(:,1),hobj.vhcl.position+transpose(hobj.vhcl.A_C_O)*hobj.vhcl.rotorLocs(:,2)];
+            plot3(ax1,vline(1,:),vline(2,:),vline(3,:),'-','LineWidth',3,'color','k');
+            tetherline = [[0;0;0],hobj.vhcl.position+transpose(hobj.vhcl.A_C_O)*hobj.vhcl.tetherpoint];
+            plot3(ax1,tetherline(1,:),tetherline(2,:),tetherline(3,:),':','LineWidth',2,'color','b');
+            quiver3(ax1,0,0,0,hobj.fld.velocity(1),hobj.fld.velocity(2),hobj.fld.velocity(3),round(max(hobj.vhcl.position)/5),'LineWidth',3,'Marker','*','MarkerEdgeColor','k','MarkerFaceColor','k','MarkerSize',6);
+            axis equal
+            xlabel('x'); ylabel('y'); zlabel('z');
+            view(-100,20)
             hold off            
         end % end showme
         
@@ -709,12 +762,21 @@ classdef simulation < handle
                     if p.Results.savefigs
                         export_fig(['products\images\' hobj.name '\betaorientation.png'],'-png','-transparent','-m3');
                     end
+                case 'skew'
+                    skew = acos(cos(y(:,5)).*sin(y(:,4)));
+                    figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
+                    plot(t,skew*180/pi,'r');
+                    set(gca,'Color',p.Results.axcolor);
+                    xlabel('Time (s)'); ylabel('Skew (deg)');
+                    legend({'\xi'},'Location','Best');
+                    title(['Case: ' hobj.name]);
+                    if p.Results.savefigs
+                        export_fig(['products\images\' hobj.name '\xposition.png'],'-png','-transparent','-m3');
+                    end
                 otherwise
                     errstr = [plt ' is not a supported plot. Add it or try something else'];
                     error(errstr);
-            end
-            
-            
+            end % switch            
         end % end makeSinglePlot
         
         function xdot = computeStateDerivatives(hobj,t,x)
@@ -873,6 +935,19 @@ classdef simulation < handle
             % [tp11;tp12;tp21;tp22] = hobj.vhcl.Mtot*betavec + cvecstar;
 
         end % computeStateDerivatives
+        
+        function changeName(hobj,nn,sure)
+            if ~strcmp(sure,'Sure')
+                answr = questdlg(['Are you sure you want to change the name of ' hobj.name],'Name change verification','Yes','No','Yes');
+                if strcmp(answr,'Yes')
+                    hobj.name = nn;
+                else
+                    disp('OK, nothing has changed');
+                end
+            else
+                hobj.name = nn;
+            end
+        end
                
     end % methods
     
@@ -1039,7 +1114,8 @@ classdef simulation < handle
             open(vw);
             writeVideo(vw,F); close(vw);
         end % end makeMovie
-        function makePlots(infn, varargin)
+        
+        function makePlots(infn,varargin)
             % makePlots  Static method that makes plots from a data file
             %   makePlots(infn) makes plots of the data in the file infn
             %   makePlots(infn,Name,Value) specifies properties using one or more Name,Value pair arguments 
@@ -1051,19 +1127,6 @@ classdef simulation < handle
                     % figsize - size of the figure [x,y,w,h]
                     % figcolor - color of the figure
                     
-            % get data 
-            try
-                % Load the simulation object
-                % The mat file has all of the data that is in the corresponding
-                % text file. The text file is for consumption outside of
-                % matlab.
-                svcmd = ['load ' pwd '\products\data\' infn '.mat'];
-                eval(svcmd); clear svcmd;
-            catch
-                disp(['Unable to load ' infn]);
-                % todo log and move on
-                return;
-            end
             defaultPlots = 'all';
             defaultFigsize = [50 50 600 400];
             defaultFigcolor = 'none';
@@ -1080,6 +1143,25 @@ classdef simulation < handle
             addParameter(p,'visible',defaultVisible,@ischar);
             parse(p,varargin{:});
             whatplots = p.Results.plots;
+                        
+            try
+                % Load the simulation object
+                % The mat file has all of the data that is in the corresponding
+                % text file. The text file is for consumption outside of
+                % matlab.
+                svcmd = ['load ' pwd '\products\data\' infn '.mat'];
+                eval(svcmd); clear svcmd;
+            catch ME
+                try
+                    svcmd = ['load ' pwd '\..\products\data\' infn '.mat'];
+                    eval(svcmd); clear svcmd;
+                catch
+                    disp(['Unable to load ' infn]);
+                    rethrow(ME);
+                    % todo log and move on
+                    % return;
+                end                
+            end
                         
             t = sim.times;
             y = sim.states;

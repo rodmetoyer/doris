@@ -5,7 +5,8 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 ballastPlots = false;
-reldensPlots = true;
+reldensPlots = false;
+ballastAndReldensPlots = true;
 
 %% Ballast Only
 if ballastPlots
@@ -187,6 +188,115 @@ export_fig(gammafig,['products\analysis\relDensOnly\yaw.png'],'-png','-transpare
 
 end %reldensplots
 
+%% ballast and relative density plots
+if ballastAndReldensPlots
+
+        % loop through the simulations of interest, load them up, get the numbers
+    inputfiles = ["BRDcase1Extended.m","BRDcase2Extended.m","BRDcase3Extended.m","BRDcase4Extended.m","BRDcase5Extended.m",...
+            "BRDcase6Extended.m","BRDcase7Extended.m","BRDcase8Extended.m","BRDcase9Extended.m","BRDcase10Extended.m",...
+            "BRDcase11Extended.m","BRDcase12Extended.m","BRDcase13Extended.m","BRDcase14Extended.m","BRDcase15Extended.m",...
+            "BRDcase16Extended.m","BRDcase17Extended.m","BRDcase18Extended.m","BRDcase19Extended.m","BRDcase20Extended.m",...
+            "BRDcase21Extended.m","BRDcase22Extended.m","BRDcase23Extended.m","BRDcase24Extended.m","BRDcase25Extended.m",...
+            "BRDcase26Extended.m","BRDcase27Extended.m","BRDcase28Extended.m","BRDcase29Extended.m","BRDcase30Extended.m",...
+            "BRDcase31Extended.m","BRDcase32Extended.m","BRDcase33Extended.m","BRDcase34Extended.m","BRDcase35Extended.m",...
+            "BRDcase36Extended.m","BRDcase37Extended.m","BRDcase38Extended.m","BRDcase39Extended.m","BRDcase40Extended.m",...
+            "BRDcase41Extended.m","BRDcase42Extended.m","BRDcase43Extended.m","BRDcase44Extended.m","BRDcase45Extended.m",...
+            "BRDcase46Extended.m","BRDcase47Extended.m","BRDcase48Extended.m","BRDcase49Extended.m","BRDcase50Extended.m"];
+    ssitr = 1;
+    steadyTolTime_s = 10;
+    steadyTolDeg = 1/10;
+     for i=1:1:numel(inputfiles)
+         sim = simulation.loadsim(inputfiles(i));
+         depth = sim.states(:,3);
+         drift = sim.states(:,2);
+         streamwise = sim.states(:,1);
+         theta = sim.states(:,4);
+         gamma = sim.states(:,5);
+         dtheta_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
+         dgamma_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
+            changemetric = sqrt(dtheta_1sec^2+dgamma_1sec^2);
+            if changemetric > steadyTolDeg*pi/180 % if it has changed by 100th of a degree over the last steadyTolTime_s seconds
+                disp('Steady state not reached for skew');
+                nosteady(ssitr) = i;
+                ssitr = ssitr + 1;
+            end
+            meantheta(i) = mean(theta(end-ceil(1/sim.timestep):end));
+            meangamma(i) = mean(gamma(end-ceil(1/sim.timestep):end));
+            skew(i) = acos(cos(meangamma(i))*sin(meantheta(i)));
+            meandepth(i) = mean(depth(end-ceil(1/sim.timestep):end));
+            meandrift(i) = mean(drift(end-ceil(1/sim.timestep):end));
+            meanstreamwise(i) = mean(streamwise(end-ceil(1/sim.timestep):end));
+
+            cm(:,i) = sim.vhcl.centermass/sim.vhcl.body.length;
+            numBladesUpstream(i) = sim.vhcl.rotors(1).numblades;
+            numBladesDownstream(i) = sim.vhcl.rotors(2).numblades;
+            radUpsream(i) = sim.vhcl.rotors(1).blades(1).length;
+            radDownsream(i) = sim.vhcl.rotors(2).blades(1).length;
+            ffUpstream(i) = sim.vhcl.rotors(1).axflowfac;
+            ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
+            relativeDensity(i) = sim.vhcl.relDensity;
+     end
+    skewfig = figure('Position',[100 100 600 400]);
+    skewax = axes('Parent',skewfig);
+    cmn = reshape(cm(3,:),10,5);
+    rdn = reshape(relativeDensity,10,5);
+    skewn = reshape(skew,10,5);
+    skewn_deg = skewn*180/pi;
+    surf(skewax,cmn*100,rdn,skewn_deg,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
+    view(skewax,-20,35);   
+    xlabel('Center mass axial loction (%Body Length)');
+    ylabel('Relative Density');
+    zlabel('Skew angle (deg)');
+    skewax.Color = 'none';
+    skewax.FontSize = 12;
+    export_fig(skewfig,['products\analysis\ballastAndReldens\skewSurface.png'],'-png','-transparent','-m3');
+
+    balfig = figure('Position',[100 100 600 400]);
+    balax = axes('Parent',balfig);
+    hold(balax,'on');
+    plot(balax,cm(3,1:10)*100,skew(1:10)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(balax,cm(3,11:20)*100,skew(11:20)*180/pi,'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(11)));
+    plot(balax,cm(3,21:30)*100,skew(21:30)*180/pi,'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(21)));
+    plot(balax,cm(3,31:40)*100,skew(31:40)*180/pi,'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(31)));
+    plot(balax,cm(3,41:50)*100,skew(41:50)*180/pi,'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(41)));
+    xlabel('Center mass axial loction (%Body Length)');
+    ylabel('Skew angle (deg)');
+    hleg = legend('Location','Best','Color','none');
+    hleg.Title.String = 'Relative Density';
+    balax.Color = 'none';
+    balax.FontSize = 12;
+    export_fig(balfig,['products\analysis\ballastAndReldens\ballast.png'],'-png','-transparent','-m3');
+    
+    depthfig = figure('Position',[100 100 600 400]);
+    depthax = axes('Parent',depthfig);
+    cmn = reshape(cm(3,:),10,5);
+    rdn = reshape(relativeDensity,10,5);
+    meandepthn = reshape(meandepth,10,5);
+    surf(depthax,cmn*100,rdn,meandepthn,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
+    view(depthax,-20,35);   
+    xlabel('CM_a_x_i_a_l (%Body Length)');
+    ylabel('Relative Density');
+    zlabel('Depth (m)');
+    depthax.Color = 'none';
+    depthax.FontSize = 12;
+    export_fig(depthfig,['products\analysis\ballastAndReldens\depthSurface.png'],'-png','-transparent','-m3');
+    
+    driftfig = figure('Position',[100 100 600 400]);
+    driftax = axes('Parent',driftfig);
+    cmn = reshape(cm(3,:),10,5);
+    rdn = reshape(relativeDensity,10,5);
+    meandriftn = reshape(meandrift,10,5);
+    surf(driftax,cmn*100,rdn,meandriftn,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
+    view(driftax,-20,35);   
+    xlabel('CM_a_x_i_a_l (%Body Length)');
+    ylabel('Relative Density');
+    zlabel('Drift (m)');
+    driftax.Color = 'none';
+    driftax.FontSize = 12;
+    export_fig(driftfig,['products\analysis\ballastAndReldens\driftSurface.png'],'-png','-transparent','-m3');
+end % ballastAndReldensPlots
+
+%% Save and go back to tools folder
 %  save(['products\data\' blockname '.mat'],'skew','nosteady','cm',...
 %         'numBladesUpstream','numBladesDownstream','radUpsream','radDownsream',...
 %         'ffUpstream','ffDownstream','relativeDensity');
