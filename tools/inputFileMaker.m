@@ -3,17 +3,21 @@
 
 clearvars; close all; clc;
 
-relativeDensities = [0.9 0.92 0.94 0.96 0.98];
-ballastZLocationsPrcnt = [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5];
-windwardInductionFactors = 0.8; %[0.4 0.6 0.8 1.0];
-leewardInductionFactors = 0.4; %[0.4 0.6 0.8 1.0];
+relativeDensities = [1 0.99 0.98 0.97 0.96 0.95];
+%relativeDensities = [0.74 0.76 0.78 0.8 0.82 0.84 0.86 0.88 1.12 1.14 1.16 1.18 1.2 1.22 1.24 1.26 1.28 1.3 1.32];
+ballastZLocationsPrcnt = [0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5];
+%ballastZLocationsPrcnt = 0;
+% windwardFlowFactors = 0.667; %[0.4 0.6 0.8 1.0];
+% leewardFlowFactors = 0.667; %[0.4 0.6 0.8 1.0];
+windwardFlowFactors = 0.8;
+leewardFlowFactors = 0.6;
 pathToInputFolder = '..\input\';
-casesName = 'BRDcase';
+casesName = 'BLLcase';
 caseNumber = 1;
 for i1=1:1:length(relativeDensities)
     for i2=1:1:length(ballastZLocationsPrcnt)
-        for i3=1:1:length(windwardInductionFactors)
-            for i4=1:1:length(leewardInductionFactors)
+        for i3=1:1:length(windwardFlowFactors)
+            for i4=1:1:length(leewardFlowFactors)
                 inputFileName = [casesName num2str(caseNumber) '.m'];
                 inputFileID = fopen([pathToInputFolder inputFileName],'w');
                 fprintf(inputFileID,'%s\n',['runname = ''' casesName num2str(caseNumber) ''';']);
@@ -40,7 +44,7 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','twist1.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist1.numBlades = numBlades1;');
                 fprintf(inputFileID,'%s\n','twist1.bladeDZfrac = bladeDZfrac1;');
-                fprintf(inputFileID,'%s\n',['axflowfactor1 = ' num2str(windwardInductionFactors(i3),'%4.3f') ';']);
+                fprintf(inputFileID,'%s\n',['axflowfactor1 = ' num2str(windwardFlowFactors(i3),'%4.3f') ';']);
                 fprintf(inputFileID,'%s\n','tnflowfactor1 = 1.0;');
                 fprintf(inputFileID,'%s\n','bladeMass2 = 5000;');
                 fprintf(inputFileID,'%s\n','airfoiltype2 = ''NACA0015'';');
@@ -53,7 +57,7 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','twist2.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist2.numBlades = numBlades1;');
                 fprintf(inputFileID,'%s\n','twist2.bladeDZfrac = bladeDZfrac1;');
-                fprintf(inputFileID,'%s\n',['axflowfactor2 = ' num2str(leewardInductionFactors(i4),'%4.3f') ';']);
+                fprintf(inputFileID,'%s\n',['axflowfactor2 = ' num2str(leewardFlowFactors(i4),'%4.3f') ';']);
                 fprintf(inputFileID,'%s\n','tnflowfactor2 = 1.0;');
                 fprintf(inputFileID,'%s\n','I = [1/12*vbmass*(3*(vbradius^2+vbinnerradius^2)+vblength^2),0,0;0,1/12*vbmass*(3*(vbradius^2+vbinnerradius^2)+vblength^2),0;0,0,1/2*vbmass*(vbradius^2+vbinnerradius^2)];');
                 fprintf(inputFileID,'%s\n','vbcentermass = [0.0;0;0.0*vblength/2];');
@@ -94,7 +98,13 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','tstep = 0.2;');
                 
                 fprintf(inputFileID,'%s\n','initialYaw = 0*pi/180;');
-                fprintf(inputFileID,'%s\n','initialPitch = 90*pi/180;');
+%                 initpitch = 310.5*relativeDensities(i1)-307.85;
+%                 if relativeDensities(i1) > 1
+%                     initpitch = 242.57*relativeDensities(i1)-242.67;
+%                 end
+
+                initpitch = 90;%+initpitch;
+                fprintf(inputFileID,'%s\n',['initialPitch = ' num2str(initpitch,'%5.3f') '*pi/180;']);
                 fprintf(inputFileID,'%s\n','initialRoll = 0*pi/180;');
                 fprintf(inputFileID,'%s\n','initialLateral = 0;');
                 fprintf(inputFileID,'%s\n','initialLongitudinal = tunstrch*1.05;');

@@ -11,8 +11,9 @@ reldensPlots = false;
 % EFFplots = false;
 sweep = "EFF";
 %makeplots("BLU");
-%makeplots("EFF");
+makeplots("EFF");
 makeplots("FBL");
+makeplots("BLL");
 
 
 %% Ballast Only
@@ -263,7 +264,7 @@ function hfigs = makeplots(sweep)
          dgamma_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
             changemetric = sqrt(dtheta_1sec^2+dgamma_1sec^2);
             if changemetric > steadyTolDeg*pi/180 % if it has changed by 100th of a degree over the last steadyTolTime_s seconds
-                disp('Steady state not reached for skew');
+                disp(['Steady state not reached for skew case: ' char(inputfiles(i))]);
                 nosteady(ssitr) = i;
                 ssitr = ssitr + 1;
             end
@@ -504,7 +505,7 @@ function hfigs = makeplots(sweep)
     plot(ddax,meandepth(34:44),meandrift(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
     plot(ddax,meandepth(45:55),meandrift(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
     plot(ddax,meandepth(56:66),meandrift(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
-    plot(ddax,[min(min(meandepth),min(meandrift)) max(max(meandepth),max(meandrift))],[min(min(meandepth),min(meandrift)) max(max(meandepth),max(meandrift))],'-.k','DisplayName','Unity');
+    plot(ddax,[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],'-.k','DisplayName','Unity');
     xlabel('Depth (m)');
     ylabel('Drift (m)');
     hleg = legend('Location','Best','Color','none');
@@ -512,4 +513,23 @@ function hfigs = makeplots(sweep)
     ddax.Color = 'none';
     ddax.FontSize = 12;
     export_fig(ddfig,[imagedir 'driftDepth.png'],'-png','-transparent','-m3');    
+    
+    pyfig = figure('Position',[100 100 600 400]);
+    pyax = axes('Parent',pyfig);
+    hold(pyax,'on');
+    meanpitch = meanpitch*180/pi-90;
+    meanyaw = meanyaw*180/pi;
+    plot(pyax,meanpitch(1:11),meanyaw(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(pyax,meanpitch(12:22),meanyaw(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
+    plot(pyax,meanpitch(23:33),meanyaw(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
+    plot(pyax,meanpitch(34:44),meanyaw(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
+    plot(pyax,meanpitch(45:55),meanyaw(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
+    plot(pyax,meanpitch(56:66),meanyaw(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    xlabel('Pitch (deg)');
+    ylabel('Yaw (deg)');
+    hleg = legend('Location','Best','Color','none');
+    hleg.Title.String = 'Relative Density';
+    pyax.Color = 'none';
+    pyax.FontSize = 12;
+    export_fig(pyfig,[imagedir 'pitchyaw.png'],'-png','-transparent','-m3');
 end
