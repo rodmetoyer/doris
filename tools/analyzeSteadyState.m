@@ -11,9 +11,9 @@ reldensPlots = false;
 % EFFplots = false;
 sweep = "EFF";
 %makeplots("BLU");
-makeplots("EFF");
+%makeplots("EFF");
 makeplots("FBL");
-makeplots("BLL");
+%makeplots("BLL");
 
 
 %% Ballast Only
@@ -247,43 +247,70 @@ function hfigs = makeplots(sweep)
         "case34","case35","case36","case37","case38","case39","case40","case41","case42","case43","case44",...
         "case45","case46","case47","case48","case49","case50","case51","case52","case53","case54","case55",...
         "case56","case57","case58","case59","case60","case61","case62","case63","case64","case65","case66"];
+%     if strcmp(sweep,'FBL')
+%         numinfls = 108;
+%     else
+%         numinfls = 66;
+%     end
+%     inputfiles = "case1";
+%     for i=2:1:numinfls
+%         inputfiles = [inputfiles,strcat("case",num2str(i))];
+%     end
+    % todo just get whatever files in the data folder are prepended with
+    % the sweep id instead of this hacky way
+    if strcmp(sweep,'FBL')
+%         inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2","case3","case4","case5","case6","case7","case8","case9","case10","case11",...
+%             "case74","case75","case76","case77","case78","case79","case80","case12","case13","case14","case15","case16","case17","case18","case19","case20","case21","case22",...
+%             "case81","case82","case83","case84","case85","case86","case87","case23","case24","case25","case26","case27","case28","case29","case30","case31","case32","case33",...
+%             "case88","case89","case90","case91","case92","case93","case94","case34","case35","case36","case37","case38","case39","case40","case41","case42","case43","case44",...
+%             "case95","case96","case97","case98","case99","case100","case101","case45","case46","case47","case48","case49","case50","case51","case52","case53","case54","case55",...
+%             "case102","case103","case104","case105","case106","case107","case108","case56","case57","case58","case59","case60","case61","case62","case63","case64","case65","case66"];
+inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
+            "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
+            "case81","case82","case83","case84","case85","case86","case87","case23","case24",...
+            "case88","case89","case90","case91","case92","case93","case94","case34","case35",...
+            "case95","case96","case97","case98","case99","case100","case101","case45","case46",...
+            "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
+    end
+    
     inputfiles = strcat(sweep,inputfiles,".m");
-    ballastRows = 11;
     reldensCols = 6;
+    ballastRows = numel(inputfiles)/reldensCols;    
     ssitr = 1;
     steadyTolTime_s = 10;
     steadyTolDeg = 1/10;
-     for i=1:1:numel(inputfiles)
-         sim = simulation.loadsim(inputfiles(i));
-         depth = sim.states(:,3);
-         drift = sim.states(:,2);
-         streamwise = sim.states(:,1);
-         theta = sim.states(:,4);
-         gamma = sim.states(:,5);
-         dtheta_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
-         dgamma_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
-            changemetric = sqrt(dtheta_1sec^2+dgamma_1sec^2);
-            if changemetric > steadyTolDeg*pi/180 % if it has changed by 100th of a degree over the last steadyTolTime_s seconds
-                disp(['Steady state not reached for skew case: ' char(inputfiles(i))]);
-                nosteady(ssitr) = i;
-                ssitr = ssitr + 1;
-            end
-            meanpitch(i) = mean(theta(end-ceil(1/sim.timestep):end));
-            meanyaw(i) = mean(gamma(end-ceil(1/sim.timestep):end));
-            skew(i) = acos(cos(meanyaw(i))*sin(meanpitch(i)));
-            meandepth(i) = mean(depth(end-ceil(1/sim.timestep):end));
-            meandrift(i) = mean(drift(end-ceil(1/sim.timestep):end));
-            meanstreamwise(i) = mean(streamwise(end-ceil(1/sim.timestep):end));
-
-            cm(:,i) = sim.vhcl.centermass/sim.vhcl.body.length;
-            numBladesUpstream(i) = sim.vhcl.rotors(1).numblades;
-            numBladesDownstream(i) = sim.vhcl.rotors(2).numblades;
-            radUpsream(i) = sim.vhcl.rotors(1).blades(1).length;
-            radDownsream(i) = sim.vhcl.rotors(2).blades(1).length;
-            ffUpstream(i) = sim.vhcl.rotors(1).axflowfac;
-            ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
-            relativeDensity(i) = sim.vhcl.relDensity;
-     end
+    for i=1:1:numel(inputfiles)
+        sim = simulation.loadsim(inputfiles(i));
+        depth = sim.states(:,3);
+        drift = sim.states(:,2);
+        streamwise = sim.states(:,1);
+        theta = sim.states(:,4);
+        gamma = sim.states(:,5);
+        dtheta_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
+        dgamma_1sec = theta(end) - theta(end-ceil(steadyTolTime_s/sim.timestep));
+           changemetric = sqrt(dtheta_1sec^2+dgamma_1sec^2);
+           if changemetric > steadyTolDeg*pi/180 % if it has changed by 100th of a degree over the last steadyTolTime_s seconds
+               disp(['Steady state not reached for skew case: ' char(inputfiles(i))]);
+               nosteady(ssitr) = i;
+               ssitr = ssitr + 1;
+           end
+           meanpitch(i) = mean(theta(end-ceil(1/sim.timestep):end));
+           meanyaw(i) = mean(gamma(end-ceil(1/sim.timestep):end));
+           skew(i) = acos(cos(meanyaw(i))*sin(meanpitch(i)));
+           meandepth(i) = mean(depth(end-ceil(1/sim.timestep):end));
+           meandrift(i) = mean(drift(end-ceil(1/sim.timestep):end));
+           meanstreamwise(i) = mean(streamwise(end-ceil(1/sim.timestep):end));
+           cm(:,i) = sim.vhcl.centermass/sim.vhcl.body.length;
+           numBladesUpstream(i) = sim.vhcl.rotors(1).numblades;
+           numBladesDownstream(i) = sim.vhcl.rotors(2).numblades;
+           radUpsream(i) = sim.vhcl.rotors(1).blades(1).length;
+           radDownsream(i) = sim.vhcl.rotors(2).blades(1).length;
+           ffUpstream(i) = sim.vhcl.rotors(1).axflowfac;
+           ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
+           relativeDensity(i) = sim.vhcl.relDensity;
+    end
+    
+    %% Figure 1
     skewfig = figure('Position',[100 100 600 400]);
     skewax = axes('Parent',skewfig);
     % reshape does col1 row1:n ... colm row1:n where n is num rows m is num cols 
@@ -301,15 +328,16 @@ function hfigs = makeplots(sweep)
     skewax.FontSize = 12;
     export_fig(skewfig,[imagedir 'skewSurface.png'],'-png','-transparent','-m3');
 
+    %% FIgure 2
+    mkrclrs = ["b","g","k","c","m","m","c","k","g","b","b","g","k","c","m","m","c","k","g","b"];
+    styls = ["-o","-+","-s","-d","-^",":o",":+",":s",":d",":^","-.o","-.+","-.s","-.d","-.^","--o","--+","--s","--d","--^"];
     balfig = figure('Position',[100 100 600 400]);
     balax = axes('Parent',balfig);
     hold(balax,'on');
-    plot(balax,cm(3,1:11)*100,skew(1:11)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(balax,cm(3,12:22)*100,skew(12:22)*180/pi,'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(balax,cm(3,23:33)*100,skew(23:33)*180/pi,'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(balax,cm(3,34:44)*100,skew(34:44)*180/pi,'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(balax,cm(3,45:55)*100,skew(45:55)*180/pi,'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(balax,cm(3,56:66)*100,skew(56:66)*180/pi,'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(balax,cm(3,1:ballastRows)*100,skew(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(balax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Skew angle (deg)');
     hleg = legend('Location','Best','Color','none');
@@ -318,20 +346,17 @@ function hfigs = makeplots(sweep)
     balax.FontSize = 12;
     export_fig(balfig,[imagedir 'skewLine.png'],'-png','-transparent','-m3');
     
+    %% figure 3
     rdfig = figure('Position',[100 100 600 400]);
     rdax = axes('Parent',rdfig);
     hold(rdax,'on');
-    plot(rdax,relativeDensity([1,12,23,34,45,56]),skew([1,12,23,34,45,56])*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(cm(3,1)*100,'%2.1f'));
-    plot(rdax,relativeDensity([2,13,24,35,46,57]),skew([2,13,24,35,46,57])*180/pi,'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(cm(3,2)*100,'%2.1f'));
-    plot(rdax,relativeDensity([3,14,25,36,47,58]),skew([3,14,25,36,47,58])*180/pi,'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(cm(3,3)*100,'%2.1f'));
-    plot(rdax,relativeDensity([4,15,26,37,48,59]),skew([4,15,26,37,48,59])*180/pi,'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(cm(3,4)*100,'%2.1f'));
-    plot(rdax,relativeDensity([5,16,27,38,49,60]),skew([5,16,27,38,49,60])*180/pi,'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(cm(3,5)*100,'%2.1f'));
-    plot(rdax,relativeDensity([6,17,28,39,50,61]),skew([6,17,28,39,50,61])*180/pi,'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(cm(3,6)*100,'%2.1f'));
-    plot(rdax,relativeDensity([7,18,29,40,51,62]),skew([7,18,29,40,51,62])*180/pi,'-*m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(cm(3,7)*100,'%2.1f'));
-    plot(rdax,relativeDensity([8,19,30,41,52,63]),skew([8,19,30,41,52,63])*180/pi,'-oc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(cm(3,8)*100,'%2.1f'));
-    plot(rdax,relativeDensity([9,20,31,42,53,64]),skew([9,20,31,42,53,64])*180/pi,'-+k','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(cm(3,9)*100,'%2.1f'));
-    plot(rdax,relativeDensity([10,21,32,43,54,65]),skew([10,21,32,43,54,65])*180/pi,'-sg','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(cm(3,10)*100,'%2.1f'));
-    plot(rdax,relativeDensity([11,22,33,44,55,66]),skew([11,22,33,44,55,66])*180/pi,'-db','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(cm(3,11)*100,'%2.1f'));    
+    plot(rdax,relativeDensity([1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1]),skew([1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1])*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(cm(3,1)*100,'%2.1f'));
+    for i=1:1:ballastRows-1
+        plot(rdax,relativeDensity([(1+i),(ballastRows+1+i),(2*ballastRows+1+i),(3*ballastRows+1+i),(4*ballastRows+1+i),(5*ballastRows+1+i)]),...
+            skew([(1+i),(ballastRows+1+i),(2*ballastRows+1+i),(3*ballastRows+1+i),(4*ballastRows+1+i),(5*ballastRows+1+i)])*180/pi,...
+            char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(cm(3,(i+1))*100,'%2.1f'));
+    end
+
     xlabel('Relative Density');
     ylabel('Skew angle (deg)');
     hleg = legend('Location','North','Color','w');
@@ -343,15 +368,15 @@ function hfigs = makeplots(sweep)
     rdax.FontSize = 12;
     export_fig(rdfig,[imagedir 'skewLineRD.png'],'-png','-transparent','-m3');
     
+    %% Figure 4
     yawfig = figure('Position',[100 100 600 400]);
     yawax = axes('Parent',yawfig);
     hold(yawax,'on');
-    plot(yawax,cm(3,1:11)*100,meanyaw(1:11)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(yawax,cm(3,12:22)*100,meanyaw(12:22)*180/pi,'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(yawax,cm(3,23:33)*100,meanyaw(23:33)*180/pi,'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(yawax,cm(3,34:44)*100,meanyaw(34:44)*180/pi,'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(yawax,cm(3,45:55)*100,meanyaw(45:55)*180/pi,'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(yawax,cm(3,56:66)*100,meanyaw(56:66)*180/pi,'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(yawax,cm(3,1:ballastRows)*100,meanyaw(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(yawax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanyaw(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Yaw angle (deg)');
     hleg = legend('Location','Best','Color','none');
@@ -360,15 +385,15 @@ function hfigs = makeplots(sweep)
     yawax.FontSize = 12;
     export_fig(yawfig,[imagedir 'yawLine.png'],'-png','-transparent','-m3');
     
+    %% figure 5
     ptchfig = figure('Position',[100 100 600 400]);
     ptchax = axes('Parent',ptchfig);
     hold(ptchax,'on');
-    plot(ptchax,cm(3,1:11)*100,meanpitch(1:11)*180/pi-90,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(ptchax,cm(3,12:22)*100,meanpitch(12:22)*180/pi-90,'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(ptchax,cm(3,23:33)*100,meanpitch(23:33)*180/pi-90,'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(ptchax,cm(3,34:44)*100,meanpitch(34:44)*180/pi-90,'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(ptchax,cm(3,45:55)*100,meanpitch(45:55)*180/pi-90,'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(ptchax,cm(3,56:66)*100,meanpitch(56:66)*180/pi-90,'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(ptchax,cm(3,1:ballastRows)*100,meanpitch(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Pitch angle (deg)');
     hleg = legend('Location','Best','Color','none');
@@ -377,13 +402,14 @@ function hfigs = makeplots(sweep)
     ptchax.FontSize = 12;
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
+    %% figure 6
     depthfig = figure('Position',[100 100 600 400]);
     depthax = axes('Parent',depthfig);
     cmn = reshape(cm(3,:),ballastRows,reldensCols);
     rdn = reshape(relativeDensity,ballastRows,reldensCols);
     meandepthn = reshape(meandepth,ballastRows,reldensCols);
     surf(depthax,cmn*100,rdn,meandepthn,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
-    view(depthax,-20,35);   
+    view(depthax,-145,40);   
     xlabel('CM_a_x_i_a_l (%Body Length)');
     ylabel('Relative Density');
     zlabel('Depth (m)');
@@ -391,15 +417,15 @@ function hfigs = makeplots(sweep)
     depthax.FontSize = 12;
     export_fig(depthfig,[imagedir 'depthSurface.png'],'-png','-transparent','-m3');
     
+    %% fig 7
     dlinefig = figure('Position',[100 100 600 400]);
     dlineax = axes('Parent',dlinefig);
     hold(dlineax,'on');
-    plot(dlineax,cm(3,1:11)*100,meandepth(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(dlineax,cm(3,12:22)*100,meandepth(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(dlineax,cm(3,23:33)*100,meandepth(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(dlineax,cm(3,34:44)*100,meandepth(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(dlineax,cm(3,45:55)*100,meandepth(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(dlineax,cm(3,56:66)*100,meandepth(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(dlineax,cm(3,1:ballastRows)*100,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dlineax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Depth (m)');
     hleg = legend('Location','Best','Color','none');
@@ -408,15 +434,15 @@ function hfigs = makeplots(sweep)
     dlineax.FontSize = 12;
     export_fig(dlinefig,[imagedir 'depthLine.png'],'-png','-transparent','-m3');
     
+    % figure 8
     dpitchfig = figure('Position',[100 100 600 400]);
     dpitchax = axes('Parent',dpitchfig);
     hold(dpitchax,'on');
-    plot(dpitchax,meanpitch(1:11)*100,meandepth(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(dpitchax,meanpitch(12:22)*100,meandepth(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(dpitchax,meanpitch(23:33)*100,meandepth(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(dpitchax,meanpitch(34:44)*100,meandepth(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(dpitchax,meanpitch(45:55)*100,meandepth(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(dpitchax,meanpitch(56:66)*100,meandepth(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(dpitchax,meanpitch(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dpitchax,meanpitch(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Pitch Angle (Deg)');
     ylabel('Depth (m)');
     hleg = legend('Location','Best','Color','none');
@@ -425,15 +451,15 @@ function hfigs = makeplots(sweep)
     dpitchax.FontSize = 12;
     export_fig(dpitchfig,[imagedir 'depthPitchLine.png'],'-png','-transparent','-m3');
     
+    %% figure 9
     dyawfig = figure('Position',[100 100 600 400]);
     dyawax = axes('Parent',dyawfig);
     hold(dyawax,'on');
-    plot(dyawax,meanyaw(1:11)*100,meandepth(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(dyawax,meanyaw(12:22)*100,meandepth(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(dyawax,meanyaw(23:33)*100,meandepth(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(dyawax,meanyaw(34:44)*100,meandepth(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(dyawax,meanyaw(45:55)*100,meandepth(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(dyawax,meanyaw(56:66)*100,meandepth(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(dyawax,meanyaw(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dyawax,meanyaw(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Yaw Angle (Deg)');
     ylabel('Depth (m)');
     hleg = legend('Location','Best','Color','none');
@@ -442,15 +468,16 @@ function hfigs = makeplots(sweep)
     dyawax.FontSize = 12;
     export_fig(dyawfig,[imagedir 'depthYawLine.png'],'-png','-transparent','-m3');
     
+    
+    %% fig 10
     dskewfig = figure('Position',[100 100 600 400]);
     dskewax = axes('Parent',dskewfig);
     hold(dskewax,'on');
-    plot(dskewax,skew(1:11)*100,meandepth(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(dskewax,skew(12:22)*100,meandepth(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(dskewax,skew(23:33)*100,meandepth(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(dskewax,skew(34:44)*100,meandepth(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(dskewax,skew(45:55)*100,meandepth(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(dskewax,skew(56:66)*100,meandepth(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(dskewax,skew(1:ballastRows),meandepth(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dskewax,skew(i*ballastRows+1:(i+1)*ballastRows),meandepth(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Skew Angle (Deg)');
     ylabel('Depth (m)');
     hleg = legend('Location','Best','Color','none');
@@ -465,13 +492,14 @@ function hfigs = makeplots(sweep)
     dskewax.YGrid = 'on';
     export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
     
+    %% fig 11
     driftfig = figure('Position',[100 100 600 400]);
     driftax = axes('Parent',driftfig);
     cmn = reshape(cm(3,:),ballastRows,reldensCols);
     rdn = reshape(relativeDensity,ballastRows,reldensCols);
     meandriftn = reshape(meandrift,ballastRows,reldensCols);
     surf(driftax,cmn*100,rdn,meandriftn,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
-    view(driftax,-20,35);   
+    view(driftax,-145,40);   
     xlabel('CM_a_x_i_a_l (%Body Length)');
     ylabel('Relative Density');
     zlabel('Drift (m)');
@@ -479,15 +507,15 @@ function hfigs = makeplots(sweep)
     driftax.FontSize = 12;
     export_fig(driftfig,[imagedir 'driftSurface.png'],'-png','-transparent','-m3');
     
+    %% fig 12
     dftlinefig = figure('Position',[100 100 600 400]);
     dftlineax = axes('Parent',dftlinefig);
     hold(dftlineax,'on');
-    plot(dftlineax,cm(3,1:11)*100,meandrift(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(dftlineax,cm(3,12:22)*100,meandrift(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(dftlineax,cm(3,23:33)*100,meandrift(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(dftlineax,cm(3,34:44)*100,meandrift(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(dftlineax,cm(3,45:55)*100,meandrift(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(dftlineax,cm(3,56:66)*100,meandrift(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(dftlineax,cm(3,1:ballastRows)*100,meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dftlineax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Drift (m)');
     hleg = legend('Location','Best','Color','none');
@@ -496,15 +524,15 @@ function hfigs = makeplots(sweep)
     dftlineax.FontSize = 12;
     export_fig(dftlinefig,[imagedir 'driftLine.png'],'-png','-transparent','-m3');
     
+    %% fig 13
     ddfig = figure('Position',[100 100 600 400]);
     ddax = axes('Parent',ddfig);
     hold(ddax,'on');
-    plot(ddax,meandepth(1:11),meandrift(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(ddax,meandepth(12:22),meandrift(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(ddax,meandepth(23:33),meandrift(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(ddax,meandepth(34:44),meandrift(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(ddax,meandepth(45:55),meandrift(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(ddax,meandepth(56:66),meandrift(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(ddax,meandepth(1:ballastRows),meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(ddax,meandepth(i*ballastRows+1:(i+1)*ballastRows),meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
     plot(ddax,[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],'-.k','DisplayName','Unity');
     xlabel('Depth (m)');
     ylabel('Drift (m)');
@@ -514,17 +542,17 @@ function hfigs = makeplots(sweep)
     ddax.FontSize = 12;
     export_fig(ddfig,[imagedir 'driftDepth.png'],'-png','-transparent','-m3');    
     
+    %% fig 14
     pyfig = figure('Position',[100 100 600 400]);
     pyax = axes('Parent',pyfig);
     hold(pyax,'on');
     meanpitch = meanpitch*180/pi-90;
     meanyaw = meanyaw*180/pi;
-    plot(pyax,meanpitch(1:11),meanyaw(1:11),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
-    plot(pyax,meanpitch(12:22),meanyaw(12:22),'-ob','MarkerEdgeColor','b','MarkerFaceColor','b','DisplayName',num2str(relativeDensity(12)));
-    plot(pyax,meanpitch(23:33),meanyaw(23:33),'-+g','MarkerEdgeColor','g','MarkerFaceColor','g','DisplayName',num2str(relativeDensity(23)));
-    plot(pyax,meanpitch(34:44),meanyaw(34:44),'-sk','MarkerEdgeColor','k','MarkerFaceColor','k','DisplayName',num2str(relativeDensity(34)));
-    plot(pyax,meanpitch(45:55),meanyaw(45:55),'-dc','MarkerEdgeColor','c','MarkerFaceColor','c','DisplayName',num2str(relativeDensity(45)));
-    plot(pyax,meanpitch(56:66),meanyaw(56:66),'-^m','MarkerEdgeColor','m','MarkerFaceColor','m','DisplayName',num2str(relativeDensity(56)));
+    plot(pyax,meanpitch(1:ballastRows),meanyaw(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(pyax,meanpitch(i*ballastRows+1:(i+1)*ballastRows),meanyaw(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end    
+
     xlabel('Pitch (deg)');
     ylabel('Yaw (deg)');
     hleg = legend('Location','Best','Color','none');
