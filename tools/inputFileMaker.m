@@ -3,18 +3,19 @@
 
 clearvars; close all; clc;
 
-relativeDensities = [1 0.99 0.98 0.97 0.96 0.95];
-%relativeDensities = [0.74 0.76 0.78 0.8 0.82 0.84 0.86 0.88 1.12 1.14 1.16 1.18 1.2 1.22 1.24 1.26 1.28 1.3 1.32];
-% ballastZLocationsPrcnt = [0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5];
-ballastZLocationsPrcnt = [-0.35 -0.3 -0.25 -0.2 -0.15 -0.1 -0.05];
+% relativeDensities = [1 0.99 0.98 0.97 0.96 0.95];
+relativeDensities = [0.999 0.998 0.997 0.996];
+% relativeDensities = [0.74 0.76 0.78 0.8 0.82 0.84 0.86 0.88 1.12 1.14 1.16 1.18 1.2 1.22 1.24 1.26 1.28 1.3 1.32];
+ballastZLocationsPrcnt = [0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5];
+% ballastZLocationsPrcnt = [-0.35 -0.3 -0.25 -0.2 -0.15 -0.1 -0.05];
 %ballastZLocationsPrcnt = 0;
 % windwardFlowFactors = 0.667; %[0.4 0.6 0.8 1.0];
 % leewardFlowFactors = 0.667; %[0.4 0.6 0.8 1.0];
 windwardFlowFactors = 0.8;
 leewardFlowFactors = 0.4;
 pathToInputFolder = '..\input\';
-casesName = 'TOBcase';
-caseNumber = 1;
+casesName = 'BLUcase';
+caseNumber = 67;
 for i1=1:1:length(relativeDensities)
     for i2=1:1:length(ballastZLocationsPrcnt)
         for i3=1:1:length(windwardFlowFactors)
@@ -40,7 +41,7 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','bladeLength1 = 18;');
                 fprintf(inputFileID,'%s\n','secChord1 = bladeLength1/aspectRatio1;');
                 fprintf(inputFileID,'%s\n','numSections1 = 18;');
-                fprintf(inputFileID,'%s\n','numBlades1 = 2;');
+                fprintf(inputFileID,'%s\n','numBlades1 = 3;');
                 fprintf(inputFileID,'%s\n','bladeDZfrac1 = 0.1;');
                 fprintf(inputFileID,'%s\n','twist1.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist1.numBlades = numBlades1;');
@@ -53,7 +54,7 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','bladeLength2 = 18;');
                 fprintf(inputFileID,'%s\n','secChord2 = bladeLength1/aspectRatio1;');
                 fprintf(inputFileID,'%s\n','numSections2 = 18;');
-                fprintf(inputFileID,'%s\n','numBlades2 = 2;');
+                fprintf(inputFileID,'%s\n','numBlades2 = 3;');
                 fprintf(inputFileID,'%s\n','bladeDZfrac2 = 0.1;');
                 fprintf(inputFileID,'%s\n','twist2.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist2.numBlades = numBlades1;');
