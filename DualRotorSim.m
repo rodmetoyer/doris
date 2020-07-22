@@ -10,15 +10,20 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    sweep = "FBL";
+    sweep = "DBB";
+    itr = 1;
+    for i=1:1:66
+            inputfiles(itr) = strcat("case",num2str(i));
+            itr = itr + 1;
+    end
 %     inputfiles = ["case1","case2","case3","case4","case5","case6","case7","case8","case9","case10","case11",...
 %         "case12","case13","case14","case15","case16","case17","case18","case19","case20","case21","case22",...
 %         "case23","case24","case25","case26","case27","case28","case29","case30","case31","case32","case33",...
 %         "case34","case35","case36","case37","case38","case39","case40","case41","case42","case43","case44",...
 %         "case45","case46","case47","case48","case49","case50","case51","case52","case53","case54","case55",...
 %         "case56","case57","case58","case59","case60","case61","case62","case63","case64","case65","case66"];
-    inputfiles = ["case95","case96","case97","case98","case99","case100","case101","case102","case103","case104",...
-        "case105","case106","case107","case108"];
+%     inputfiles = ["case89","case90","case91","case92","case93","case94","case95","case96","case97","case98","case99",...
+%         "case100","case101","case102","case103","case104","case105","case106","case107","case108","case109","case110"];
     inputfiles = strcat(sweep,inputfiles,".m");
     ssitr = 1;
     
