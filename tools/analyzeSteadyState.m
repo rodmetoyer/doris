@@ -7,14 +7,26 @@ addpath('..\src');
 cd ..\ % Working from the top folder
 ballastPlots = false;
 reldensPlots = false;
-% BLUplots = true;
-% EFFplots = false;
-sweep = "EFF";
-%makeplots("BLU");
-%makeplots("EFF");
-makeplots("FBL");
-%makeplots("BLL");
 
+%sweep = "EFF";
+%makeplots("BLU");
+makeplots("EFF");
+%makeplots("FBL");
+%makeplots("BLL");
+%makeplots("DBB");
+
+
+% function makeIsoPlots(sweep)
+%     imagedir = ['products\analysis\' char(sweep) '\'];
+%     if strcmp(sweep,"BLU")
+%         inputfiles = ["caseBO1Extended.m","caseBO2Extended.m","caseBO3Extended.m","caseBO4Extended.m","caseBO5Extended.m",...
+%             "case7Extended.m","case8Extended.m","case9Extended.m","case10Extended.m","case11Extended.m",...
+%             "BLUcase1.m","BLUcase2.m","BLUcase3.m","BLUcase4.m","BLUcase5.m",...
+%             "BLUcase6.m","BLUcase7.m","BLUcase8.m","BLUcase9.m","BLUcase10.m","BLUcase11.m"];
+%     else
+%         
+%     end
+% end
 
 %% Ballast Only
 if ballastPlots
@@ -241,12 +253,31 @@ function hfigs = makeplots(sweep)
     if ~exist(imagedir,'dir')
         mkdir(imagedir);
     end
-    inputfiles = ["case1","case2","case3","case4","case5","case6","case7","case8","case9","case10","case11",...
-        "case12","case13","case14","case15","case16","case17","case18","case19","case20","case21","case22",...
-        "case23","case24","case25","case26","case27","case28","case29","case30","case31","case32","case33",...
-        "case34","case35","case36","case37","case38","case39","case40","case41","case42","case43","case44",...
-        "case45","case46","case47","case48","case49","case50","case51","case52","case53","case54","case55",...
-        "case56","case57","case58","case59","case60","case61","case62","case63","case64","case65","case66"];
+    
+    reldensCols = 6;
+    itr = 1;
+    for i=1:1:66
+        inputfiles(itr) = strcat("case",num2str(i));
+        itr = itr + 1;
+    end
+    
+    if strcmp(sweep,"BLU")
+        %reldensCols = 10;
+        reldensCols = 6;
+        itr = 1;
+        for i=1:1:11
+            inputfiles(itr) = strcat("case",num2str(i),"Extended");
+            itr = itr + 1;
+        end
+%         for i=67:1:110
+%             inputfiles(itr) = strcat("case",num2str(i),"Extended");
+%             itr = itr + 1;
+%         end
+        for i=12:1:66
+            inputfiles(itr) = strcat("case",num2str(i));
+            itr = itr + 1;
+        end
+    end
 %     if strcmp(sweep,'FBL')
 %         numinfls = 108;
 %     else
@@ -265,7 +296,7 @@ function hfigs = makeplots(sweep)
 %             "case88","case89","case90","case91","case92","case93","case94","case34","case35","case36","case37","case38","case39","case40","case41","case42","case43","case44",...
 %             "case95","case96","case97","case98","case99","case100","case101","case45","case46","case47","case48","case49","case50","case51","case52","case53","case54","case55",...
 %             "case102","case103","case104","case105","case106","case107","case108","case56","case57","case58","case59","case60","case61","case62","case63","case64","case65","case66"];
-inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
+        inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
             "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
             "case81","case82","case83","case84","case85","case86","case87","case23","case24",...
             "case88","case89","case90","case91","case92","case93","case94","case34","case35",...
@@ -273,8 +304,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
             "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
     end
     
-    inputfiles = strcat(sweep,inputfiles,".m");
-    reldensCols = 6;
+    inputfiles = strcat(sweep,inputfiles,".m");    
     ballastRows = numel(inputfiles)/reldensCols;    
     ssitr = 1;
     steadyTolTime_s = 10;
@@ -309,6 +339,8 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
            ffDownstream(i) = sim.vhcl.rotors(2).axflowfac;
            relativeDensity(i) = sim.vhcl.relDensity;
     end
+    meanpitch = meanpitch*180/pi - 90;
+    meanyaw = meanyaw*180/pi;
     
     %% Figure 1
     skewfig = figure('Position',[100 100 600 400]);
@@ -326,6 +358,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     zlabel('Skew angle (deg)');
     skewax.Color = 'none';
     skewax.FontSize = 12;
+    grid(skewax,'on');
     export_fig(skewfig,[imagedir 'skewSurface.png'],'-png','-transparent','-m3');
 
     %% FIgure 2
@@ -344,6 +377,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     balax.Color = 'none';
     balax.FontSize = 12;
+    grid(balax,'on');
     export_fig(balfig,[imagedir 'skewLine.png'],'-png','-transparent','-m3');
     
     %% figure 3
@@ -366,15 +400,16 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     rdax.Color = 'none';
     rdax.XDir = 'reverse';
     rdax.FontSize = 12;
+    grid(rdax,'on');
     export_fig(rdfig,[imagedir 'skewLineRD.png'],'-png','-transparent','-m3');
     
     %% Figure 4
     yawfig = figure('Position',[100 100 600 400]);
     yawax = axes('Parent',yawfig);
     hold(yawax,'on');
-    plot(yawax,cm(3,1:ballastRows)*100,meanyaw(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(yawax,cm(3,1:ballastRows)*100,meanyaw(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(yawax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanyaw(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        plot(yawax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanyaw(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
     xlabel('Center mass axial loction (%Body Length)');
@@ -383,15 +418,16 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     yawax.Color = 'none';
     yawax.FontSize = 12;
+    grid(yawax,'on');
     export_fig(yawfig,[imagedir 'yawLine.png'],'-png','-transparent','-m3');
     
     %% figure 5
     ptchfig = figure('Position',[100 100 600 400]);
     ptchax = axes('Parent',ptchfig);
     hold(ptchax,'on');
-    plot(ptchax,cm(3,1:ballastRows)*100,meanpitch(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(ptchax,cm(3,1:ballastRows)*100,meanpitch(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
     xlabel('Center mass axial loction (%Body Length)');
@@ -400,6 +436,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     ptchax.Color = 'none';
     ptchax.FontSize = 12;
+    grid(ptchax,'on');
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
     %% figure 6
@@ -415,6 +452,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     zlabel('Depth (m)');
     depthax.Color = 'none';
     depthax.FontSize = 12;
+    grid(depthax,'on');
     export_fig(depthfig,[imagedir 'depthSurface.png'],'-png','-transparent','-m3');
     
     %% fig 7
@@ -432,15 +470,16 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     dlineax.Color = 'none';
     dlineax.FontSize = 12;
+    grid(dlineax,'on');
     export_fig(dlinefig,[imagedir 'depthLine.png'],'-png','-transparent','-m3');
     
     % figure 8
     dpitchfig = figure('Position',[100 100 600 400]);
     dpitchax = axes('Parent',dpitchfig);
     hold(dpitchax,'on');
-    plot(dpitchax,meanpitch(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(dpitchax,meanpitch(1:ballastRows),meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(dpitchax,meanpitch(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        plot(dpitchax,meanpitch(i*ballastRows+1:(i+1)*ballastRows),meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
     xlabel('Pitch Angle (Deg)');
@@ -449,15 +488,16 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     dpitchax.Color = 'none';
     dpitchax.FontSize = 12;
+    grid(dpitchax,'on');
     export_fig(dpitchfig,[imagedir 'depthPitchLine.png'],'-png','-transparent','-m3');
     
     %% figure 9
     dyawfig = figure('Position',[100 100 600 400]);
     dyawax = axes('Parent',dyawfig);
     hold(dyawax,'on');
-    plot(dyawax,meanyaw(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(dyawax,meanyaw(1:ballastRows),meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(dyawax,meanyaw(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        plot(dyawax,meanyaw(i*ballastRows+1:(i+1)*ballastRows),meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
     xlabel('Yaw Angle (Deg)');
@@ -466,6 +506,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     dyawax.Color = 'none';
     dyawax.FontSize = 12;
+    grid(dyawax,'on');
     export_fig(dyawfig,[imagedir 'depthYawLine.png'],'-png','-transparent','-m3');
     
     
@@ -490,6 +531,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     dskewax.YLim = [-60 0];
     dskewax.XGrid = 'on';
     dskewax.YGrid = 'on';
+    grid(dskewax,'on');
     export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
     
     %% fig 11
@@ -505,6 +547,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     zlabel('Drift (m)');
     driftax.Color = 'none';
     driftax.FontSize = 12;
+    grid(driftax,'on');
     export_fig(driftfig,[imagedir 'driftSurface.png'],'-png','-transparent','-m3');
     
     %% fig 12
@@ -522,6 +565,7 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     dftlineax.Color = 'none';
     dftlineax.FontSize = 12;
+    grid(dftlineax,'on');
     export_fig(dftlinefig,[imagedir 'driftLine.png'],'-png','-transparent','-m3');
     
     %% fig 13
@@ -540,14 +584,15 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     ddax.Color = 'none';
     ddax.FontSize = 12;
+    grid(ddax,'on');
     export_fig(ddfig,[imagedir 'driftDepth.png'],'-png','-transparent','-m3');    
     
     %% fig 14
     pyfig = figure('Position',[100 100 600 400]);
     pyax = axes('Parent',pyfig);
     hold(pyax,'on');
-    meanpitch = meanpitch*180/pi-90;
-    meanyaw = meanyaw*180/pi;
+    %meanpitch = meanpitch*180/pi-90;
+%     meanyaw = meanyaw*180/pi;
     plot(pyax,meanpitch(1:ballastRows),meanyaw(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
         plot(pyax,meanpitch(i*ballastRows+1:(i+1)*ballastRows),meanyaw(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
@@ -559,5 +604,6 @@ inputfiles = ["case67","case68","case69","case70","case71","case72","case73","ca
     hleg.Title.String = 'Relative Density';
     pyax.Color = 'none';
     pyax.FontSize = 12;
+    grid(pyax,'on');
     export_fig(pyfig,[imagedir 'pitchyaw.png'],'-png','-transparent','-m3');
 end

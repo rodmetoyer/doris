@@ -2,7 +2,7 @@
 
 clearvars; close all; clc;
 
-reldens = 1.0:-0.01:0.84;
+reldens = 1.0:-0.01:0.95;
 bodyLength = 18.0;
 %bodyRadius = 0.05*bodyLength;
 rotorRadius = bodyLength;
@@ -12,8 +12,9 @@ bodyPrcnt = 0:0.001:0.1;
 s3 = bodyPrcnt*bodyLength;
 axisScaler = 1.2;
 plotcolor = 'none';
-lgnclr = 'w'; % [0.8510 0.8510 0.8510]
+lgnclr = [0.8510 0.8510 0.8510];
 saveplots = true;
+savenameapp = 'rr';
 
 for i=1:1:length(reldens)
     for j=1:1:length(s3)
@@ -36,9 +37,11 @@ grid(tax,'on');
 xlabel('a_3');
 ylabel('Pitch Angle (deg)');
 title(['a_1 = ' num2str(a1,2)]);
+tax.XLim = [0 0.1];
+tax.YLim = [-40 80];
 tax.Color = plotcolor;
 if saveplots
-export_fig(tfig,['products\images\stillHydrostaticPlot' num2str(a1,2) '.png'],'-transparent','-m3');
+export_fig(tfig,['products\images\stillHydrostaticPlot' num2str(a1,2) savenameapp '.png'],'-transparent','-m3');
 end
 
 % plot what this looks like
@@ -74,6 +77,7 @@ axis equal
 axis([-axisScaler*bodyLength axisScaler*bodyLength -axisScaler*bodyLength axisScaler*bodyLength])
 hfig.Children.XTick = [];
 hfig.Children.YTick = [];
+hfig.Children.Visible = 'off';
 %title(['Equilibrium position when \sigma = ' num2str(reldens(reldensindx),'%3.2f') ' and CM_a = ' num2str(s3toplot/bodyLength,'%2.1f') '*L_B']);
 hfig.Children.Color = plotcolor;
 if saveplots
