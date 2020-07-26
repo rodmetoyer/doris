@@ -5,9 +5,9 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "BLU";
+sweep = "DBB";
 itr = 1;
-for i=1:1:66
+for i=35:-1:25
     inputfiles(itr) = strcat("case",num2str(i));
     itr = itr + 1;
 end

@@ -10,10 +10,17 @@ reldensPlots = false;
 
 %sweep = "EFF";
 %makeplots("BLU");
-makeplots("EFF");
+
 %makeplots("FBL");
 %makeplots("BLL");
 %makeplots("DBB");
+%makeplots("TCS","Extended");
+%makeplots("DBB","Extended");
+
+%makeplots("EFS","Extended");  % Equal flow factor static flow
+%makeplots("EFF"); % Equal flow factors  
+makeplots("EF2"); % Ballast location double radial distance
+%makeplots("EF3");
 
 
 % function makeIsoPlots(sweep)
@@ -248,7 +255,10 @@ end %reldensplots
 cd tools
 
 %% make plots function
-function hfigs = makeplots(sweep)
+function hfigs = makeplots(sweep,appnd)
+    if nargin < 2
+        appnd = "";
+    end
     imagedir = ['products\analysis\' char(sweep) '\'];
     if ~exist(imagedir,'dir')
         mkdir(imagedir);
@@ -257,7 +267,7 @@ function hfigs = makeplots(sweep)
     reldensCols = 6;
     itr = 1;
     for i=1:1:66
-        inputfiles(itr) = strcat("case",num2str(i));
+        inputfiles(itr) = strcat("case",num2str(i),appnd);
         itr = itr + 1;
     end
     
@@ -304,6 +314,12 @@ function hfigs = makeplots(sweep)
             "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
     end
     
+    if strcmp(sweep,'EFS')
+        % Skip the relative density = 1 cases because it drifts too much
+        reldensCols = 5;
+        inputfiles = inputfiles(12:end);
+    end
+    
     inputfiles = strcat(sweep,inputfiles,".m");    
     ballastRows = numel(inputfiles)/reldensCols;    
     ssitr = 1;
@@ -311,6 +327,7 @@ function hfigs = makeplots(sweep)
     steadyTolDeg = 1/10;
     for i=1:1:numel(inputfiles)
         sim = simulation.loadsim(inputfiles(i));
+        a1 = sim.vhcl.centermass(1)/sim.vhcl.body.length;
         depth = sim.states(:,3);
         drift = sim.states(:,2);
         streamwise = sim.states(:,1);
@@ -340,6 +357,8 @@ function hfigs = makeplots(sweep)
            relativeDensity(i) = sim.vhcl.relDensity;
     end
     meanpitch = meanpitch*180/pi - 90;
+    meanpitch(meanpitch > 180) = mod(meanpitch(meanpitch > 180),360)-360;
+    meanpitch(meanpitch < -180) = mod(meanpitch(meanpitch < -180),360)-360;
     meanyaw = meanyaw*180/pi;
     
     %% Figure 1
@@ -356,6 +375,7 @@ function hfigs = makeplots(sweep)
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Relative Density');
     zlabel('Skew angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     skewax.Color = 'none';
     skewax.FontSize = 12;
     grid(skewax,'on');
@@ -373,6 +393,7 @@ function hfigs = makeplots(sweep)
     end
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Skew angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     balax.Color = 'none';
@@ -384,15 +405,25 @@ function hfigs = makeplots(sweep)
     rdfig = figure('Position',[100 100 600 400]);
     rdax = axes('Parent',rdfig);
     hold(rdax,'on');
-    plot(rdax,relativeDensity([1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1]),skew([1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1])*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(cm(3,1)*100,'%2.1f'));
+    %inds = [1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1];
+    inds = [];
+    for i=1:1:reldensCols
+        inds = [inds,(i-1)*ballastRows+1];
+    end
+    plot(rdax,relativeDensity(inds),skew(inds)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(cm(3,1)*100,'%2.1f'));
     for i=1:1:ballastRows-1
-        plot(rdax,relativeDensity([(1+i),(ballastRows+1+i),(2*ballastRows+1+i),(3*ballastRows+1+i),(4*ballastRows+1+i),(5*ballastRows+1+i)]),...
-            skew([(1+i),(ballastRows+1+i),(2*ballastRows+1+i),(3*ballastRows+1+i),(4*ballastRows+1+i),(5*ballastRows+1+i)])*180/pi,...
+        inds = [];
+        for j=1:1:reldensCols
+            inds = [inds,(j-1)*ballastRows+1+i];
+        end
+        plot(rdax,relativeDensity(inds),...
+            skew(inds)*180/pi,...
             char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(cm(3,(i+1))*100,'%2.1f'));
     end
 
     xlabel('Relative Density');
     ylabel('Skew angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','North','Color','w');
     hleg.Title.String = 'CM Loc. (%L_B)';
     hleg.NumColumns = 6;
@@ -414,6 +445,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Yaw angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     yawax.Color = 'none';
@@ -432,10 +464,12 @@ function hfigs = makeplots(sweep)
 
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Pitch angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     ptchax.Color = 'none';
     ptchax.FontSize = 12;
+    ptchax.YLim = [-40 80];
     grid(ptchax,'on');
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
@@ -450,6 +484,7 @@ function hfigs = makeplots(sweep)
     xlabel('CM_a_x_i_a_l (%Body Length)');
     ylabel('Relative Density');
     zlabel('Depth (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     depthax.Color = 'none';
     depthax.FontSize = 12;
     grid(depthax,'on');
@@ -466,6 +501,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Depth (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dlineax.Color = 'none';
@@ -484,6 +520,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Pitch Angle (Deg)');
     ylabel('Depth (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dpitchax.Color = 'none';
@@ -502,6 +539,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Yaw Angle (Deg)');
     ylabel('Depth (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dyawax.Color = 'none';
@@ -521,6 +559,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Skew Angle (Deg)');
     ylabel('Depth (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dskewax.Color = 'none';
@@ -545,6 +584,7 @@ function hfigs = makeplots(sweep)
     xlabel('CM_a_x_i_a_l (%Body Length)');
     ylabel('Relative Density');
     zlabel('Drift (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     driftax.Color = 'none';
     driftax.FontSize = 12;
     grid(driftax,'on');
@@ -561,6 +601,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Center mass axial loction (%Body Length)');
     ylabel('Drift (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dftlineax.Color = 'none';
@@ -580,6 +621,7 @@ function hfigs = makeplots(sweep)
     plot(ddax,[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],[max(min(meandepth),min(meandrift)) min(max(meandepth),max(meandrift))],'-.k','DisplayName','Unity');
     xlabel('Depth (m)');
     ylabel('Drift (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     ddax.Color = 'none';
@@ -600,6 +642,7 @@ function hfigs = makeplots(sweep)
 
     xlabel('Pitch (deg)');
     ylabel('Yaw (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     pyax.Color = 'none';

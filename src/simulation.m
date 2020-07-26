@@ -189,7 +189,7 @@ classdef simulation < handle
             % save to. Otherwise the filename will be whatever the
             % simulation name is.
             
-            outDir = 'products\data\';
+            outDir = 'products\data\plaintext\';
             if ~exist(outDir,'dir')
                 mkdir(outDir);
             end

@@ -10,9 +10,9 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    sweep = "DBB";
+    sweep = "DB2";
     itr = 1;
-    for i=1:1:66
+    for i=66:-1:1
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end
