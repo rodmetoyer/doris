@@ -9,19 +9,24 @@ ballastPlots = false;
 reldensPlots = false;
 
 %sweep = "EFF";
-%makeplots("BLU");
 
-%makeplots("FBL");
-%makeplots("BLL");
-%makeplots("DBB");
-%makeplots("TCS","Extended");
-%makeplots("DBB","Extended");
+%%%%%% Not ready (still working on it) sweeps
+%makeplots("DB2");
 
-%makeplots("EFS","Extended");  % Equal flow factor static flow
-%makeplots("EFF"); % Equal flow factors  
-makeplots("EF2"); % Ballast location double radial distance
+%%%%%% Ready to go sweeps %%%%%%%%
+%makeplots("BLU");   % Baseline utitly scale
+%makeplots("FBL");   % Four blades on leeward rotor
+%makeplots("BLL");   % Baseline with lower induction (higher flow factor) on rear rotor
+%makeplots("DBB","Extended"); % Radial distance of ballast is doubled
+
+%%% Equal flow factor sweeps
+%makeplots("EFS","Extended"); % Equal flow factor static flow
+%makeplots("EFF");            % Equal flow factors  
+makeplots("EF2");             % Ballast location double radial distance
 %makeplots("EF3");
 
+%%% Tactical scale %%%
+%makeplots("TCS","Extended");
 
 % function makeIsoPlots(sweep)
 %     imagedir = ['products\analysis\' char(sweep) '\'];
