@@ -5,60 +5,72 @@ clear all; close all; clc;
 addpath('..\src');
 cd ..\
 % set-up - load depBaseline to compare to Aerodyn
-inputfile = 'ballastTest.m';
-sim = simulation(inputfile);
+% inputfile = 'ballastTest.m';
+% sim = simulation(inputfile);
+sim = simulation.loadsim('BLUcase1');
 cd test
 
 % Compare constant induction to BEMT
-stopSpeed = 22;
-hfig = sim.vhcl.rotors(1).showmetorquecurve(0:0.5:stopSpeed,sim.fld);
+stopSpeed = 1.1;
+stepSize = 0.02;
+% stopSpeed = 22;
+% stepSize = 0.5;
+sim.vhcl.rotors(1).setAxialFlowFactor(1);
+hfig = sim.vhcl.rotors(1).showmeCTQcurve(0:stepSize:stopSpeed,sim.fld);
 noInductionX = hfig.CurrentAxes.Children.XData;
 noInductionY = hfig.CurrentAxes.Children.YData;
+
 sim.vhcl.rotors(1).setAxialFlowFactor(2/3);
-hfig2 = sim.vhcl.rotors(1).showmetorquecurve(0:0.5:stopSpeed,sim.fld);
+hfig2 = sim.vhcl.rotors(1).showmeCTQcurve(0:stepSize:stopSpeed,sim.fld);
 constInductionX = hfig2.CurrentAxes.Children.XData;
 constInductionY = hfig2.CurrentAxes.Children.YData;
+
 sim.vhcl.rotors(1).setAxialFlowFactor(1);
 sim.vhcl.rotors(1).setBEMT([true,true]);
-hfig3 = sim.vhcl.rotors(1).showmetorquecurve(0:0.5:stopSpeed,sim.fld);
+hfig3 = sim.vhcl.rotors(1).showmeCTQcurve(0:stepSize:stopSpeed,sim.fld);
 bemtX = hfig3.CurrentAxes.Children.XData;
 bemtY = hfig3.CurrentAxes.Children.YData;
+
 hfig4 = figure('Position',[100 100 800 600]);
 ax4 = axes('Parent',hfig4);
-plot(ax4,noInductionX,noInductionY,'r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
-legend('No Induction','Constant 1/3','BEMT','Color','none','Location','Best');
+plot(ax4,noInductionX,noInductionY,'-.r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
+legend('No Induction','Constant 1/3','BEMT','Color',[0.8510 0.8510 0.8510],'Location','Best');
 xlabel('TSR'); ylabel('C_T_Q');
 hfig4.Color = 'none';
 ax4.Color = 'none';
-axis(ax4,[0 10 -0.01 0.13]);
+%axis(ax4,[0 10 -0.01 0.13]);
 hfig4.Position = [200 200 320 270];
-export_fig('output/figs/inductionConstVsBEMT_torque', '-png', '-transparent');
+export_fig('output/figs/inductionConstVsBEMTutil_torque2g', '-png', '-transparent');
 %savefig('output/figs/inductionConstVsBEMT.fig');
 %% now do power
 sim.vhcl.rotors(1).setBEMT([false,false]);
 sim.vhcl.rotors(1).setAxialFlowFactor(1);
-hfig = sim.vhcl.rotors(1).showmepowercurve(0:0.5:stopSpeed,sim.fld);
+hfig = sim.vhcl.rotors(1).showmeCPcurve(0:stepSize:stopSpeed,sim.fld);
+
 noInductionX = hfig.CurrentAxes.Children.XData;
 noInductionY = hfig.CurrentAxes.Children.YData;
 sim.vhcl.rotors(1).setAxialFlowFactor(2/3);
-hfig2 = sim.vhcl.rotors(1).showmepowercurve(0:0.5:stopSpeed,sim.fld);
+
+hfig2 = sim.vhcl.rotors(1).showmeCPcurve(0:stepSize:stopSpeed,sim.fld);
 constInductionX = hfig2.CurrentAxes.Children.XData;
 constInductionY = hfig2.CurrentAxes.Children.YData;
 sim.vhcl.rotors(1).setAxialFlowFactor(1);
 sim.vhcl.rotors(1).setBEMT([true,true]);
-hfig3 = sim.vhcl.rotors(1).showmepowercurve(0:0.5:stopSpeed,sim.fld);
+
+hfig3 = sim.vhcl.rotors(1).showmeCPcurve(0:stepSize:stopSpeed,sim.fld);
 bemtX = hfig3.CurrentAxes.Children.XData;
 bemtY = hfig3.CurrentAxes.Children.YData;
+
 hfig4 = figure('Position',[100 100 800 600]);
 ax4 = axes('Parent',hfig4);
-plot(ax4,noInductionX,noInductionY,'r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
-legend('No Induction','Constant 1/3','BEMT','Color','none','Location','Best');
+plot(ax4,noInductionX,noInductionY,'-.r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
+legend('No Induction','Constant 1/3','BEMT','Color',[0.8510 0.8510 0.8510],'Location','Best');
 xlabel('TSR'); ylabel('C_P');
 hfig4.Color = 'none';
 ax4.Color = 'none';
 hfig4.Position = [200 200 320 270];
-export_fig('output/figs/inductionConstVsBEMT_power', '-png', '-transparent');
-
+export_fig('output/figs/inductionConstVsBEMTutil_power2g', '-png', '-transparent');
+return
 %% compare to Sheldahl and Klimas
 CL_naca0015 = [1.069407935	0.04768205;...
 2.37505005	0.233718643;...

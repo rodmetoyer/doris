@@ -6,15 +6,15 @@ reldens = 1.0:-0.01:0.95;
 bodyLength = 18.0;
 %bodyRadius = 0.05*bodyLength;
 rotorRadius = bodyLength;
-a1 = 0.0051; % 18m length is 1.2 diamter or 0.6 radius 0.6/18*0.8=0.0267
+a1 = 0.030674846625767; 
 s1 = a1*bodyLength;
 bodyPrcnt = 0:0.001:0.1;
 s3 = bodyPrcnt*bodyLength;
 axisScaler = 1.2;
 plotcolor = 'none';
-lgnclr = [0.8510 0.8510 0.8510];
+lgnclr = 'w';%[0.8510 0.8510 0.8510];
 saveplots = true;
-savenameapp = 'rr';
+savenameapp = 'tac';
 
 for i=1:1:length(reldens)
     for j=1:1:length(s3)
@@ -22,7 +22,7 @@ for i=1:1:length(reldens)
     end
 end
 
-tfig = figure('Position',[800 300 400 300],'color',plotcolor);
+tfig = figure('Position',[800 300 600 400],'color',plotcolor);
 tax = axes('Parent',tfig);
 hold(tax,'on');
 plot(tax,s3/bodyLength,theta(1,:)-90,'DisplayName',['\sigma = ' num2str(reldens(1),'%3.2f')],'LineWidth',2.0);
@@ -31,15 +31,20 @@ for i=2:1:length(reldens)-1
 end
 plot(tax,s3/bodyLength,theta(end,:)-90,'DisplayName',['\sigma = ' num2str(reldens(end),'%3.2f')],'LineWidth',2.0);
 h = tax.Children;
-hleg = legend([h(1) h(round(length(reldens)/2)) h(end)],'Location','Best','Color',lgnclr);
-hleg.Title.String = ['Relative Density (Incr. 0.01)'];
+% hleg = legend([h(end) h(round(length(reldens)/2)) h(1)],'Location','Best','Color',lgnclr);
+hleg = legend('Location','Best','Color',lgnclr);
+% hleg.Title.String = ['Relative Density (Incr. 0.01)'];
+hleg.Title.String = ['Relative Density'];
 grid(tax,'on');
-xlabel('a_3');
+%xlabel('a_3');
+xlabel('Normalized Center Mass Axial Location (a_3)');
 ylabel('Pitch Angle (deg)');
-title(['a_1 = ' num2str(a1,2)]);
+text(tax,0.022,110,['a_1 = ' num2str(a1,2)],'FontSize',12);
+% title(['a_1 = ' num2str(a1,2)]);
 tax.XLim = [0 0.1];
-tax.YLim = [-40 80];
+tax.YLim = [-60 80];
 tax.Color = plotcolor;
+tax.FontSize = 12;
 if saveplots
 export_fig(tfig,['products\images\stillHydrostaticPlot' num2str(a1,2) savenameapp '.png'],'-transparent','-m3');
 end

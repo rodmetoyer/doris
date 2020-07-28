@@ -124,10 +124,10 @@ classdef tether < handle
                     unormi = vreli-uaxi;
                     unormplus = vrelplus-uaxplus;
                     % assuming an axial force coefficint of 0.1 - todo expose this
-                    q = f.density*hobj.radius;
-                    Fax = 0.5*(0.1*q*uaxi + 0.1*q*uaxplus);
+                    q = 0.5*f.density*hobj.radius*diplus; % eqns are force per unit length, so including diplus in q
+                    Fax = (0.1*q*uaxi + 0.1*q*uaxplus);
                     % assuming a normal force coefficint of 1.2 - todo expose this
-                    Fnorm = 0.5*(1.2*q*unormi + 1.2*q*unormplus);
+                    Fnorm = (1.2*q*unormi + 1.2*q*unormplus);
                     Fext = Fnorm + Fax + Fb;
                     % finally, populate the accelerations
                     allforce = Fext + fsi + fci - fsiplus - fciplus;

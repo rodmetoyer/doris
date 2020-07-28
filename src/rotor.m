@@ -311,7 +311,7 @@ classdef rotor < handle
             end
             hfig = figure('Color','w');
             temp1 = hobj.blades(1).length/norm(fld.velocity);
-            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity);
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^2;
             plot(speed*temp1,torque(3,:)/temp2,'r');
             xlabel('TSR'); ylabel('C_T_R_Q')
         end
@@ -332,7 +332,7 @@ classdef rotor < handle
             xlabel('Rotor Speed (RPM)'); ylabel('Torque (Nm)')
         end
         
-        function hfig = showmepowercurve(hobj,speed,fld)
+        function hfig = showmeCPcurve(hobj,speed,fld)
             % Makes a figure showing the torque curve for a rotor in the
             % current orientation in the passed fluid
             % speed = array of speed to plot
@@ -345,7 +345,7 @@ classdef rotor < handle
             end
             hfig = figure('Color','w');
             temp1 = hobj.blades(1).length/norm(fld.velocity);
-            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity);
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^2;
             plot(speed*temp1,torque(3,:).*speed/temp2,'r');
             xlabel('TSR'); ylabel('C_P')
         end

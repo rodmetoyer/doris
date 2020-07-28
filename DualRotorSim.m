@@ -10,9 +10,9 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    sweep = "DB2";
+    sweep = "EFT";
     itr = 1;
-    for i=66:-1:1
+    for i=51:1:60
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end
@@ -79,7 +79,7 @@ sim.simulate('output',[]);
 % name just pass the filename as an argument with no extension (the method
 % will append .txt).
 if ~sim.write2file
-    disp('I didn"t write to file. I" assuming you don"t want to make plots or movies either.');
+    disp('I didn''t write to file. I''m assuming you don''t want to make plots or movies either. Ending session.');
     return;
 end
 

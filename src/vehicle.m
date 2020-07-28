@@ -186,7 +186,7 @@ classdef vehicle < handle
             vRel_A = vF_A - hobj.velocity;
             % the normal component is made up of the 1 and 2 components,
             % and the axial component is the 3 component.
-            q = f.density*hobj.body.radius;
+            q = f.density*hobj.body.radius*hobj.body.length;
             vRelnorm_A = norm(vRel_A(1:2))*vRel_A(1:2);
             vRelax_A = vRel_A(3)*vRel_A(3);
             % Compute normal coefficient - see huston1981representation
@@ -195,8 +195,8 @@ classdef vehicle < handle
             % todo enable computation. For now these are constant
             Fn = hobj.body.normCoeff*q*vRelnorm_A; %1.2
             Fa = hobj.body.axCoeff*q*vRelax_A;   %0.1
-            %Fbod = [Fn;Fa];
-            Fbod = [0;0;0];
+            Fbod = [Fn;Fa];
+            %Fbod = [0;0;0];
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,hobj.body.torsSelect);

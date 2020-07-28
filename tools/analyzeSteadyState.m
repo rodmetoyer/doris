@@ -22,8 +22,9 @@ reldensPlots = false;
 %%% Equal flow factor sweeps
 %makeplots("EFS","Extended"); % Equal flow factor static flow
 %makeplots("EFF");            % Equal flow factors  
-makeplots("EF2");             % Ballast location double radial distance
+%makeplots("EF2");             % Ballast location double radial distance
 %makeplots("EF3");
+makeplots("EFT");
 
 %%% Tactical scale %%%
 %makeplots("TCS","Extended");
