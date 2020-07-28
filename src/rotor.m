@@ -311,7 +311,7 @@ classdef rotor < handle
             end
             hfig = figure('Color','w');
             temp1 = hobj.blades(1).length/norm(fld.velocity);
-            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^2;
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^3;
             plot(speed*temp1,torque(3,:)/temp2,'r');
             xlabel('TSR'); ylabel('C_T_R_Q')
         end
@@ -345,7 +345,7 @@ classdef rotor < handle
             end
             hfig = figure('Color','w');
             temp1 = hobj.blades(1).length/norm(fld.velocity);
-            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^2;
+            temp2 = 0.5*fld.density*pi*hobj.blades(1).length^2*norm(fld.velocity)^3;
             plot(speed*temp1,torque(3,:).*speed/temp2,'r');
             xlabel('TSR'); ylabel('C_P')
         end

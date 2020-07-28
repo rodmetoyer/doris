@@ -18,13 +18,15 @@ reldensPlots = false;
 %makeplots("FBL");   % Four blades on leeward rotor
 %makeplots("BLL");   % Baseline with lower induction (higher flow factor) on rear rotor
 %makeplots("DBB","Extended"); % Radial distance of ballast is doubled
+makeplots("DB2");
 
 %%% Equal flow factor sweeps
 %makeplots("EFS","Extended"); % Equal flow factor static flow
 %makeplots("EFF");            % Equal flow factors  
 %makeplots("EF2");             % Ballast location double radial distance
 %makeplots("EF3");
-makeplots("EFT");
+%makeplots("EFT");
+
 
 %%% Tactical scale %%%
 %makeplots("TCS","Extended");
