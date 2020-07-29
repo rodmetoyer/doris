@@ -12,7 +12,7 @@ addpath('src')
 if true
     sweep = "EFT";
     itr = 1;
-    for i=51:1:60
+    for i=61:1:61
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end

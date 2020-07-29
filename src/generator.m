@@ -42,6 +42,10 @@ classdef generator < handle
         function i = getArmatureCurrent(hobj,omg)
             i = (hobj.kmach*hobj.flux*omg)/(hobj.rarm + hobj.rload);
         end
+        function emf = getEMF(hobj,omg)
+            ia = hobj.getArmatureCurrent(omg);
+            emf = ia*(hobj.rarm + hobj.rload);
+        end
         function setMachineConstant(hobj,k)
             hobj.kmach = k;
         end
@@ -67,18 +71,18 @@ classdef generator < handle
             for i=1:1:length(lr)
                 hobj.setLoadResistance(lr(i));
                 for j=1:1:length(omg)
-                    pwr(i,j) = hobj.getPower(1.57*j/omg(end));
+                    pwr(i,j) = hobj.getPower(omg(j));
                 end
             end
             hfig = figure;
             ax = axes('Parent',hfig);
             hold(ax,'on');
-            for i=1:1:length(omg)
-                plot(ax,lr,pwr(:,i),'DisplayName',['\omega = ' num2str(omg(i)*30/pi,'%4.2f') ' RPM']);
+            for i=1:1:length(lr)
+                plot(ax,omg*30/pi,pwr(i,:)/1.0e6,'DisplayName',['R_L = ' num2str(lr(i),'%3.2f') ' \Omega']);
             end
-            ax.XScale = 'log';
+            %ax.YScale = 'log';
             legend('Location','Best');
-            xlabel('Load Resistance (Ohm)'); ylabel('Power (W)');
+            xlabel('Shaft Speed (RPM)'); ylabel('Electrical Power (MW)');
             hobj.setLoadResistance(originalResistance);
         end
         
@@ -87,18 +91,18 @@ classdef generator < handle
             for i=1:1:length(lr)
                 hobj.setLoadResistance(lr(i));
                 for j=1:1:length(omg)
-                    trq(i,j) = hobj.getTorque(1.57*j/omg(end));
+                    trq(i,j) = hobj.getTorque(omg(j));
                 end
             end
             hfig = figure;
             ax = axes('Parent',hfig);
             hold(ax,'on');
-            for i=1:1:length(omg)
-                plot(ax,lr,trq(:,i),'DisplayName',['\omega = ' num2str(omg(i)*30/pi,'%4.2f') ' RPM']);
+            for i=1:1:length(lr)
+                plot(ax,omg*30/pi,-trq(i,:),'DisplayName',['R_L = ' num2str(lr(i),'%3.2f') ' \Omega']);
             end
-            ax.XScale = 'log';
+            %ax.XScale = 'log';
             legend('Location','Best');
-            xlabel('Load Resistance (Ohm)'); ylabel('Torque (Nm)');
+            xlabel('Shaft Speed (RPM)'); ylabel('Torque (Nm)');
             hobj.setLoadResistance(originalResistance);
         end
         

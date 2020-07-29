@@ -18,7 +18,8 @@ reldensPlots = false;
 %makeplots("FBL");   % Four blades on leeward rotor
 %makeplots("BLL");   % Baseline with lower induction (higher flow factor) on rear rotor
 %makeplots("DBB","Extended"); % Radial distance of ballast is doubled
-makeplots("DB2");
+%makeplots("DB2","Extended");
+makeplots("DB3","Extended");
 
 %%% Equal flow factor sweeps
 %makeplots("EFS","Extended"); % Equal flow factor static flow
@@ -368,9 +369,10 @@ function hfigs = makeplots(sweep,appnd)
     meanpitch(meanpitch > 180) = mod(meanpitch(meanpitch > 180),360)-360;
     meanpitch(meanpitch < -180) = mod(meanpitch(meanpitch < -180),360)-360;
     meanyaw = meanyaw*180/pi;
-    
+    baseloc = 50;
+    moveright = 150;
     %% Figure 1
-    skewfig = figure('Position',[100 100 600 400]);
+    skewfig = figure('Position',[baseloc 100 600 400]);
     skewax = axes('Parent',skewfig);
     % reshape does col1 row1:n ... colm row1:n where n is num rows m is num cols 
     cmn = reshape(cm(3,:),ballastRows,reldensCols);
@@ -392,7 +394,7 @@ function hfigs = makeplots(sweep,appnd)
     %% FIgure 2
     mkrclrs = ["b","g","k","c","m","m","c","k","g","b","b","g","k","c","m","m","c","k","g","b"];
     styls = ["-o","-+","-s","-d","-^",":o",":+",":s",":d",":^","-.o","-.+","-.s","-.d","-.^","--o","--+","--s","--d","--^"];
-    balfig = figure('Position',[100 100 600 400]);
+    balfig = figure('Position',[baseloc+moveright 100 600 400]);
     balax = axes('Parent',balfig);
     hold(balax,'on');
     plot(balax,cm(3,1:ballastRows)*100,skew(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -410,7 +412,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(balfig,[imagedir 'skewLine.png'],'-png','-transparent','-m3');
     
     %% figure 3
-    rdfig = figure('Position',[100 100 600 400]);
+    rdfig = figure('Position',[baseloc+2*moveright 100 600 400]);
     rdax = axes('Parent',rdfig);
     hold(rdax,'on');
     %inds = [1,ballastRows+1,2*ballastRows+1,3*ballastRows+1,4*ballastRows+1,5*ballastRows+1];
@@ -443,7 +445,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(rdfig,[imagedir 'skewLineRD.png'],'-png','-transparent','-m3');
     
     %% Figure 4
-    yawfig = figure('Position',[100 100 600 400]);
+    yawfig = figure('Position',[baseloc+3*moveright 100 600 400]);
     yawax = axes('Parent',yawfig);
     hold(yawax,'on');
     plot(yawax,cm(3,1:ballastRows)*100,meanyaw(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -462,7 +464,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(yawfig,[imagedir 'yawLine.png'],'-png','-transparent','-m3');
     
     %% figure 5
-    ptchfig = figure('Position',[100 100 600 400]);
+    ptchfig = figure('Position',[baseloc+4*moveright 100 600 400]);
     ptchax = axes('Parent',ptchfig);
     hold(ptchax,'on');
     plot(ptchax,cm(3,1:ballastRows)*100,meanpitch(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -482,7 +484,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
     %% figure 6
-    depthfig = figure('Position',[100 100 600 400]);
+    depthfig = figure('Position',[baseloc+5*moveright 100 600 400]);
     depthax = axes('Parent',depthfig);
     cmn = reshape(cm(3,:),ballastRows,reldensCols);
     rdn = reshape(relativeDensity,ballastRows,reldensCols);
@@ -499,7 +501,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(depthfig,[imagedir 'depthSurface.png'],'-png','-transparent','-m3');
     
     %% fig 7
-    dlinefig = figure('Position',[100 100 600 400]);
+    dlinefig = figure('Position',[baseloc+6*moveright 100 600 400]);
     dlineax = axes('Parent',dlinefig);
     hold(dlineax,'on');
     plot(dlineax,cm(3,1:ballastRows)*100,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -518,7 +520,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(dlinefig,[imagedir 'depthLine.png'],'-png','-transparent','-m3');
     
     % figure 8
-    dpitchfig = figure('Position',[100 100 600 400]);
+    dpitchfig = figure('Position',[baseloc 600 600 400]);
     dpitchax = axes('Parent',dpitchfig);
     hold(dpitchax,'on');
     plot(dpitchax,meanpitch(1:ballastRows),meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -537,7 +539,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(dpitchfig,[imagedir 'depthPitchLine.png'],'-png','-transparent','-m3');
     
     %% figure 9
-    dyawfig = figure('Position',[100 100 600 400]);
+    dyawfig = figure('Position',[baseloc+moveright 600 600 400]);
     dyawax = axes('Parent',dyawfig);
     hold(dyawax,'on');
     plot(dyawax,meanyaw(1:ballastRows),meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -557,12 +559,12 @@ function hfigs = makeplots(sweep,appnd)
     
     
     %% fig 10
-    dskewfig = figure('Position',[100 100 600 400]);
+    dskewfig = figure('Position',[baseloc+2*moveright 600 600 400]);
     dskewax = axes('Parent',dskewfig);
     hold(dskewax,'on');
-    plot(dskewax,skew(1:ballastRows),meandepth(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    plot(dskewax,skew(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(dskewax,skew(i*ballastRows+1:(i+1)*ballastRows),meandepth(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        plot(dskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
     xlabel('Skew Angle (Deg)');
@@ -574,15 +576,15 @@ function hfigs = makeplots(sweep,appnd)
     dskewax.FontSize = 12;
     export_fig(dskewfig,[imagedir 'depthSkewLine.png'],'-png','-transparent','-m3');    
     % Zoom to region of interest
-    dskewax.XLim = [0 35];
-    dskewax.YLim = [-60 0];
+    %dskewax.XLim = [0 35];
+    %dskewax.YLim = [-60 0];
     dskewax.XGrid = 'on';
     dskewax.YGrid = 'on';
     grid(dskewax,'on');
-    export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
+    %export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
     
     %% fig 11
-    driftfig = figure('Position',[100 100 600 400]);
+    driftfig = figure('Position',[baseloc+3*moveright 600 600 400]);
     driftax = axes('Parent',driftfig);
     cmn = reshape(cm(3,:),ballastRows,reldensCols);
     rdn = reshape(relativeDensity,ballastRows,reldensCols);
@@ -599,7 +601,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(driftfig,[imagedir 'driftSurface.png'],'-png','-transparent','-m3');
     
     %% fig 12
-    dftlinefig = figure('Position',[100 100 600 400]);
+    dftlinefig = figure('Position',[baseloc+4*moveright 600 600 400]);
     dftlineax = axes('Parent',dftlinefig);
     hold(dftlineax,'on');
     plot(dftlineax,cm(3,1:ballastRows)*100,meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -618,7 +620,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(dftlinefig,[imagedir 'driftLine.png'],'-png','-transparent','-m3');
     
     %% fig 13
-    ddfig = figure('Position',[100 100 600 400]);
+    ddfig = figure('Position',[baseloc+5*moveright 600 600 400]);
     ddax = axes('Parent',ddfig);
     hold(ddax,'on');
     plot(ddax,meandepth(1:ballastRows),meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
@@ -638,7 +640,7 @@ function hfigs = makeplots(sweep,appnd)
     export_fig(ddfig,[imagedir 'driftDepth.png'],'-png','-transparent','-m3');    
     
     %% fig 14
-    pyfig = figure('Position',[100 100 600 400]);
+    pyfig = figure('Position',[baseloc+6*moveright 600 600 400]);
     pyax = axes('Parent',pyfig);
     hold(pyax,'on');
     %meanpitch = meanpitch*180/pi-90;
@@ -657,4 +659,29 @@ function hfigs = makeplots(sweep,appnd)
     pyax.FontSize = 12;
     grid(pyax,'on');
     export_fig(pyfig,[imagedir 'pitchyaw.png'],'-png','-transparent','-m3');
+    
+    %% fig 15
+    drskewfig = figure('Position',[baseloc+7*moveright 600 600 400]);
+    drskewax = axes('Parent',drskewfig);
+    hold(drskewax,'on');
+    plot(drskewax,skew(1:ballastRows)*180/pi,meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(drskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+    end
+
+    xlabel('Skew Angle (Deg)');
+    ylabel('Drift (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
+    hleg = legend('Location','Best','Color','none');
+    hleg.Title.String = 'Relative Density';
+    drskewax.Color = 'none';
+    drskewax.FontSize = 12;
+    export_fig(drskewfig,[imagedir 'depthSkewLine.png'],'-png','-transparent','-m3');    
+    % Zoom to region of interest
+    %dskewax.XLim = [0 35];
+    %dskewax.YLim = [-60 0];
+    drskewax.XGrid = 'on';
+    drskewax.YGrid = 'on';
+    grid(drskewax,'on');
+    %export_fig(drskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
 end

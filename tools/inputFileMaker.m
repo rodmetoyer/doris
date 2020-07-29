@@ -5,13 +5,13 @@ clearvars; close all; clc;
 
 relativeDensities = 1:-0.01:0.95;
 ballastZLocationsPrcnt = 0:0.05:0.5;
-ballastXLoc = '2.4';
-windwardFlowFactors = 0.667;
-leewardFlowFactors = 0.667;
+ballastXLoc = '0.8';
+windwardFlowFactors = 0.8;
+leewardFlowFactors = 0.4;
 numLeeBlades = '3';
 numWindBlades = '3';
 %%%% If you change anything above you probably want to change the case name %%%%
-casesName = 'EFTcase';
+casesName = 'BLBcase';
 caseNumberStart = 1;
 
 pathToInputFolder = '..\input\';
