@@ -196,12 +196,13 @@ classdef vehicle < handle
             Fn = hobj.body.normCoeff*q*vRelnorm_A; %1.2
             Fa = hobj.body.axCoeff*q*vRelax_A;   %0.1
             Fbod = [Fn;Fa];
-            %Fbod = [0;0;0];
+            %Fbod = [0;0;0]; % for debugging
             
             % Compute the moment coefficient
             cmc = hobj.getCylinderMomentCoefficient(f,hobj.body.torsSelect);
             % Add viscous torsion
             bodyTors = -hobj.body.torsionMod*0.5*f.density*pi*hobj.angvel(3)*abs(hobj.angvel(3))*hobj.body.radius^4*hobj.body.length*cmc;
+            %bodyTors = 0; % for debugging
                         
             % Sum along the 2dim gives 3x1xnumBlades of total blade loads
             % then sum along the 3dim to get 3x1 vector of total loads

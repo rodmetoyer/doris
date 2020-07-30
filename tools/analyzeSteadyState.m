@@ -10,8 +10,7 @@ reldensPlots = false;
 
 %sweep = "EFF";
 
-%%%%%% Not ready (still working on it) sweeps
-%makeplots("DB2");
+%makeplots("TCS","Extended");
 
 %%%%%% Ready to go sweeps %%%%%%%%
 %makeplots("BLU");   % Baseline utitly scale
@@ -19,7 +18,7 @@ reldensPlots = false;
 %makeplots("BLL");   % Baseline with lower induction (higher flow factor) on rear rotor
 %makeplots("DBB","Extended"); % Radial distance of ballast is doubled
 %makeplots("DB2","Extended");
-makeplots("DB3","Extended");
+%makeplots("DB3","Extended");
 
 %%% Equal flow factor sweeps
 %makeplots("EFS","Extended"); % Equal flow factor static flow
@@ -28,9 +27,12 @@ makeplots("DB3","Extended");
 %makeplots("EF3");
 %makeplots("EFT");
 
+%makeplots("EFS")
 
 %%% Tactical scale %%%
-%makeplots("TCS","Extended");
+makeplots("TCS","fromUnder",true);
+%makeplots("TCS","fromUnder");
+%makeplots("TCS","fromOver");
 
 % function makeIsoPlots(sweep)
 %     imagedir = ['products\analysis\' char(sweep) '\'];
@@ -100,7 +102,7 @@ if ballastPlots
         disp('Steady state reached for all case');
     end
     skewax.Children.CData = c;
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Skew angle (deg)');
     skewax.Color = 'none';
     skewax.FontSize = 12;
@@ -127,7 +129,7 @@ if ballastPlots
 %     str = {'Linear Fit',['R^2 = ' num2str(gof.rsquare,'%4.3f') '\rightarrow']};
 %     text(thetaax,0.9*x,y,str);
     legend('Location','Best','Color','none');
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Pitch angle (deg)');
     pitchax.Color = 'none';
     pitchax.FontSize = 12;
@@ -151,7 +153,7 @@ if ballastPlots
     plot(yawax,x,ppconst*y.*cosd(y),'DisplayName','k*pitch*cos(pitch)','Color','b');
     hold(yawax,'off');
     legend('Location','Best','Color','none');
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Yaw angle (deg)');
     yawax.Color = 'none';
     yawax.FontSize = 12;
@@ -264,10 +266,15 @@ end %reldensplots
 cd tools
 
 %% make plots function
-function hfigs = makeplots(sweep,appnd)
+function hfigs = makeplots(sweep,appnd,hydrostatic)
     if nargin < 2
         appnd = "";
+        hydrostatic = false;
     end
+    if nargin < 3
+        hydrostatic = false;
+    end
+
     imagedir = ['products\analysis\' char(sweep) '\'];
     if ~exist(imagedir,'dir')
         mkdir(imagedir);
@@ -297,6 +304,16 @@ function hfigs = makeplots(sweep,appnd)
             itr = itr + 1;
         end
     end
+    
+    if (strcmp(sweep,"TCS") && (strcmp(appnd,"fromUnder") || strcmp(appnd,"fromOver")))
+        reldensCols = 1;
+        clear inputfiles
+        itr = 1; 
+        for i=34:1:44
+            inputfiles(itr) = strcat("case",num2str(i),appnd);
+            itr = itr + 1;
+        end
+    end
 %     if strcmp(sweep,'FBL')
 %         numinfls = 108;
 %     else
@@ -323,11 +340,24 @@ function hfigs = makeplots(sweep,appnd)
             "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
     end
     
-    if strcmp(sweep,'EFS')
-        % Skip the relative density = 1 cases because it drifts too much
-        reldensCols = 5;
-        inputfiles = inputfiles(12:end);
-    end
+%     if strcmp(sweep,'EFS')
+%         % Skip the relative density = 1 cases because it drifts too much
+%         reldensCols = 5;
+%         inputfiles = inputfiles(12:end);
+%     end
+    
+%     if strcmp(sweep,'EF3')
+%         % 5 cases need extension - todo run extensions
+%         inputfiles(10) = strcat("case",num2str(i),"Extended");
+%         inputfiles(11) = strcat("case",num2str(i),"Extended");
+%         inputfiles(22) = strcat("case",num2str(i),"Extended");
+%         inputfiles(33) = strcat("case",num2str(i),"Extended");
+%         inputfiles(44) = strcat("case",num2str(i),"Extended");
+%     end
+
+    mkrclrs = ["b","g","k","c","m","m","c","k","g","b","b","g","k","c","m","m","c","k","g","b"];
+    styls = ["-o","-+","-s","-d","-^",":o",":+",":s",":d",":^","-.o","-.+","-.s","-.d","-.^","--o","--+","--s","--d","--^"];
+    
     
     inputfiles = strcat(sweep,inputfiles,".m");    
     ballastRows = numel(inputfiles)/reldensCols;    
@@ -371,6 +401,8 @@ function hfigs = makeplots(sweep,appnd)
     meanyaw = meanyaw*180/pi;
     baseloc = 50;
     moveright = 150;
+    
+    if ~hydrostatic
     %% Figure 1
     skewfig = figure('Position',[baseloc 100 600 400]);
     skewax = axes('Parent',skewfig);
@@ -382,7 +414,7 @@ function hfigs = makeplots(sweep,appnd)
     surf(skewax,cmn*100,rdn,skewn_deg,'FaceColor','interp','LineStyle','-');%,'Marker','o','MarkerFaceColor','r');
 %     scatter3(skewax,cm(3,:)*100,relativeDensity,skew*180/pi);%,'Marker','o','MarkerFaceColor','r');
     view(skewax,-20,35);   
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Relative Density');
     zlabel('Skew angle (deg)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
@@ -391,9 +423,9 @@ function hfigs = makeplots(sweep,appnd)
     grid(skewax,'on');
     export_fig(skewfig,[imagedir 'skewSurface.png'],'-png','-transparent','-m3');
 
+    
     %% FIgure 2
-    mkrclrs = ["b","g","k","c","m","m","c","k","g","b","b","g","k","c","m","m","c","k","g","b"];
-    styls = ["-o","-+","-s","-d","-^",":o",":+",":s",":d",":^","-.o","-.+","-.s","-.d","-.^","--o","--+","--s","--d","--^"];
+    
     balfig = figure('Position',[baseloc+moveright 100 600 400]);
     balax = axes('Parent',balfig);
     hold(balax,'on');
@@ -401,7 +433,7 @@ function hfigs = makeplots(sweep,appnd)
     for i=1:1:reldensCols-1
         plot(balax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Skew angle (deg)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
@@ -453,7 +485,7 @@ function hfigs = makeplots(sweep,appnd)
         plot(yawax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanyaw(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Yaw angle (deg)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
@@ -472,14 +504,14 @@ function hfigs = makeplots(sweep,appnd)
         plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Pitch angle (deg)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     ptchax.Color = 'none';
     ptchax.FontSize = 12;
-    ptchax.YLim = [-40 80];
+    %ptchax.YLim = [-20 80];
     grid(ptchax,'on');
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
@@ -509,7 +541,7 @@ function hfigs = makeplots(sweep,appnd)
         plot(dlineax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Depth (m)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
@@ -609,7 +641,7 @@ function hfigs = makeplots(sweep,appnd)
         plot(dftlineax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
 
-    xlabel('Center mass axial loction (%Body Length)');
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Drift (m)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend('Location','Best','Color','none');
@@ -684,4 +716,41 @@ function hfigs = makeplots(sweep,appnd)
     drskewax.YGrid = 'on';
     grid(drskewax,'on');
     %export_fig(drskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
+    end
+    
+    %% figure 16 - Only for hydrostatic
+    if hydrostatic
+        a3 = 0:0.001:0.1;
+        for i=1:1:reldensCols
+            for j=1:1:length(a3)
+                thetatheory(i,j) = atan2d(2*relativeDensity((i-1)*ballastRows+1)*a1,-2*relativeDensity((i-1)*ballastRows+1)*a3(j)+(1-relativeDensity((i-1)*ballastRows+1)));
+            end
+        end
+            
+    ptchfig = figure('Position',[baseloc+4*moveright 100 600 400]);
+    ptchax = axes('Parent',ptchfig);
+    hold(ptchax,'on');
+    hs(1) = plot(ptchax,cm(3,1:ballastRows)*100,meanpitch(1:ballastRows),'o','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',...
+        [num2str(relativeDensity(1),'%3.2f') ' (Simulation)']);
+    ht(1) = plot(ptchax,a3*100,thetatheory(1,:)-90,'-r','DisplayName',[num2str(relativeDensity(1),'%3.2f') ' (Theory)' ]);
+    for i=1:1:reldensCols-1
+        hs(i+1) = plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows),...
+            char(strcat('o',mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),...
+            'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Simulation)']);
+        %plot(ptchax,a3*100,theta(i+1,:)-90,['-' char(mkrclrs(i))],'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Theory)' ]);
+        ht(i+1) = plot(ptchax,a3*100,thetatheory(i+1,:)-90,['-' char(mkrclrs(i))],'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Theory)' ],'LineWidth',1.0);
+    end
+
+    xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
+    ylabel('Pitch angle (deg)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
+    hleg = legend([hs ht],'Location','Best','Color','none','NumColumns',2);
+    hleg.Title.String = 'Relative Density';
+    ptchax.Color = 'none';
+    ptchax.FontSize = 12;
+    %ptchax.YLim = [-20 80];
+    grid(ptchax,'on');
+    hold(ptchax,'off');
+    export_fig(ptchfig,[imagedir 'theoryHydrostaticComp.png'],'-png','-transparent','-m3');
+    end
 end

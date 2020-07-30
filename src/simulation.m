@@ -183,7 +183,18 @@ classdef simulation < handle
                 hobj.visuals.speedfactor = speedfactor;
             end
         end
-        
+        function setStaticICs(hobj)
+            % orientation
+            hvhcl = hobj.vhcl;
+            initialtheta = atan2(2*hvhcl.centermass(1)*hvhcl.relDensity,hvhcl.body.length*(1-hvhcl.relDensity)-2*hvhcl.centermass(3)*hvhcl.relDensity);
+            hvhcl.orientation = [initialtheta;0;0];
+            % position
+            weight = hobj.fld.gravity*hvhcl.mass;
+            tension = weight*((1-hvhcl.relDensity)/hvhcl.relDensity);
+            stretch = tension/hobj.thr.stiffness;
+            phi = pi-initialtheta;
+            hvhcl.position = [hvhcl.body.length/2*sin(phi);0;hobj.thr.uslength+stretch-hvhcl.body.length/2*cos(phi)];            
+        end
         function written = write2file(hobj,datflnm)
             % First optional argument is the name of the file that you want to
             % save to. Otherwise the filename will be whatever the

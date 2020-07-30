@@ -3,27 +3,48 @@
 
 clearvars; close all; clc;
 
-relativeDensities = 1:-0.01:0.95;
-ballastZLocationsPrcnt = 0:0.05:0.5;
-ballastXLoc = '0.8';
-windwardFlowFactors = 0.8;
-leewardFlowFactors = 0.4;
-numLeeBlades = '3';
-numWindBlades = '3';
-%%%% If you change anything above you probably want to change the case name %%%%
-casesName = 'BLBcase';
-caseNumberStart = 1;
+% These are the input files to make
+% If you make a new set of params for the in. struct put them at the top
+% and if(any) the input file string array (see below for examples)
+infiles2make = ["BLB","test"];
 
+
+%% BLB
+sweepID = "BLB";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = char(sweepID);
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.4;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+end %%%%%%%%%%%%%%% end BLB
+
+%% Make the files
+makeFiles(in)
+
+function makeFiles(in)
 pathToInputFolder = '..\input\';
-for i1=1:1:length(relativeDensities)
-    for i2=1:1:length(ballastZLocationsPrcnt)
-        for i3=1:1:length(windwardFlowFactors)
-            for i4=1:1:length(leewardFlowFactors)
-                inputFileName = [casesName num2str(caseNumberStart) '.m'];
+caseNumberStart = in.caseNumberStart;
+for i1=1:1:length(in.relativeDensities)
+    for i2=1:1:length(in.ballastZLocationsPrcnt)
+        for i3=1:1:length(in.windwardFlowFactors)
+            for i4=1:1:length(in.leewardFlowFactors)
+                inputFileName = [in.casesName num2str(caseNumberStart) '.m'];
                 inputFileID = fopen([pathToInputFolder inputFileName],'w');
-                fprintf(inputFileID,'%s\n',['runname = ''' casesName num2str(caseNumberStart) ''';']);
+                fprintf(inputFileID,'%s\n',['runname = ''' in.casesName num2str(in.caseNumberStart) ''';']);
                 fprintf(inputFileID,'%s\n','fluidtype = ''water'';');
-                fprintf(inputFileID,'%s\n','fluidBaseVelocity = [1.5;0.0;0];');
+                fprintf(inputFileID,'%s\n',['fluidBaseVelocity = [' num2str(in.flowspeed,12) ';0.0;0];']);
                 fprintf(inputFileID,'%s\n','flowtype = ''steady'';');
                 fprintf(inputFileID,'%s\n','flowparms = [];');
                 fprintf(inputFileID,'%s\n','vblength = 18.0;');
@@ -40,12 +61,12 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','bladeLength1 = 18;');
                 fprintf(inputFileID,'%s\n','secChord1 = bladeLength1/aspectRatio1;');
                 fprintf(inputFileID,'%s\n','numSections1 = 18;');
-                fprintf(inputFileID,'%s\n',['numBlades1 = ' numWindBlades ';']);
+                fprintf(inputFileID,'%s\n',['numBlades1 = ' in.numWindBlades ';']);
                 fprintf(inputFileID,'%s\n','bladeDZfrac1 = 0.1;');
                 fprintf(inputFileID,'%s\n','twist1.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist1.numBlades = numBlades1;');
                 fprintf(inputFileID,'%s\n','twist1.bladeDZfrac = bladeDZfrac1;');
-                fprintf(inputFileID,'%s\n',['axflowfactor1 = ' num2str(windwardFlowFactors(i3),'%4.3f') ';']);
+                fprintf(inputFileID,'%s\n',['axflowfactor1 = ' num2str(in.windwardFlowFactors(i3),'%4.3f') ';']);
                 fprintf(inputFileID,'%s\n','tnflowfactor1 = 1.0;');
                 fprintf(inputFileID,'%s\n','bladeMass2 = 5000;');
                 fprintf(inputFileID,'%s\n','airfoiltype2 = ''NACA0015'';');
@@ -53,22 +74,22 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','bladeLength2 = 18;');
                 fprintf(inputFileID,'%s\n','secChord2 = bladeLength1/aspectRatio1;');
                 fprintf(inputFileID,'%s\n','numSections2 = 18;');
-                fprintf(inputFileID,'%s\n',['numBlades2 = ' numLeeBlades ';']);
+                fprintf(inputFileID,'%s\n',['numBlades2 = ' in.numLeeBlades ';']);
                 fprintf(inputFileID,'%s\n','bladeDZfrac2 = 0.1;');
                 fprintf(inputFileID,'%s\n','twist2.AoAopt_deg = 10.0;');
                 fprintf(inputFileID,'%s\n','twist2.numBlades = numBlades1;');
                 fprintf(inputFileID,'%s\n','twist2.bladeDZfrac = bladeDZfrac1;');
-                fprintf(inputFileID,'%s\n',['axflowfactor2 = ' num2str(leewardFlowFactors(i4),'%4.3f') ';']);
+                fprintf(inputFileID,'%s\n',['axflowfactor2 = ' num2str(in.leewardFlowFactors(i4),'%4.3f') ';']);
                 fprintf(inputFileID,'%s\n','tnflowfactor2 = 1.0;');
                 fprintf(inputFileID,'%s\n','I = [1/12*vbmass*(3*(vbradius^2+vbinnerradius^2)+vblength^2),0,0;0,1/12*vbmass*(3*(vbradius^2+vbinnerradius^2)+vblength^2),0;0,0,1/2*vbmass*(vbradius^2+vbinnerradius^2)];');
                 fprintf(inputFileID,'%s\n','vbcentermass = [0.0;0;0.0*vblength/2];');
                 fprintf(inputFileID,'%s\n','ballastMass = 9000;');
-                fprintf(inputFileID,'%s\n',['ballastLoc = [' ballastXLoc '*vbradius;0;' num2str(ballastZLocationsPrcnt(i2),'%4.3f') '*vblength];']);
+                fprintf(inputFileID,'%s\n',['ballastLoc = [' in.ballastXLoc '*vbradius;0;' num2str(in.ballastZLocationsPrcnt(i2),'%4.3f') '*vblength];']);
                 %fprintf(inputFileID,'%s\n',['ballastLoc = [1.6*vbradius;0;' num2str(ballastZLocationsPrcnt(i2),'%4.3f') '*vblength];']);
                 fprintf(inputFileID,'%s\n','vcentermass = [];');
                 fprintf(inputFileID,'%s\n','vbtetherpoint = [0;0;-vblength/2];');
                 fprintf(inputFileID,'%s\n','vbbuoypoint = [0;0;-0.0*vblength/2];');
-                fprintf(inputFileID,'%s\n',['vreldensity = ' num2str(relativeDensities(i1),'%4.3f') ';']);
+                fprintf(inputFileID,'%s\n',['vreldensity = ' num2str(in.relativeDensities(i1),'%4.3f') ';']);
                 fprintf(inputFileID,'%s\n','rot1point = [0;0;-vblength/2];');
                 fprintf(inputFileID,'%s\n','rot2point = [0;0;vblength/2];');
                 fprintf(inputFileID,'%s\n','rot1rad = bladeLength1;');
@@ -84,7 +105,7 @@ for i1=1:1:length(relativeDensities)
                 fprintf(inputFileID,'%s\n','vtMod = 1.0;');
                 fprintf(inputFileID,'%s\n','hifiTors = false;');
                 fprintf(inputFileID,'%s\n','tmod = 5.0e9;');
-                fprintf(inputFileID,'%s\n','tunstrch = 200;');
+                fprintf(inputFileID,'%s\n',['tunstrch = ' num2str(in.thrunstrched,12) ';']);
                 fprintf(inputFileID,'%s\n','tradius = 0.1;');
                 fprintf(inputFileID,'%s\n','tspring = tmod*pi*tradius^2/tunstrch;');
                 fprintf(inputFileID,'%s\n','tdamp = [];');
@@ -107,13 +128,13 @@ for i1=1:1:length(relativeDensities)
 %                     initpitch = 242.57*relativeDensities(i1)-242.67;
 %                 end
 
-                initpitch = 90;%+initpitch;
-                fprintf(inputFileID,'%s\n',['initialPitch = ' num2str(initpitch,'%5.3f') '*pi/180;']);
+                %initpitch = 90;%+initpitch;
+                fprintf(inputFileID,'%s\n',['initialPitch = ' num2str(in.initpitch,12) '*pi/180;']);
                 fprintf(inputFileID,'%s\n','initialRoll = 0*pi/180;');
                 fprintf(inputFileID,'%s\n','initialLateral = 0;');
-                fprintf(inputFileID,'%s\n','initialLongitudinal = tunstrch*1.05;');
+                fprintf(inputFileID,'%s\n',['initialLongitudinal = ' num2str(in.initlongitudinal,12) ';']);
 %                 fprintf(inputFileID,'%s\n','initialLongitudinal = 0;');
-                fprintf(inputFileID,'%s\n','initialVertical = 0;');
+                fprintf(inputFileID,'%s\n',['initialVertical = ' num2str(in.initvertical,12) ';']);
 %                 fprintf(inputFileID,'%s\n','initialVertical = tunstrch*1.05;');
                 fprintf(inputFileID,'%s\n','initialSway = 0;');
                 fprintf(inputFileID,'%s\n','initialSurge = 0;');
@@ -131,3 +152,4 @@ for i1=1:1:length(relativeDensities)
         end
     end
 end
+end % makeFiles function

@@ -10,9 +10,10 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    sweep = "EFT";
+    sweep = "TCS";
+    modifyCases = false;
     itr = 1;
-    for i=61:1:61
+    for i=1:1:3
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end
@@ -25,16 +26,30 @@ if true
 %     inputfiles = ["case89","case90","case91","case92","case93","case94","case95","case96","case97","case98","case99",...
 %         "case100","case101","case102","case103","case104","case105","case106","case107","case108","case109","case110"];
     inputfiles = strcat(sweep,inputfiles,".m");
-    ssitr = 1;
+    meansimduration = 0;
     
     for i=1:1:numel(inputfiles)
         timerval = tic;
         sim = simulation(inputfiles(i));
+        meansimduration = meansimduration + sim.duration;
+        if modifyCases
+            sim.setStaticICs; % 
+            % perturbation for hydrostatic analysis
+            sim.changeName([sim.name 'fromUnder'],'Sure');
+            sim.vhcl.orientation(1) = sim.vhcl.orientation(1)*0.95;
+        end
+        
+        %%
         sim.simulate('output',[]);
+        %sim.simulate();
         Tsim(i) = toc(timerval);
-        if ~sim.write2file
-            disp('I didn"t write to file. I" assuming you don"t want to make plots or movies either.');
-            return;
+        if ~sim.write2file            
+            answr = questdlg('I didn''t write to file. Stop or keep going?','No Write','Stop','Keep Going','Stop');
+            if strcmp(answr,'Stop')
+                return;
+            else
+                disp('OK, moving on.');
+            end
         end
         if sim.visuals.makeplots
             sim.makePlots(sim.name,'savefigs',true);
@@ -44,6 +59,7 @@ if true
         end
         clear sim;
     end
+    hfig = bar(Tsim/mean(meansimduration));
     return;
 end
 
