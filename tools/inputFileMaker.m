@@ -6,13 +6,13 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["BLB","test"];
+infiles2make = ["EAA","EBB","ECC"];
 
 
 %% BLB
 sweepID = "BLB";
 if any(strcmp(infiles2make,sweepID))
-in.casesName = char(sweepID);
+in.casesName = [char(sweepID) 'case'];
 in.caseNumberStart = 1;
 % Params
 in.relativeDensities = 1:-0.01:0.95;
@@ -28,10 +28,98 @@ in.flowspeed = 1.5;
 in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
 end %%%%%%%%%%%%%%% end BLB
 
-%% Make the files
+%% EFF
+sweepID = "EFF";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.667;
+in.leewardFlowFactors = 0.667;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+end %%%%%%%%%%%%%%% end EFF
+
+
+%% EAA
+sweepID = "EAA";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.6;
+in.leewardFlowFactors = 0.6;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+end %%%%%%%%%%%%%%% end EAA
+
+%% EBB
+sweepID = "EBB";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.7;
+in.leewardFlowFactors = 0.7;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+end %%%%%%%%%%%%%%% end EBB
+
+%% EAA
+sweepID = "ECC";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.8;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+end %%%%%%%%%%%%%%% end ECC
+
 
 function makeFiles(in)
 pathToInputFolder = '..\input\';
