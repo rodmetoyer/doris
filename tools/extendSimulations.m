@@ -5,14 +5,16 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "DBB";
+sweep = "TCS";
 itr = 1;
-for i=35:-1:25
+for i=34:1:44
     inputfiles(itr) = strcat("case",num2str(i));
     itr = itr + 1;
 end
+inputfiles = strcat(sweep,inputfiles,"fromUnder.m");
 
-inputfiles = strcat(sweep,inputfiles,".m");
+%inputfiles = ["BLUcase10Extended.m","BLUcase11Extended.m","BLLcase11.m","BLLcase22.m","DBBcase11Extended.m","DBBcase18Extended.m","DBBcase22Extended.m"];
+%inputfiles = "EFScase11Extended.m";
 lasthalf = true;
 
 extendedTspan = 0:0.2:3600;

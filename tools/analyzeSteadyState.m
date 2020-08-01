@@ -19,6 +19,7 @@ reldensPlots = false;
 %makeplots("DBB","Extended"); % Radial distance of ballast is doubled
 %makeplots("DB2","Extended");
 %makeplots("DB3","Extended");
+%makeplots("BLB","Extended");
 
 %%% Equal flow factor sweeps
 %makeplots("EFS","Extended"); % Equal flow factor static flow
@@ -26,11 +27,12 @@ reldensPlots = false;
 %makeplots("EF2");             % Ballast location double radial distance
 %makeplots("EF3");
 %makeplots("EFT");
+makeplots("EAA");
 
 %makeplots("EFS")
 
 %%% Tactical scale %%%
-makeplots("TCS","fromUnder",true);
+%makeplots("TCS","fromUnder",true);
 %makeplots("TCS","fromUnder");
 %makeplots("TCS","fromOver");
 

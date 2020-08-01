@@ -6,7 +6,7 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["EAA","EBB","ECC"];
+infiles2make = ["BLB","EFF"];
 
 
 %% BLB
@@ -130,7 +130,7 @@ for i1=1:1:length(in.relativeDensities)
             for i4=1:1:length(in.leewardFlowFactors)
                 inputFileName = [in.casesName num2str(caseNumberStart) '.m'];
                 inputFileID = fopen([pathToInputFolder inputFileName],'w');
-                fprintf(inputFileID,'%s\n',['runname = ''' in.casesName num2str(in.caseNumberStart) ''';']);
+                fprintf(inputFileID,'%s\n',['runname = ''' in.casesName num2str(caseNumberStart) ''';']);
                 fprintf(inputFileID,'%s\n','fluidtype = ''water'';');
                 fprintf(inputFileID,'%s\n',['fluidBaseVelocity = [' num2str(in.flowspeed,12) ';0.0;0];']);
                 fprintf(inputFileID,'%s\n','flowtype = ''steady'';');
