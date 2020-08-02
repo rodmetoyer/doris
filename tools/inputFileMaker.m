@@ -6,7 +6,7 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["BLB","EFF"];
+infiles2make = ["EF2"];
 
 
 %% BLB
@@ -29,6 +29,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end BLB
 
 %% EFF
@@ -51,6 +52,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EFF
 
 %% EF2
@@ -73,6 +75,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EF2
 
 %% EAA
@@ -95,6 +98,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EAA
 
 %% EBB
@@ -117,6 +121,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EBB
 
 %% EAA
@@ -139,6 +144,7 @@ in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end ECC
 
 
