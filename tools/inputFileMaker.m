@@ -53,6 +53,27 @@ in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
 end %%%%%%%%%%%%%%% end EFF
 
+%% EF2
+sweepID = "EF2";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '1.6';
+in.windwardFlowFactors = 0.667;
+in.leewardFlowFactors = 0.667;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+end %%%%%%%%%%%%%%% end EF2
 
 %% EAA
 sweepID = "EAA";
