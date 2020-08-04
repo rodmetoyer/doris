@@ -5,16 +5,20 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "TCS";
-itr = 1;
-for i=34:1:44
-    inputfiles(itr) = strcat("case",num2str(i));
-    itr = itr + 1;
-end
-inputfiles = strcat(sweep,inputfiles,"fromUnder.m");
+sweep = "FBL";
+% itr = 1;
+% for i=34:1:44
+%     inputfiles(itr) = strcat("case",num2str(i));
+%     itr = itr + 1;
+% end
+% inputfiles = strcat(sweep,inputfiles,"fromUnder.m");
 
-%inputfiles = ["BLUcase10Extended.m","BLUcase11Extended.m","BLLcase11.m","BLLcase22.m","DBBcase11Extended.m","DBBcase18Extended.m","DBBcase22Extended.m"];
-%inputfiles = "EFScase11Extended.m";
+inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
+            "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
+            "case81","case82","case83","case84","case85","case86","case87","case23","case24",...
+            "case88","case89","case90","case91","case92","case93","case94","case34","case35",...
+            "case95","case96","case97","case98","case99","case100","case101","case45","case46",...
+            "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
 lasthalf = true;
 
 extendedTspan = 0:0.2:3600;
