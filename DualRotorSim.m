@@ -10,10 +10,10 @@ addpath('src')
 % process input files one at a time following the code that is after this
 % block.
 if true
-    sweep = "ECC";
+    sweep = "EFT";
     modifyCases = false;
     itr = 1;
-    for i=1:1:66
+    for i=61:1:66
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end
@@ -24,7 +24,7 @@ if true
     for i=1:1:numel(inputfiles)
         timerval = tic;
         sim = simulation(inputfiles(i));
-        meansimduration = [meansimduration sim.duration];
+        meansimduration = meansimduration + sim.duration;
         if modifyCases
             sim.setStaticICs; % 
             % perturbation for hydrostatic analysis
@@ -52,7 +52,8 @@ if true
         end
         clear sim;
     end
-    hfig = bar(Tsim/mean(meansimduration));
+    meansimduration = meansimduration/i;
+    hfig = bar(Tsim/meansimduration);
     return;
 end
 
