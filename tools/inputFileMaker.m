@@ -6,7 +6,7 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["EFT"];
+infiles2make = ["BAL","BAH","BL2"];
 
 
 %% BLB
@@ -238,6 +238,75 @@ in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end BLL
+
+%% BL2
+sweepID = "BL2";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.6;
+in.leewardFlowFactors = 0.4;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end BL2
+
+%% BAH
+sweepID = "BAH";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.6;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.6;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end BAH
+
+%% BAL
+sweepID = "BAL";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.6;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.4;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end BAL
 
 %% FBL
 sweepID = "FBL";
