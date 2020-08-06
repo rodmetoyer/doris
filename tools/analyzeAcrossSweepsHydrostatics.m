@@ -58,7 +58,7 @@ end
 hold(ax4,'off');
 ax4.XDir = 'reverse';
 xlabel('Relative Density');
-ylabel('d(Pitch)/d(Radial CM Loc.) (deg)');
+ylabel('\partial\phi/\partial\it{a_3} (deg)');
 %title(['Axial Postion of CM = ' num2str(dp.cmaxial(2*reldenscols+1),'%3.2f')]);
 hleg = legend('Location','NorthWest','Color',color);
 hleg.Title.String = 'Axial CM Location (%L_B)';
