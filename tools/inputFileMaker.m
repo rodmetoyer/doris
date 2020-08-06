@@ -6,7 +6,7 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["BAL","BAH","BL2"];
+infiles2make = ["XL2"];
 
 
 %% BLB
@@ -331,6 +331,30 @@ makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end FBL
 
+%% XL2 - same as BL2 but bigger time step.
+sweepID = "XL2";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.6;
+in.leewardFlowFactors = 0.4;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+in.timestep = 1;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end XL2
+
 function makeFiles(in)
 pathToInputFolder = '..\input\';
 caseNumberStart = in.caseNumberStart;
@@ -418,7 +442,11 @@ for i1=1:1:length(in.relativeDensities)
                 fprintf(inputFileID,'%s\n','grload = 0.1;');
                 fprintf(inputFileID,'%s\n','gpoint = [0;0;0];');
                 fprintf(inputFileID,'%s\n','totalSimTime = 3600;');
-                fprintf(inputFileID,'%s\n','tstep = 0.2;');
+                if isfield(in,'timestep')
+                    fprintf(inputFileID,'%s\n',['tstep = ' num2str(in.timestep,6) ';']);
+                else
+                    fprintf(inputFileID,'%s\n','tstep = 0.2;');
+                end
                 
                 fprintf(inputFileID,'%s\n','initialYaw = 0*pi/180;');
 %                 initpitch = 310.5*relativeDensities(i1)-307.85;
