@@ -10,31 +10,33 @@ reldensPlots = false;
 
 %sweep = "EFF";
 
-%makeplots("TCS","Extended");
-
 %%%%%% Ready to go sweeps %%%%%%%%
-%makeplots("BLU");   % Baseline utitly scale
-%makeplots("FBL");   % Four blades on leeward rotor
-%makeplots("BLL");   % Baseline with lower induction (higher flow factor) on rear rotor
-%makeplots("DBB","Extended"); % Radial distance of ballast is doubled
-%makeplots("DB2","Extended");
-%makeplots("DB3","Extended");
-%makeplots("BLB","Extended");
+% makeplots("FBL","Extended");  % Four blades on leeward rotor
+% makeplots("BLL","Extended");  % Baseline with lower induction (higher flow factor) on rear rotor
+% makeplots("DBB","Extended");  % Radial distance of ballast is doubled
+% makeplots("DB2","ExtendedExtended");  % Radial distance of ballast is half 
+% makeplots("DB3","Extended");  % Radial distance of ballast is trippled
+% makeplots("BLB","Extended");  % The baseline sweep
+% makeplots("BL2");             % Windward flow factor is 0.6 instead of 0.8
+% makeplots("BAH");             % BLL with higher flow speed
+% makeplots("BAL");             % BLL with lower flow speed
 
 %%% Equal flow factor sweeps
-%makeplots("EFS","Extended"); % Equal flow factor static flow
-%makeplots("EFF");            % Equal flow factors  
-%makeplots("EF2");             % Ballast location double radial distance
-%makeplots("EF3");
-%makeplots("EFT");
-makeplots("EAA");
+% makeplots("EFF");             % Equal flow factors  
+% makeplots("EF2");             % Ballast location double
+% makeplots("EF3");             % Ballast location half
+% makeplots("EFT");             % Ballast location three times
+% makeplots("EAA");             % Flow factors 0.6 instead of 0.667
+% makeplots("EBB");             % Flow factors 0.7 instead of 0.667
+% makeplots("ECC");             % Flow factors 0.8
 
-%makeplots("EFS")
-
+%%% Still water (hydrostatics) cases
+%%% Utility scale %%%
+% makeplots("EFS","",true)
 %%% Tactical scale %%%
-%makeplots("TCS","fromUnder",true);
-%makeplots("TCS","fromUnder");
-%makeplots("TCS","fromOver");
+% makeplots("TCS","",true);
+% makeplots("TCS","fromUnder",true);
+% makeplots("TCS","fromOver",true);
 
 % function makeIsoPlots(sweep)
 %     imagedir = ['products\analysis\' char(sweep) '\'];
@@ -359,6 +361,7 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
 
     mkrclrs = ["b","g","k","c","m","m","c","k","g","b","b","g","k","c","m","m","c","k","g","b"];
     styls = ["-o","-+","-s","-d","-^",":o",":+",":s",":d",":^","-.o","-.+","-.s","-.d","-.^","--o","--+","--s","--d","--^"];
+    mrkrs = ["+","s","d","^","<","*",">","v","p","h"];
     
     
     inputfiles = strcat(sweep,inputfiles,".m");    
@@ -513,7 +516,7 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
     hleg.Title.String = 'Relative Density';
     ptchax.Color = 'none';
     ptchax.FontSize = 12;
-    %ptchax.YLim = [-20 80];
+    ptchax.YLim = [-20 60];
     grid(ptchax,'on');
     export_fig(ptchfig,[imagedir 'pitchLine.png'],'-png','-transparent','-m3');
     
@@ -596,26 +599,30 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
     dskewfig = figure('Position',[baseloc+2*moveright 600 600 400]);
     dskewax = axes('Parent',dskewfig);
     hold(dskewax,'on');
-    plot(dskewax,skew(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    h(1) = plot(dskewax,skew(1:ballastRows)*180/pi,meandepth(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(dskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        h(i+1) = plot(dskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandepth(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
-
+    xline(dskewax,15);
     xlabel('Skew Angle (Deg)');
     ylabel('Depth (m)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
-    hleg = legend('Location','Best','Color','none');
+    hleg = legend(h,'Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     dskewax.Color = 'none';
     dskewax.FontSize = 12;
-    export_fig(dskewfig,[imagedir 'depthSkewLine.png'],'-png','-transparent','-m3');    
-    % Zoom to region of interest
     %dskewax.XLim = [0 35];
-    %dskewax.YLim = [-60 0];
+    %dskewax.YLim = [-60 0];    
     dskewax.XGrid = 'on';
     dskewax.YGrid = 'on';
     grid(dskewax,'on');
-    %export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
+    export_fig(dskewfig,[imagedir 'depthSkewLine.png'],'-png','-transparent','-m3');    
+    saveas(dskewfig,[imagedir 'depthSkewLine']);
+    % Zoom to region of interest    
+    dskewax.XLim = [0 30];
+    dskewax.YLim = [-80 0];
+    export_fig(dskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3');
+    clear h
     
     %% fig 11
     driftfig = figure('Position',[baseloc+3*moveright 600 600 400]);
@@ -698,27 +705,53 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
     drskewfig = figure('Position',[baseloc+7*moveright 600 600 400]);
     drskewax = axes('Parent',drskewfig);
     hold(drskewax,'on');
-    plot(drskewax,skew(1:ballastRows)*180/pi,meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    h(1) = plot(drskewax,skew(1:ballastRows)*180/pi,meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(drskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        h(i+1) = plot(drskewax,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
+    xline(drskewax,15);
 
     xlabel('Skew Angle (Deg)');
     ylabel('Drift (m)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
-    hleg = legend('Location','Best','Color','none');
+    hleg = legend(h,'Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
     drskewax.Color = 'none';
     drskewax.FontSize = 12;
-    export_fig(drskewfig,[imagedir 'depthSkewLine.png'],'-png','-transparent','-m3');    
-    % Zoom to region of interest
     %dskewax.XLim = [0 35];
     %dskewax.YLim = [-60 0];
     drskewax.XGrid = 'on';
     drskewax.YGrid = 'on';
+    
     grid(drskewax,'on');
-    %export_fig(drskewfig,[imagedir 'depthSkewLineZoom.png'],'-png','-transparent','-m3'); 
+    export_fig(drskewfig,[imagedir 'driftSkewLine.png'],'-png','-transparent','-m3');
+    saveas(drskewfig,[imagedir 'driftSkewLine']);
+    % Zoom to region of interest   
+    drskewax.XLim = [0 30];
+    drskewax.YLim = [-80 0];
+    export_fig(drskewfig,[imagedir 'driftSkewLineZoom.png'],'-png','-transparent','-m3'); 
+    clear h
+    
+    %% figure 16
+    dftyawfig = figure('Position',[baseloc+moveright 600 600 400]);
+    dftyawax = axes('Parent',dftyawfig);
+    hold(dftyawax,'on');
+    plot(dftyawax,meanyaw(1:ballastRows),meandrift(1:ballastRows),'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    for i=1:1:reldensCols-1
+        plot(dftyawax,meanyaw(i*ballastRows+1:(i+1)*ballastRows),meandrift(i*ballastRows+1:(i+1)*ballastRows),char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
+
+    xlabel('Yaw Angle (Deg)');
+    ylabel('Drift (m)');
+    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
+    hleg = legend('Location','Best','Color','none');
+    hleg.Title.String = 'Relative Density';
+    dftyawax.Color = 'none';
+    dftyawax.FontSize = 12;
+    grid(dftyawax,'on');
+    export_fig(dftyawfig,[imagedir 'driftYawLine.png'],'-png','-transparent','-m3');
+    
+    end % end if not hydrostatic
     
     %% figure 16 - Only for hydrostatic
     if hydrostatic
@@ -737,7 +770,7 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
     ht(1) = plot(ptchax,a3*100,thetatheory(1,:)-90,'-r','DisplayName',[num2str(relativeDensity(1),'%3.2f') ' (Theory)' ]);
     for i=1:1:reldensCols-1
         hs(i+1) = plot(ptchax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,meanpitch(i*ballastRows+1:(i+1)*ballastRows),...
-            char(strcat('o',mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),...
+            char(strcat(mrkrs(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),...
             'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Simulation)']);
         %plot(ptchax,a3*100,theta(i+1,:)-90,['-' char(mkrclrs(i))],'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Theory)' ]);
         ht(i+1) = plot(ptchax,a3*100,thetatheory(i+1,:)-90,['-' char(mkrclrs(i))],'DisplayName',[num2str(relativeDensity(i*ballastRows+1)) ' (Theory)' ],'LineWidth',1.0);
@@ -745,7 +778,7 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
 
     xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Pitch angle (deg)');
-    title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
+    %title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
     hleg = legend([hs ht],'Location','Best','Color','none','NumColumns',2);
     hleg.Title.String = 'Relative Density';
     ptchax.Color = 'none';
@@ -753,6 +786,6 @@ function hfigs = makeplots(sweep,appnd,hydrostatic)
     %ptchax.YLim = [-20 80];
     grid(ptchax,'on');
     hold(ptchax,'off');
-    export_fig(ptchfig,[imagedir 'theoryHydrostaticComp.png'],'-png','-transparent','-m3');
+    export_fig(ptchfig,[imagedir 'theoryHydrostaticCompv2.png'],'-png','-transparent','-m3');
     end
 end

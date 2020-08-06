@@ -47,6 +47,23 @@ for i=1:1:numCases/reldenscols
     export_fig(hfig(i),[imagedir 'pitchVff' num2str(i) '.png'],'-png','-transparent','-m3');
 end
 
+
+hfig1 = figure('Position',[baseloc+3*moveright 100 600 400],'Color',color);
+ax1 = axes('Parent',hfig1,'Color','none');
+hold(ax1,'on');
+for i=1:1:numCases/reldenscols
+    plot(ax1,dp.meanpitch(1:6),dPitchdFF((i-1)*reldenscols+1:i*reldenscols),'-o','DisplayName',num2str(dp.cmaxial((i-1)*reldenscols+1),'%3.2f'),'LineWidth',2.0);
+end
+hold(ax1,'off');
+%ax1.XDir = 'reverse';
+xlabel('Pitch (deg)');
+%ylabel('dPitch/dFlowFactor (deg)');
+ylabel('\partial\phi/\partial\it{FlowFactor} (deg)');
+%title(['Axial Postion of CM = ' num2str(dp.cmaxial(2*reldenscols+1),'%3.2f')]);
+hleg = legend('Location','Best','Color',color);
+hleg.Title.String = 'Axial Location CM (%L_B)';
+export_fig(hfig1,[imagedir 'dPitchdFFvPitch.png'],'-png','-transparent','-m3');
+
 % Now we need the mean sensitivity of pitch to flow factor over the full range
 % This is (pitch_last - pitch_first)/(ff_last - ff_first) dPitchdFF
 hfig4 = figure('Position',[baseloc+3*moveright 100 600 400],'Color',color);
@@ -58,10 +75,11 @@ end
 hold(ax4,'off');
 ax4.XDir = 'reverse';
 xlabel('Relative Density');
-ylabel('dPitch/dFlowFactor (deg)');
+%ylabel('dPitch/dFlowFactor (deg)');
+ylabel('\partial\phi/\partial\it{FlowFactor} (deg)');
 %title(['Axial Postion of CM = ' num2str(dp.cmaxial(2*reldenscols+1),'%3.2f')]);
 hleg = legend('Location','Best','Color',color);
-hleg.Title.String = 'Center Mass Location (%L_B)';
+hleg.Title.String = 'Axial Location CM (%L_B)';
 export_fig(hfig4,[imagedir 'dPitchdFFvRelDens.png'],'-png','-transparent','-m3');
 
 cd tools

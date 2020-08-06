@@ -5,13 +5,13 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "FBL";
-% itr = 1;
-% for i=34:1:44
-%     inputfiles(itr) = strcat("case",num2str(i));
-%     itr = itr + 1;
-% end
-% inputfiles = strcat(sweep,inputfiles,"fromUnder.m");
+sweep = "DB2";
+itr = 1;
+for i=12:1:22
+    inputfiles(itr) = strcat("case",num2str(i));
+    itr = itr + 1;
+end
+inputfiles = strcat(sweep,inputfiles,"Extended.m");
 
 % inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
 %             "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
@@ -19,8 +19,7 @@ sweep = "FBL";
 %             "case88","case89","case90","case91","case92","case93","case94","case34","case35",...
 %             "case95","case96","case97","case98","case99","case100","case101","case45","case46",...
 %             "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
-inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2"];
-inputfiles = strcat(sweep,inputfiles,".m");
+%inputfiles = strcat(sweep,inputfiles,"Extended.m");
 lasthalf = true;
 
 extendedTspan = 0:0.2:3600;
