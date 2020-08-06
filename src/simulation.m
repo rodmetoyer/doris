@@ -980,19 +980,21 @@ classdef simulation < handle
 
             moviefile = ['products\videos\' p.Results.outfile '.avi'];
             % get data
-            try
-                dat = importdata(['products\data\' infn '.txt']);
-            catch
-                disp(['Unable to make a movie of ' infn]);
-                % todo log and move on
-                return;
-            end
-            headers = dat.colheaders;
-            dat = dat.data;
+%             try
+%                 dat = importdata(['products\data\' infn '.txt']);
+%             catch
+%                 disp(['Unable to make a movie of ' infn]);
+%                 % todo log and move on
+%                 return;
+%             end
+%             headers = dat.colheaders;
+%             dat = dat.data;
             
             % get the simulation object
             svcmd = ['load ' pwd '\products\data\' infn '.mat'];
             eval(svcmd); clear svcmd;
+            dat = sim.times;
+            dat = [dat sim.states];
             
             % make the vectors and everything
             r_ao_O = dat(:,2:4);
