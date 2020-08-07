@@ -6,7 +6,7 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["EFS"];
+infiles2make = ["BVH","BVL"];
 
 
 %% BLB
@@ -333,6 +333,52 @@ makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end BAL
 
+%% BVH
+sweepID = "BVH";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.6;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 2.0;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end BVH
+
+%% BVL
+sweepID = "BVL";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.6;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.0;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end BVL
+
 %% FBL
 sweepID = "FBL";
 if any(strcmp(infiles2make,sweepID))
@@ -443,8 +489,16 @@ for i1=1:1:length(in.relativeDensities)
                 fprintf(inputFileID,'%s\n','rot2rad = bladeLength2;');
                 fprintf(inputFileID,'%s\n','rot1ornt = [0;0;0];');
                 fprintf(inputFileID,'%s\n','rot2ornt = [0;0;0];');
-                fprintf(inputFileID,'%s\n',['rot1initRPM = ' num2str(in.rotorSpeedWind,3) ';']);
-                fprintf(inputFileID,'%s\n',['rot2initRPM = ' num2str(in.rotorSpeedLee,3) ';']);
+                if isfield(in,'rotorSpeedWind')
+                    fprintf(inputFileID,'%s\n',['rot1initRPM = ' num2str(in.rotorSpeedWind,3) ';']);
+                else
+                    fprintf(inputFileID,'%s\n','rot1initRPM = 11.0;');
+                end
+                if isfield(in,'rotorSpeedLee')
+                    fprintf(inputFileID,'%s\n',['rot2initRPM = ' num2str(in.rotorSpeedLee,3) ';']);
+                else
+                    fprintf(inputFileID,'%s\n','rot2initRPM = -4.0;');
+                end
 %                 fprintf(inputFileID,'%s\n','rot1initRPM = 0;');
 %                 fprintf(inputFileID,'%s\n','rot2initRPM = 0;');
                 fprintf(inputFileID,'%s\n','addedMass = [];');
