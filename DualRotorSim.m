@@ -9,7 +9,7 @@ addpath('src')
 % If you want to batch process use this block. Otherwise, set to false and
 % process input files one at a time following the code that is after this
 % block.
-if true
+if false
     sweep = "EFT";
     modifyCases = false;
     itr = 1;
@@ -65,8 +65,20 @@ end
 % inputfile = 'rampedDemo.m';
 % inputfile = 'sinusoidDemo.m';
 % inputfile = 'disturbedDemo.m';
-inputfiles = 'case15b.m';
+inputfiles = 'EFScase58Long.m';
 sim = simulation(inputfiles);
+sim.setStaticICs;
+
+sim.changeName('EFScase58LongUnsteady','Sure');
+unsteadyTheta = sim.vhcl.orientation(1) + pi;
+weight = sim.fld.gravity*sim.vhcl.mass;
+tension = weight*((1-sim.vhcl.relDensity)/sim.vhcl.relDensity);
+stretch = tension/sim.thr.stiffness;
+gam = unsteadyTheta - pi;
+sim.vhcl.position = [-sim.vhcl.body.length/2*sin(gam);0;sim.thr.uslength+stretch-sim.vhcl.body.length/2*cos(gam)];
+sim.vhcl.orientation(1) = unsteadyTheta;
+sim.vhcl.orientation(1) = sim.vhcl.orientation(1) - 3*pi/180; % 3 degree perturbation
+sim.changeName([sim.name 'fromUnder'],'Sure');
 
 %% Make sure the vehicle we just built is what we were trying to build.
 % The showme method let's you visualize the simulation in its current
@@ -94,13 +106,15 @@ if ~sim.write2file
 end
 
 %% Plots
-simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
+if sim.visuals.makeplots
+    simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
+end
 %simulation.makePlots(sim.name,'savefigs',true);
 
 %% Make a video of the simulation results
 % The makeMovie method is static. The first argument is the name of the
 % data and input file combo to use. The second argument is the name of the
 % movie file. If you only pass one name the movie file gets that name.
-if sim.makeMovie
-    simulation.makeMovie(sim.name,'framerate',60,'speedfactor',10);
+if sim.visuals.makemovie
+    simulation.makeMovie(sim.name,'framerate',60,'speedfactor',sim.visuals.speedfactor);
 end
