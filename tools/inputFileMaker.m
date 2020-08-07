@@ -189,6 +189,8 @@ in.flowspeed = 0;
 in.initpitch = 90;
 in.initvertical = 0;
 in.initlongitudinal = 1.05*in.thrunstrched;
+in.rotorSpeedWind = 0;
+in.rotorSpeedLee = 0;
 makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EFS
@@ -441,8 +443,8 @@ for i1=1:1:length(in.relativeDensities)
                 fprintf(inputFileID,'%s\n','rot2rad = bladeLength2;');
                 fprintf(inputFileID,'%s\n','rot1ornt = [0;0;0];');
                 fprintf(inputFileID,'%s\n','rot2ornt = [0;0;0];');
-                fprintf(inputFileID,'%s\n','rot1initRPM = 11;');
-                fprintf(inputFileID,'%s\n','rot2initRPM = -4;');
+                fprintf(inputFileID,'%s\n',['rot1initRPM = ' num2str(in.rotorSpeedWind,3) ';']);
+                fprintf(inputFileID,'%s\n',['rot2initRPM = ' num2str(in.rotorSpeedLee,3) ';']);
 %                 fprintf(inputFileID,'%s\n','rot1initRPM = 0;');
 %                 fprintf(inputFileID,'%s\n','rot2initRPM = 0;');
                 fprintf(inputFileID,'%s\n','addedMass = [];');
