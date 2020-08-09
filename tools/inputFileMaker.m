@@ -195,6 +195,31 @@ makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EFS
 
+%% ESS
+sweepID = "ESS";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '0.8';
+in.windwardFlowFactors = 0.667;
+in.leewardFlowFactors = 0.667;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 0;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+in.rotorSpeedWind = 0;
+in.rotorSpeedLee = 0;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end ESS
+
 %% DBB
 sweepID = "DBB";
 if any(strcmp(infiles2make,sweepID))
