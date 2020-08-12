@@ -6,7 +6,9 @@ clearvars; close all; clc;
 % These are the input files to make
 % If you make a new set of params for the in. struct put them at the top
 % and if(any) the input file string array (see below for examples)
-infiles2make = ["BVH","BVL"];
+%infiles2make = ["BLB","EFF","EF2","EFT","EAA","EBB","ECC","EFS","ESS","DBB","DB2","DB3","BLL","BL2","BAH","BAL","BVH","BVL","FBL","XL2"];
+
+infiles2make = ["BLB","DBB"];
 
 
 %% BLB
@@ -147,7 +149,7 @@ makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end EBB
 
-%% EAA
+%% ECC
 sweepID = "ECC";
 if any(strcmp(infiles2make,sweepID))
 in.casesName = [char(sweepID) 'case'];
@@ -203,7 +205,7 @@ in.caseNumberStart = 1;
 % Params
 in.relativeDensities = 1:-0.01:0.95;
 in.ballastZLocationsPrcnt = 0:0.05:0.5;
-in.ballastXLoc = '0.8';
+in.ballastXLoc = '5.0';
 in.windwardFlowFactors = 0.667;
 in.leewardFlowFactors = 0.667;
 in.numLeeBlades = '3';
@@ -265,6 +267,29 @@ in.initlongitudinal = 1.05*in.thrunstrched;
 makeFiles(in)
 disp(['Made files for ' char(sweepID)]);
 end %%%%%%%%%%%%%%% end DB2
+
+%% DB3
+sweepID = "DB3";
+if any(strcmp(infiles2make,sweepID))
+in.casesName = [char(sweepID) 'case'];
+in.caseNumberStart = 1;
+% Params
+in.relativeDensities = 1:-0.01:0.95;
+in.ballastZLocationsPrcnt = 0:0.05:0.5;
+in.ballastXLoc = '2.4';
+in.windwardFlowFactors = 0.8;
+in.leewardFlowFactors = 0.4;
+in.numLeeBlades = '3';
+in.numWindBlades = '3';
+in.thrunstrched = 200;
+in.flowspeed = 1.5;
+%ICs
+in.initpitch = 90;
+in.initvertical = 0;
+in.initlongitudinal = 1.05*in.thrunstrched;
+makeFiles(in)
+disp(['Made files for ' char(sweepID)]);
+end %%%%%%%%%%%%%%% end DB3
 
 %% BLL
 sweepID = "BLL";
