@@ -30,21 +30,25 @@ classdef simulation < handle
                 % if it is an m-file execute, otherwise read line by line
                 % and evaluate each line
                 tkn = strsplit(fn,'.');
-                if strcmp(tkn(2),'m')
-                    run(['input\' char(tkn(1))]);
-                else
-                    fid = fopen(['input\' fn]);
-                    if fid < 0
-                        error(['Error opening: input\' fn]);
-                    end
-                    while true
-                        tline = fgetl(fid);            
-                        if isnumeric(tline)
-                            break;
+                if numel(tkn) == 2
+                    if strcmp(tkn(2),'m')
+                        run(['input\' char(tkn(1))]);
+                    elseif strcmp(tkn(2),'txt')
+                        fid = fopen(['input\' fn]);
+                        if fid < 0
+                            error(['Error opening: input\' fn]);
                         end
-                        eval(tline);
+                        while true
+                            tline = fgetl(fid);            
+                            if isnumeric(tline)
+                                break;
+                            end
+                            eval(tline);
+                        end
+                        fclose(fid);
                     end
-                    fclose(fid);
+                else % just a name, assume it is an m file
+                    run(['input\' char(tkn(1)) '.m']);
                 end
                 if ~strcmp(runname,tkn)
                     error('Run name does not match the file name passed in');
@@ -1139,13 +1143,23 @@ classdef simulation < handle
                         % 'rotspeedAp' rotor speeds in the A' frame
                     % figsize - size of the figure [x,y,w,h]
                     % figcolor - color of the figure
-                    
+            dirnow = pwd;
+            dd = split(dirnow,'\');
+            if ~strcmp(dd(end),'doris')
+                cd ..\;
+                dd = split(pwd,'\');
+                if ~strcmp(dd(end),'doris')
+                    cd(dirnow);
+                    error('You can only make plots from the doris directory or a subdirectory one level down');
+                end
+            end
             defaultPlots = 'all';
             defaultFigsize = [50 50 600 400];
             defaultFigcolor = 'none';
             defaultAxcolor = 'none';
             defaultSavefigs = false;
             defaultVisible = 'on';
+            defaultTitle = true;
             p = inputParser;
             %validateOutput = @(x) isa(x,'function_handle');
             addParameter(p,'plots',defaultPlots,@ischar);
@@ -1154,6 +1168,7 @@ classdef simulation < handle
             addParameter(p,'axcolor',defaultAxcolor,@ischar);
             addParameter(p,'savefigs',defaultSavefigs,@islogical);
             addParameter(p,'visible',defaultVisible,@ischar);
+            addParameter(p,'showtitle',defaultTitle,@ischar);
             parse(p,varargin{:});
             whatplots = p.Results.plots;
                         
@@ -1188,11 +1203,13 @@ classdef simulation < handle
             
             if (strcmp(whatplots,'position') || strcmp(whatplots,'all'))
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,1),'r',t,y(:,2),'b',t,y(:,3),'g');
+            plot(t,y(:,1),'-r',t,y(:,2),'--b',t,y(:,3),'-.g','LineWidth',2.0);
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Position (m)');
             legend({'x','y','z'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\position.png'],'-png','-transparent','-m3');
             end
@@ -1201,11 +1218,13 @@ classdef simulation < handle
             if (strcmp(whatplots,'orientation') || strcmp(whatplots,'all'))
             plotlowy = plotlowy+ploth; % Move up
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,4)*180/pi,'r',t,y(:,5)*180/pi,'b',t,y(:,6)*180/pi,'g');
+            plot(t,y(:,4)*180/pi,'-r',t,y(:,5)*180/pi,'--b',t,y(:,6)*180/pi,'-.g','LineWidth',2.0);
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angle (deg)');
             legend({'\theta','\gamma','\beta'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\orientation.png'],'-png','-transparent','-m3');
             end
@@ -1214,11 +1233,13 @@ classdef simulation < handle
             if (strcmp(whatplots,'angrate') || strcmp(whatplots,'all'))
             plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,7)*30/pi,'r',t,y(:,8)*30/pi,'b',t,y(:,9)*30/pi,'g');
+            plot(t,y(:,7)*30/pi,'-r',t,y(:,8)*30/pi,'--b',t,y(:,9)*30/pi,'-.g','LineWidth',2.0);
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angular Rate (RPM)');
             legend({'\omega_1','\omega_2','\omega_3'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\angrate.png'],'-png','-transparent','-m3');
             end
@@ -1227,11 +1248,13 @@ classdef simulation < handle
             if (strcmp(whatplots,'speed') || strcmp(whatplots,'all'))
             plotlowy = plotlowy+ploth; % Move up
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,10),'r',t,y(:,11),'b',t,y(:,12),'g');
+            plot(t,y(:,10),'-r',t,y(:,11),'--b',t,y(:,12),'-.g','LineWidth',2.0);
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Speed (m/s)');
             legend({'u_1','u_2','u_3'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\speed.png'],'-png','-transparent','-m3');
             end
@@ -1240,11 +1263,13 @@ classdef simulation < handle
             if (strcmp(whatplots,'rotang') || strcmp(whatplots,'all'))
             plotlowx = plotlowx+plotw; plotlowy = 50; % Move over
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,14)*180/pi,'r',t,y(:,16)*180/pi,'b');
+            plot(t,y(:,14)*180/pi,'-r',t,y(:,16)*180/pi,'--b','LineWidth',2.0);
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angle (deg)');
             legend({'\phi_3','\psi_3'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\rotang.png'],'-png','-transparent','-m3');
             end
@@ -1253,11 +1278,13 @@ classdef simulation < handle
             if (strcmp(whatplots,'rotspeed') || strcmp(whatplots,'all'))
             plotlowy = plotlowy+ploth; % Move up
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,y(:,13)*30/pi,'r',t,y(:,15)*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
+            plot(t,y(:,13)*30/pi,'-r',t,y(:,15)*30/pi,'--b','LineWidth',2.0); %rad/s*180/pi*60/360 = 30/pi
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Body Frame)');
             legend({'p_3','q_3'},'Location','Best');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\rotspeed.png'],'-png','-transparent','-m3');
             end
@@ -1266,15 +1293,18 @@ classdef simulation < handle
             if (strcmp(whatplots,'rotspeedAp') || strcmp(whatplots,'all'))
             plotlowx = plotlowx-0.5*plotw; % Move up
             figure('Position',[plotlowx plotlowy plotw ploth],'Color',p.Results.figcolor,'visible',p.Results.visible)
-            plot(t,(y(:,13)+y(:,9))*30/pi,'r',t,(y(:,15)+y(:,9))*30/pi,'b'); %rad/s*180/pi*60/360 = 30/pi
+            plot(t,(y(:,13)+y(:,9))*30/pi,'-r',t,(y(:,15)+y(:,9))*30/pi,'--b','LineWidth',2.0); %rad/s*180/pi*60/360 = 30/pi
             set(gca,'Color',p.Results.axcolor);
             xlabel('Time (s)'); ylabel('Angular Rate (RPM - in Intermediate Frame)');
             legend({'$\hat{p}_3$','$\hat{q}_3$'},'Location','Best','Interpreter','latex');
-            title(['Case: ' sim.name]);
+            if p.Results.showtitle
+                title(['Case: ' sim.name]);
+            end
             if p.Results.savefigs
                 export_fig(['products\images\' sim.name '\rotspeedIF.png'],'-png','-transparent','-m3');
             end
             end
+            cd(dirnow);
         end
                      
         function makeInputFile(varargin)

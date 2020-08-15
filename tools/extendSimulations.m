@@ -5,13 +5,13 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "DB2";
+sweep = "XB3"; % extending to see if we have another eq point
 itr = 1;
-for i=12:1:22
+for i=22:1:22
     inputfiles(itr) = strcat("case",num2str(i));
     itr = itr + 1;
 end
-inputfiles = strcat(sweep,inputfiles,"Extended.m");
+inputfiles = strcat(sweep,inputfiles,"ExtendedExtended.m");
 
 % inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
 %             "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
@@ -33,6 +33,12 @@ for i=1:1:numel(inputfiles)
     % make the position and orinetation of the vehicle the mean over the last half of the simualtion.  
     sim.vhcl.orientation = [mean(sim.states(startpt:end,4));mean(sim.states(startpt:end,5));mean(sim.states(startpt:end,6))];
     sim.vhcl.position = [mean(sim.states(startpt:end,1));mean(sim.states(startpt:end,2));mean(sim.states(startpt:end,3))];
+
+    % ad hoc changing XB3case22Extended ICs to see if we have a second
+    % equilibrium
+%     sim.vhcl.position = [157.9;90;-90];
+%     sim.vhcl.orientation = [2.2597;-0.4363;0.3082];
+    
     sim.vhcl.rotors(1).angvel = [0;0;mean(sim.states(startpt:end,13))];
     sim.vhcl.rotors(2).angvel = [0;0;mean(sim.states(startpt:end,15))];
     sim.changeName([sim.name 'Extended'],'Sure');

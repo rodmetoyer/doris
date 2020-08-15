@@ -9,11 +9,11 @@ addpath('src')
 % If you want to batch process use this block. Otherwise, set to false and
 % process input files one at a time following the code that is after this
 % block.
-if false
-    sweep = "EFT";
-    modifyCases = false;
+if true
+    sweep = "ESS";
+    modifyCases = true;
     itr = 1;
-    for i=61:1:66
+    for i=1:1:1
             inputfiles(itr) = strcat("case",num2str(i));
             itr = itr + 1;
     end
@@ -29,7 +29,7 @@ if false
             sim.setStaticICs; % 
             % perturbation for hydrostatic analysis
             sim.changeName([sim.name 'fromUnder'],'Sure');
-            sim.vhcl.orientation(1) = sim.vhcl.orientation(1)*0.95;
+            sim.vhcl.orientation(1) = sim.vhcl.orientation(1) - 3*pi/180;
         end
         
         %%

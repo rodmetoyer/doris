@@ -15,6 +15,8 @@ classdef vehicle < handle
         % Points expressed in the vehicle (A) frame
         rotorLocs   % 3xn vector of rotor locations expressed in the vehicle frame where n is the number of rotors (g1,g2,g3) and (h1,h2,h3)
         centermass  % 3x1 vector location of center of mass of the vehicle in the vehicle frame (s1,s2,s3)
+        ballastpoint% 3x1 vecotr location of ballast
+        ballastmass % scalar ballast mass
         tetherpoint % 3xm vector of location of the tether attachment point(s) in the vehicle frame (t1, t2, t3)
         buoypoint   % 3x1 vector of location of the center of buoyancy (b1, b2, b3)
         mass        % scalar total mass of the vehicle
@@ -483,6 +485,8 @@ classdef vehicle < handle
         function addBallast(hobj,bm,loc)
             % Adjust center mass
             % mtot*r_cm = m1*r1 + m2*r2 + ...
+            hobj.ballastmass = bm;
+            hobj.ballastpoint = loc;
             hobj.centermass = hobj.centermass*hobj.mass/(hobj.mass+bm) + loc*bm/(hobj.mass+bm);
             % add mass to total
             hobj.mass = hobj.mass + bm;            
