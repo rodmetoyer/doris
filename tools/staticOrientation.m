@@ -8,9 +8,9 @@ bodyLength = 18.0;
 %bodyRadius = 0.05*bodyLength;
 rotorRadius = bodyLength;
 %a1 = 0.030674846625767; 
-a1 = 0.0051; 
+a1 = 0.051; 
 s1 = a1*bodyLength;
-bodyPrcnt = 0:0.001:0.1;
+bodyPrcnt = 0:0.001:1.1;
 s3 = bodyPrcnt*bodyLength;
 axisScaler = 1.2;
 plotcolor = 'none';
@@ -49,13 +49,13 @@ grid(tax,'on');
 xlabel('Normalized Center Mass Axial Location (a_3)');
 ylabel('Pitch Angle (deg)');
 %text(tax,0.022,110,['a_1 = ' num2str(a1,2)],'FontSize',12);
-%title(['a_1 = ' num2str(a1,2)]);
-tax.XLim = [0 0.1];
-tax.YLim = [-100 100];
+title(['a_1 = ' num2str(a1,2)]);
+tax.XLim = [0 bodyPrcnt(end)];
+%tax.YLim = [-60 60];
 tax.Color = plotcolor;
 tax.FontSize = 12;
 if saveplots
-export_fig(tfig,['products\images\stillHydrostaticPlot' num2str(a1,2) savenameapp '.png'],'-transparent','-m3');
+export_fig(tfig,['products\images\stillHydrostaticPlotLong' num2str(a1,2) savenameapp '.png'],'-transparent','-m3');
 end
 
 % plot what this looks like

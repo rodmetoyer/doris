@@ -19,7 +19,7 @@ reldensPlots = false;
 % makeplots("XB2","Extended");  % Rerun of DB2
 % makeplots("DB3","Extended");  % Radial distance of ballast is trippled
 % makeplots("XB3","Extended");  % Rerun of DB3
-% makeplots("BLB","Extended");  % The baseline sweep
+makeplots("BLB","Extended");  % The baseline sweep
 % makeplots("BL2");             % Windward flow factor is 0.6 instead of 0.8
 % makeplots("BAH");             % BLL with higher flow speed
 % makeplots("BAL");             % BLL with lower flow speed
@@ -462,19 +462,21 @@ function hfigs = makeplots(sweep,appnd,hydrostatic,reldensCols)
     balfig = figure('Position',[baseloc+moveright 100 600 400]);
     balax = axes('Parent',balfig);
     hold(balax,'on');
-    plot(balax,cm(3,1:ballastRows)*100,skew(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
+    h(1) = plot(balax,cm(3,1:ballastRows)*100,skew(1:ballastRows)*180/pi,'-*r','MarkerEdgeColor','r','MarkerFaceColor','r','DisplayName',num2str(relativeDensity(1)));
     for i=1:1:reldensCols-1
-        plot(balax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
+        h(i+1) = plot(balax,cm(3,i*ballastRows+1:(i+1)*ballastRows)*100,skew(i*ballastRows+1:(i+1)*ballastRows)*180/pi,char(strcat(styls(i),mkrclrs(i))),'MarkerEdgeColor',char(mkrclrs(i)),'MarkerFaceColor',char(mkrclrs(i)),'DisplayName',num2str(relativeDensity(i*ballastRows+1)));
     end
     xlabel('Normalized Center Mass Axial Location (%L_B_o_d_y)');
     ylabel('Skew angle (deg)');
     title(['Sweep: ' char(sweep) ' (a_1 = ' num2str(a1,2) ')']);
-    hleg = legend('Location','Best','Color','none');
+    hleg = legend(h,'Location','Best','Color','none');
     hleg.Title.String = 'Relative Density';
+    %yline(balax,15);
     balax.Color = 'none';
     balax.FontSize = 12;
     grid(balax,'on');
-    export_fig(balfig,[imagedir 'skewLine.png'],'-png','-transparent','-m3');
+    export_fig(balfig,[imagedir 'skewLine15.png'],'-png','-transparent','-m3');
+    %return
     
     %% figure 3
     rdfig = figure('Position',[baseloc+2*moveright 100 600 400]);

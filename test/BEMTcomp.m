@@ -9,6 +9,8 @@ cd ..\
 % sim = simulation(inputfile);
 sim = simulation.loadsim('BLUcase1');
 cd test
+lgdcolor = 'w'; % [0.8510 0.8510 0.8510]
+fntsize = 9;
 
 % Compare constant induction to BEMT
 stopSpeed = 1.1;
@@ -34,14 +36,20 @@ bemtY = hfig3.CurrentAxes.Children.YData;
 hfig4 = figure('Position',[100 100 800 600]);
 ax4 = axes('Parent',hfig4);
 plot(ax4,noInductionX,noInductionY,'-.r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
-legend('No Induction','Constant 1/3','BEMT','Color',[0.8510 0.8510 0.8510],'Location','Best');
+legend('No Induction','Constant 1/3','BEMT','Color',lgdcolor,'Location','Best');
 xlabel('TSR'); ylabel('C_T_Q');
 hfig4.Color = 'none';
 ax4.Color = 'none';
+ax4.FontSize = fntsize;
+ax4.XLabel.FontSize = fntsize;
+ax4.XLabel.Visible = 'off';
+ax4.XTickLabel = '';
+ax4.YLabel.FontSize = fntsize;
+grid(ax4,'on');
 %axis(ax4,[0 10 -0.01 0.13]);
-hfig4.Position = [200 200 320 270];
+hfig4.Position = [200 200 380 180];
 export_fig('output/figs/inductionConstVsBEMTutil_torque2g', '-png', '-transparent');
-%savefig('output/figs/inductionConstVsBEMT.fig');
+savefig('output/figs/inductionConstVsBEMTutil_torque2g.fig');
 %% now do power
 sim.vhcl.rotors(1).setBEMT([false,false]);
 sim.vhcl.rotors(1).setAxialFlowFactor(1);
@@ -64,12 +72,17 @@ bemtY = hfig3.CurrentAxes.Children.YData;
 hfig4 = figure('Position',[100 100 800 600]);
 ax4 = axes('Parent',hfig4);
 plot(ax4,noInductionX,noInductionY,'-.r',constInductionX,constInductionY,'b',bemtX,bemtY,':b','LineWidth',2.0);
-legend('No Induction','Constant 1/3','BEMT','Color',[0.8510 0.8510 0.8510],'Location','Best');
+legend('No Induction','Constant 1/3','BEMT','Color',lgdcolor,'Location','Best');
 xlabel('TSR'); ylabel('C_P');
 hfig4.Color = 'none';
 ax4.Color = 'none';
-hfig4.Position = [200 200 320 270];
+ax4.FontSize = fntsize;
+ax4.XLabel.FontSize = fntsize;
+ax4.YLabel.FontSize = fntsize;
+hfig4.Position = [600 600 380 180];
+grid(ax4,'on');
 export_fig('output/figs/inductionConstVsBEMTutil_power2g', '-png', '-transparent');
+savefig('output/figs/inductionConstVsBEMTutil_power2g.fig');
 return
 %% compare to Sheldahl and Klimas
 CL_naca0015 = [1.069407935	0.04768205;...
