@@ -35,10 +35,11 @@ classdef tether < handle
         end % constructor
         
         function [xd] = computeTension(hobj,f)
-            % A is 3x1 position vector of one end of the tether
-            % Ad is 3x1 velocity vector of the A end
-            % B and Bd are for the other end
-            % f is a fluid object so we know the relative velocity
+            % Input
+                % f is a fluid object so we know the relative velocity
+            % Output
+                % xd = 1x6*nunnodes vector of node states
+            
             % x is a vector of tether node states
             x(1:3*hobj.numnodes) = hobj.nodelocs;
             x(3*hobj.numnodes+1:6*hobj.numnodes) = hobj.nodevels;
@@ -204,8 +205,16 @@ classdef tether < handle
             m = sum(hobj.mass);
         end
         
+        function setRelativeDensity(hobj,rd)
+            hobj.reldens = rd;
+        end
+        
+        function setRadius(hobj,r)
+            hobj.radius = r;
+        end
+        
         function setMass(hobj,m)
-            hobj.mass = mass;
+            hobj.mass = m;
         end
         
         function setNodeVelocity(hobj,v)

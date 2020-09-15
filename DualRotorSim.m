@@ -61,7 +61,9 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-inputfiles = 'BLLcase38flip2.m';
+%inputfiles = 'BLLcase38thr2node.m';
+%inputfiles = 'BLLcase38.m';
+inputfiles = 'BLBcase1.m';
 sim = simulation(inputfiles);
 
 % For static equilibrium analysis you can use the setStaticICs method on a
@@ -82,7 +84,8 @@ sim = simulation(inputfiles);
 % No argument to the simulate method will default to simulation parameters
 % specified in the input file and ode45 as the solver.
 %tspan = 0:0.005:1;
-sim.simulate('output',[]);
+%sim.simulate('output',[]);
+sim.simulate();
 %sim.simulate('tspan',tspan,'stats','on');
 
 %% Write simulation results to file

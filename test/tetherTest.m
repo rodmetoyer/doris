@@ -9,7 +9,7 @@ addpath('..\src');
 tottime = 30;
 timestep = 1/60;
 %nnodes=[0 1 2 5 10];
-nnodes = 0;
+nnodes = 1;
 amp = 2.0;
 omg = 2.1;
 for i=1:1:length(nnodes)

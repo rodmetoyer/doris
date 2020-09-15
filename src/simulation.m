@@ -165,12 +165,26 @@ classdef simulation < handle
                 catch % No ballast specified
                     warning('No ballast specified. Best practice is to at least specify zero mass ballast.');
                 end
+                
                 % add tether
                 if isempty(tdamp)
                     tdamp = tdampfac*2*sqrt(tspring*hobj.vhcl.mass);
                 end
-                %tthr = tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch);
-                hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));
+                tp_O = hobj.vhcl.position + transpose(hobj.vhcl.A_C_O)*hobj.vhcl.tetherpoint; % tether attachment point in O frame
+                mag_tp_O = norm(tp_O);
+                unit_tp_O = tp_O/mag_tp_O;
+                treldens = 1.0; % todo unhardcode
+                nmass = 0;
+                for inds = 1:1:tnnodes
+                    tnodlocs = mag_tp_O/(inds+1)*unit_tp_O;
+                    nmass(inds) = hobj.fld.density*treldens*tunstrch*pi*tradius^2/tnnodes;
+                end
+                hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));                
+                hobj.thr.setEndpoints([[0;0;0],tp_O]);
+                hobj.thr.setRelativeDensity(treldens); 
+                hobj.thr.setMass(nmass);
+                hobj.thr.setRadius(tradius);
+                
                 % Compute the mass matrices
                 hobj.vhcl.computeMstar;
                 if isempty(addedMass)
@@ -283,7 +297,14 @@ classdef simulation < handle
             % x = [x1; x2; x3; theta; gamma; beta; w1; w2; w3; u1; u2; u3; p3; fi3; q3; sy3];
             x0 = [hobj.vhcl.position; hobj.vhcl.orientation; hobj.vhcl.angvel; hobj.vhcl.velocity;...
                 hobj.vhcl.rotors(1).angvel(3); hobj.vhcl.rotors(1).orientation(3); hobj.vhcl.rotors(2).angvel(3); hobj.vhcl.rotors(2).orientation(3)];
-            % todo add tether states We are going to add a tether with two links and one central node
+            % add tether initial states
+            for i=1:1:hobj.thr.numnodes
+                % compute initial position of tether nodes
+                % for now evenly distribute between origin and tether
+                % attachment point
+                x0 = [x0;hobj.thr.nodelocs(1,i);hobj.thr.nodelocs(2,i);hobj.thr.nodelocs(3,i);0;0;0];
+            end
+            
             if strcmpi(p.Results.solver,'ode45')
             disp('Running the simulation');
             opts = odeset('RelTol',1e-6,'AbsTol',1e-6,'Stats',p.Results.stats,'OutputFcn',p.Results.output);
@@ -840,13 +861,14 @@ classdef simulation < handle
             if hobj.thr.numnodes > 0
                 % States for two rotors 16+1=17 to 16+3N are tether node positions and states 16+3N+1 to
                 % 16+3N+3N=16+6N are tether node velocities
-                numstates = numel(x);
+                numvhclstates = 16; % todo thinking about how to enable arbitrary number of rotors. Hardcoded for now.
                 % First update the tether states with the current information x(numstates+1:numstates+6*thr.numnodes)
-                hobj.thr.nodelocs = x(numstates+1:numstates+3*hobj.thr.numnodes);
-                hobj.thr.nodevels = x(numstates+3*hobj.thr.numnodes+1:numstates+6*hobj.thr.numnodes);
+                hobj.thr.setNodePosition(x(numvhclstates+1:numvhclstates+3*hobj.thr.numnodes));
+                hobj.thr.setNodeVelocity(x(numvhclstates+3*hobj.thr.numnodes+1:numvhclstates+6*hobj.thr.numnodes));
                 % now compute the state derivatives
-                [tetherforce,xdot(numstates+1+3*hobj.thr.numnodes:numstates+6*hobj.thr.numnodes)] = hobj.thr.computeTension(A,B,r_to_O,Ov_to_O,hobj.fld);
-                xdot(numstates+1:numstates+3*hobj.thr.numnodes) = x(numstates+1+3*hobj.thr.numnodes:numstates+6*hobj.thr.numnodes);
+                xdot(numvhclstates+1:numvhclstates+6*hobj.thr.numnodes) = hobj.thr.computeTension(hobj.fld);
+                tetherforce = hobj.thr.tension(:,2);
+                %xdot(numvhclstates+1:numvhclstates+3*hobj.thr.numnodes) = x(numvhclstates+1+3*hobj.thr.numnodes:numvhclstates+6*hobj.thr.numnodes);
             else % no internal nodes
                 hobj.thr.computeTension(hobj.fld);
                 tetherforce = hobj.thr.tension(:,2);
