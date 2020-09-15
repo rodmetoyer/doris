@@ -28,6 +28,7 @@ classdef tether < handle
             if nargin > 0
             hobj.numnodes = n;
             hobj.nodelocs = locs;
+            hobj.nodevels = zeros(size(locs));
             hobj.stiffness = k;
             hobj.damping = c;
             hobj.uslength = usl;
@@ -200,6 +201,42 @@ classdef tether < handle
                 lgnth = lgnth + hobj.uslength(i);
             end            
         end
+        
+        function initinternals(hobj,f,reldens,radius,endpnts)
+            % init method that works with a vehicle
+                        
+            hobj.radius = radius;
+            hobj.reldens = ones(1,hobj.numnodes)*reldens;
+            nlinks = hobj.numnodes + 1;
+            hobj.endpnts = endpnts;
+            hobj.uslength = ones(1,nlinks)*hobj.uslength/nlinks;
+
+            if numel(hobj.stiffness) > 1
+                if numel(hobj.stiffness) ~= hobj.numnodes+1
+                    error('Bad stiffness array size');
+                end
+            else
+                % one value total tether stiffness
+                hobj.stiffness = ones(1,nlinks)*nlinks*hobj.stiffness;
+            end
+            if numel(hobj.damping) > 1
+                if numel(hobj.damping) ~= hobj.numnodes+1
+                    error('Bad damping ratio array size');
+                end
+            else
+                hobj.damping = ones(1,nlinks)*nlinks*hobj.damping;
+            end
+            % assuming a cylindrical tether, the mass is computed from the
+            % relative density and the volume
+            if isa(f,'fluid')
+                fdens = f.density;
+            else
+                fdens = f;
+            end
+            uslength = sum(hobj.uslength,'all');
+            hobj.mass = ones(1,hobj.numnodes)*fdens*reldens*uslength*pi*radius^2/hobj.numnodes;
+            hobj.tension = zeros(3,2);           
+        end % initinternals
         
         function m = getTotalMass(hobj)
             m = sum(hobj.mass);

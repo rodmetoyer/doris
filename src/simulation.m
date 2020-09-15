@@ -175,15 +175,20 @@ classdef simulation < handle
                 unit_tp_O = tp_O/mag_tp_O;
                 treldens = 1.0; % todo unhardcode
                 nmass = 0;
+                prevnodelocs = [0;0;0];
                 for inds = 1:1:tnnodes
-                    tnodlocs = mag_tp_O/(inds+1)*unit_tp_O;
-                    nmass(inds) = hobj.fld.density*treldens*tunstrch*pi*tradius^2/tnnodes;
+                    tnodlocs(:,inds) = prevnodelocs + mag_tp_O/(tnnodes+1)*unit_tp_O;
+                    prevnodelocs = tnodlocs(:,inds);
+                    %nmass(inds) = hobj.fld.density*treldens*tunstrch*pi*tradius^2/tnnodes;
                 end
-                hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));                
-                hobj.thr.setEndpoints([[0;0;0],tp_O]);
-                hobj.thr.setRelativeDensity(treldens); 
-                hobj.thr.setMass(nmass);
-                hobj.thr.setRadius(tradius);
+                hobj.addTether(tether(tnnodes,tnodlocs,tspring,tdamp,tunstrch));
+                hobj.thr.initinternals(hobj.fld,treldens,tradius,[[0;0;0],tp_O]);
+                
+%                 hobj.thr.setEndpoints([[0;0;0],tp_O]);
+%                 hobj.thr.setRelativeDensity(treldens); 
+%                 hobj.thr.setMass(nmass);
+%                 hobj.thr.setRadius(tradius);
+%                 hobj.thr.initInternals();
                 
                 % Compute the mass matrices
                 hobj.vhcl.computeMstar;
@@ -223,53 +228,64 @@ classdef simulation < handle
                 mkdir(outDir);
             end
             %flnm = ['data\simCase' num2str(simCaseID) '.txt'];
-            if nargin < 2
-                flnm = [outDir hobj.name '.txt'];
-            else
-                flnm = [outDir datflnm '.txt'];
-            end
-            if exist(flnm,'file')
-                opts.Interpreter = 'tex';
-                opts.Default = 'No';
-%                 quest = ['You are about to overwrite an existing data file.' newline,...
-%                     'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.' newline,...
-%                     '\fontsize{20}Do you want to overwrite ' flnm '?'];
-                quest = ['You are about to overwrite an existing data file.', newline,...
-                    'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.', newline,...
-                    '\color{red}\fontsize{16}Do you want to overwrite ' hobj.name '?'];
-                answer = questdlg(quest,'Data File Overwrite Confirmation','Yes','No',opts);
-                if strcmp(answer,'No') || isempty(answer)
-                    written = false;
-                    return;
-                end
-            end
-            % Break into states for writing
-            [~,nStates] = size(hobj.states);
-            dualrtr = false;
-            if nStates == 16
-                disp('Writing dual-rotor system data to file.');
-                frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
-                dualrtr = true;
-            elseif nStates == 14
-                disp('Writing single-rotor system data to file.');
-                frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
-            else
-                error('The data you want me to write contains a strange number of states.');
-            end
-            headers = ["time","x1","x2","x3","theta","gamma","beta","w1","w2","w3","u1","u2","u3","p3","fi3","q3","sy3"];
-            fid = fopen(flnm,'w');
-            if fid < 0
-                error(['Unable to open: ' flnm ' to write']);
-            end
-            if ~dualrtr
-                headers = headers(1:end-2);
-            end
-            dat = [hobj.times,hobj.states].';
-            fprintf(fid,frmspc,headers);
-            frmspc = strrep(frmspc,'s','f');
-            fprintf(fid,frmspc,dat);
-            fclose(fid);
-            fprintf('\nDone writing data file.\n');
+            
+            %%%%%%%%
+%             if nargin < 2
+%                 flnm = [outDir hobj.name '.txt'];
+%             else
+%                 flnm = [outDir datflnm '.txt'];
+%             end
+%             if exist(flnm,'file')
+%                 opts.Interpreter = 'tex';
+%                 opts.Default = 'No';
+% %                 quest = ['You are about to overwrite an existing data file.' newline,...
+% %                     'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.' newline,...
+% %                     '\fontsize{20}Do you want to overwrite ' flnm '?'];
+%                 quest = ['You are about to overwrite an existing data file.', newline,...
+%                     'If you are batch re-running sims and want to avoid this dialogue you should delete the existing data files.', newline,...
+%                     '\color{red}\fontsize{16}Do you want to overwrite ' hobj.name '?'];
+%                 answer = questdlg(quest,'Data File Overwrite Confirmation','Yes','No',opts);
+%                 if strcmp(answer,'No') || isempty(answer)
+%                     written = false;
+%                     return;
+%                 end
+%             end
+%             % Break into states for writing
+%             [~,nStates] = size(hobj.states);
+%             dualrtr = false;
+%             if nStates == 16
+%                 disp('Writing dual-rotor system data to file.');
+%                 frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
+%                 headers = ["time","x1","x2","x3","theta","gamma","beta","w1","w2","w3","u1","u2","u3","p3","fi3","q3","sy3"];
+%                 dualrtr = true;
+%             elseif nStates == 14
+%                 disp('Writing single-rotor system data to file.');
+%                 frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
+%             elseif nStates == 22 % 1 node
+%                 disp('Writing dual-rotor system data to file. One node tether');
+%                 frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
+%                 headers = ["time","x1","x2","x3","theta","gamma","beta","w1","w2","w3","u1","u2","u3","p3","fi3","q3","sy3","n1x","n1y","n1z","n1u","n1v","n1w"];
+%             elseif nStates == 28 % 2 nodes
+%                 disp('Writing dual-rotor system data to file. One node tether');
+%                 frmspc = '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n';
+%                 headers = ["time","x1","x2","x3","theta","gamma","beta","w1","w2","w3","u1","u2","u3","p3","fi3","q3","sy3","n1x","n1y","n1z","n1u","n1v","n1w"];
+%             else
+%                 error('The data you want me to write contains a strange number of states.');
+%             end
+%             
+%             fid = fopen(flnm,'w');
+%             if fid < 0
+%                 error(['Unable to open: ' flnm ' to write']);
+%             end
+%             if ~dualrtr
+%                 headers = headers(1:end-2);
+%             end
+%             dat = [hobj.times,hobj.states].';
+%             fprintf(fid,frmspc,headers);
+%             frmspc = strrep(frmspc,'s','f');
+%             fprintf(fid,frmspc,dat);
+%             fclose(fid);
+%             fprintf('\nDone writing data file.\n');
             
             % Now write a vehilce configuration file of the smae same that
             % holds all of the simulation configuration information.
@@ -298,12 +314,20 @@ classdef simulation < handle
             x0 = [hobj.vhcl.position; hobj.vhcl.orientation; hobj.vhcl.angvel; hobj.vhcl.velocity;...
                 hobj.vhcl.rotors(1).angvel(3); hobj.vhcl.rotors(1).orientation(3); hobj.vhcl.rotors(2).angvel(3); hobj.vhcl.rotors(2).orientation(3)];
             % add tether initial states
+            tp_O = hobj.vhcl.position + transpose(hobj.vhcl.A_C_O)*hobj.vhcl.tetherpoint; % tether attachment point in O frame
+            mag_tp_O = norm(tp_O);
+            unit_tp_O = tp_O/mag_tp_O;
+            nodepositions = [];
+            nodevelocities = [];
             for i=1:1:hobj.thr.numnodes
                 % compute initial position of tether nodes
                 % for now evenly distribute between origin and tether
                 % attachment point
-                x0 = [x0;hobj.thr.nodelocs(1,i);hobj.thr.nodelocs(2,i);hobj.thr.nodelocs(3,i);0;0;0];
+                tnodlocs = mag_tp_O/(hobj.thr.numnodes+1)*unit_tp_O*i;
+                nodepositions = [nodepositions;tnodlocs(1);tnodlocs(2);tnodlocs(3)]
+                nodevelocities = [nodevelocities;0;0;0];
             end
+            x0 = [x0;nodepositions;nodevelocities];
             
             if strcmpi(p.Results.solver,'ode45')
             disp('Running the simulation');

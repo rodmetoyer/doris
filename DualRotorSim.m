@@ -61,9 +61,9 @@ end
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-%inputfiles = 'BLLcase38thr2node.m';
-%inputfiles = 'BLLcase38.m';
-inputfiles = 'BLBcase1.m';
+% inputfiles = 'BLLcase38thr2node.m';
+inputfiles = 'BLLcase38.m';
+% inputfiles = 'BLBcase1.m';
 sim = simulation(inputfiles);
 
 % For static equilibrium analysis you can use the setStaticICs method on a
