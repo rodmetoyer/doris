@@ -2,26 +2,26 @@
 
 clearvars; close all; clc;
 
-reldens = 1.0:-0.01:0.95;
+reldens = 1.0:-0.01:0.84;
 bodyLength = 18.0;
 %bodyLength = 0.5;
 %bodyRadius = 0.05*bodyLength;
 rotorRadius = bodyLength;
 %a1 = 0.030674846625767; 
-a1 = 0.051; 
+a1 = 0.51; 
 s1 = a1*bodyLength;
-bodyPrcnt = 0:0.001:1.1;
+bodyPrcnt = 0:0.001:0.1;
 s3 = bodyPrcnt*bodyLength;
 axisScaler = 1.2;
 plotcolor = 'none';
-%lgnclr = 'w';%[0.8510 0.8510 0.8510];
-lgnclr = [0.8510 0.8510 0.8510];
+lgnclr = 'w';%[0.8510 0.8510 0.8510];
+%lgnclr = [0.8510 0.8510 0.8510];
 saveplots = true;
-savenameapp = 'util';
-%figw = 400;
-%figh = 300;
-figw = 600;
-figh = 400;
+savenameapp = 'utilWhite';
+figw = 400;
+figh = 300;
+% figw = 600;
+% figh = 400;
 
 for i=1:1:length(reldens)
     for j=1:1:length(s3)
@@ -39,9 +39,10 @@ end
 plot(tax,s3/bodyLength,theta(end,:)-90,'DisplayName',['\sigma = ' num2str(reldens(end),'%3.2f')],'LineWidth',2.0);
 h = tax.Children;
 h(round(length(reldens)/2)).LineStyle = '--';
+h(round(length(reldens)/2)).LineWidth = 2.0;
 %xline(tax,0.05);
-%hleg = legend([h(end) h(round(length(reldens)/2)) h(1)],'Location','Best','Color',lgnclr);
-hleg = legend('Location','Best','Color',lgnclr);
+hleg = legend([h(end) h(round(length(reldens)/2)) h(1)],'Location','Best','Color',lgnclr);
+%hleg = legend('Location','Best','Color',lgnclr);
 % hleg.Title.String = ['Relative Density (Incr. 0.01)'];
 hleg.Title.String = ['Relative Density'];
 grid(tax,'on');
@@ -50,7 +51,7 @@ xlabel('Normalized Center Mass Axial Location (a_3)');
 ylabel('Pitch Angle (deg)');
 %text(tax,0.022,110,['a_1 = ' num2str(a1,2)],'FontSize',12);
 title(['a_1 = ' num2str(a1,2)]);
-tax.XLim = [0 bodyPrcnt(end)];
+%tax.XLim = [0 bodyPrcnt(end)];
 %tax.YLim = [-60 60];
 tax.Color = plotcolor;
 tax.FontSize = 12;

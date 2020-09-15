@@ -975,11 +975,18 @@ classdef simulation < handle
             defaultOutfile = infn;
             defaultFramerate = 24;
             defaultSpeedfactor = 1;
+            defaultEvenAxes = false;
+            defaultShowTension = false;
+            defaultStartFrame = 1;
             p = inputParser;
             %validateOutput = @(x) isa(x,'function_handle');
             addParameter(p,'outfile',defaultOutfile,@ischar);
             addParameter(p,'framerate',defaultFramerate,@isnumeric);
             addParameter(p,'speedfactor',defaultSpeedfactor,@isnumeric);
+            addParameter(p,'evenaxes',defaultEvenAxes,@islogical);
+            addParameter(p,'showtension',defaultShowTension,@islogical);
+            addParameter(p,'startframe',defaultStartFrame,@isnumeric);
+            addParameter(p,'secondfile',defaultOutfile,@ischar);
             parse(p,varargin{:});           
 
             moviefile = ['products\videos\' p.Results.outfile '.avi'];
@@ -999,6 +1006,12 @@ classdef simulation < handle
             eval(svcmd); clear svcmd;
             dat = sim.times;
             dat = [dat sim.states];
+%             if ~strcmp(p.Results.secondfile,infn)
+%                 svcmd = ['load ' pwd '\products\data\' p.Results.secondfile '.mat'];
+%                 eval(svcmd); clear svcmd;
+%                 dat2 = sim.times;
+%                 dat2 = [dat2 sim.states];
+%             end
             
             % make the vectors and everything
             r_ao_O = dat(:,2:4);
@@ -1038,7 +1051,8 @@ classdef simulation < handle
             maxz = max([maxz 0.3*maxx]);
             cmap = colormap(jet(100));
             cmaxtensionvalue = 2000;
-            for i = 1:1:nframes
+            totframes = nframes-p.Results.startframe+1;
+            for i = 1:1:totframes
                 smp = nskips*(i-1)+1;
                 % Update velocity on the fluid object
                 sim.fld.updateVelocity(dat(smp,1));
@@ -1105,8 +1119,10 @@ classdef simulation < handle
                 quiver3(ax,0,0,0,sim.fld.velocity(1),sim.fld.velocity(2),sim.fld.velocity(3),'Color','c','LineWidth',2.0,'MaxHeadSize',0.5);
                 %annotation('textbox',[0.3 0.2 0.5 0.2],'String',{'U_\infty Vector'},'FitBoxToText','on');
                 axis equal                
-                axis([-1 maxx -maxy maxy -maxz maxz]);
+                %axis([-1 maxx -maxy maxy -maxz maxz]);
+                axis([-1 maxx -maxy maxy -maxz 0]);
                 view(-30,20)
+%                 view(-88,10)
                 
                 xlabel('x'); ylabel('y'); zlabel('z');
 %                 
@@ -1120,7 +1136,9 @@ classdef simulation < handle
                     '  |  Time = ' num2str(dat(smp,1),'%5.2f'),...
                     '  |  Relative Density = ' num2str(sim.vhcl.relDensity,'%3.2f')],'FontSize',12);
                 hold off
-                text(0,0,-0.2*maxz,str,'Fontsize',12);
+                if p.Results.showtension
+                    text(0,0,-0.2*maxz,str,'Fontsize',12);
+                end
                 F(i) = getframe(hfig);
                 %clear an;
             end % end loop through data

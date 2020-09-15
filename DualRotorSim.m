@@ -1,15 +1,15 @@
 % DualRotorSim.m
 % Simualtion script for a dual-rotor simulation
 
-% Clear the workspace
+% Clear the workspace and add src to the Matlab search path
 clear all; close all; clc;
-% Tell matlab to look in the src folder for the class files
 addpath('src')
 
+%% Run simulations in batches
 % If you want to batch process use this block. Otherwise, set to false and
 % process input files one at a time following the code that is after this
 % block.
-if true
+if false
     sweep = "ESS";
     modifyCases = true;
     itr = 1;
@@ -57,28 +57,17 @@ if true
     return;
 end
 
+%% Run a single simulation
 % The input file controls the simulation. Easiest thing to do is copy an
 % exsiting file and rename it, then change the parameter values to make
 % your simulation.
-% inputfile = 'utilityBaseline.m';
-% inputfile = 'ballastTest.m';
-% inputfile = 'rampedDemo.m';
-% inputfile = 'sinusoidDemo.m';
-% inputfile = 'disturbedDemo.m';
-inputfiles = 'EFScase58Long.m';
+inputfiles = 'BLLcase38flip2.m';
 sim = simulation(inputfiles);
-sim.setStaticICs;
 
-sim.changeName('EFScase58LongUnsteady','Sure');
-unsteadyTheta = sim.vhcl.orientation(1) + pi;
-weight = sim.fld.gravity*sim.vhcl.mass;
-tension = weight*((1-sim.vhcl.relDensity)/sim.vhcl.relDensity);
-stretch = tension/sim.thr.stiffness;
-gam = unsteadyTheta - pi;
-sim.vhcl.position = [-sim.vhcl.body.length/2*sin(gam);0;sim.thr.uslength+stretch-sim.vhcl.body.length/2*cos(gam)];
-sim.vhcl.orientation(1) = unsteadyTheta;
-sim.vhcl.orientation(1) = sim.vhcl.orientation(1) - 3*pi/180; % 3 degree perturbation
-sim.changeName([sim.name 'fromUnder'],'Sure');
+% For static equilibrium analysis you can use the setStaticICs method on a
+% simulation object to put it into exactly the theoretical position and
+% orientation for static equilibrium.
+%sim.setStaticICs;
 
 %% Make sure the vehicle we just built is what we were trying to build.
 % The showme method let's you visualize the simulation in its current
@@ -106,6 +95,8 @@ if ~sim.write2file
 end
 
 %% Plots
+% There is a flag in the input file for plots and movies. It's there mainly
+% for batch processing.
 if sim.visuals.makeplots
     simulation.makePlots(sim.name,'axcolor','w','figcolor','w');
 end

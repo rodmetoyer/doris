@@ -1,8 +1,11 @@
 % tetherTest.m
+% Performs tether simulations using the tether class
 
 clear all; close all; clc;
-
 addpath('..\src');
+
+%% Simulation 1 - basic
+% This is a basic simualtion
 tottime = 30;
 timestep = 1/60;
 %nnodes=[0 1 2 5 10];

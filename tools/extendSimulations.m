@@ -5,21 +5,25 @@ clearvars; close all; clc;
 addpath('..\src');
 cd ..\ % Working from the top folder
 
-sweep = "XB3"; % extending to see if we have another eq point
-itr = 1;
-for i=22:1:22
-    inputfiles(itr) = strcat("case",num2str(i));
-    itr = itr + 1;
-end
-inputfiles = strcat(sweep,inputfiles,"ExtendedExtended.m");
+%% Make an input file string array with cases that you want to extend
+%%% Fast way is to do it in a loop
+% sweep = "XB3"; % extending to see if we have another eq point
+% itr = 1;
+% for i=22:1:22
+%     inputfiles(itr) = strcat("case",num2str(i));
+%     itr = itr + 1;
+% end
+%%% and the append anything, like if this is the third time extending then
+%%% you need to append ExtendedExtended and after the extension simulations
+%%% you have 3 Extended's
+% inputfiles = strcat(sweep,inputfiles,"ExtendedExtended.m");
 
-% inputfiles = ["case67","case68","case69","case70","case71","case72","case73","case1","case2",...
-%             "case74","case75","case76","case77","case78","case79","case80","case12","case13",...
-%             "case81","case82","case83","case84","case85","case86","case87","case23","case24",...
-%             "case88","case89","case90","case91","case92","case93","case94","case34","case35",...
-%             "case95","case96","case97","case98","case99","case100","case101","case45","case46",...
-%             "case102","case103","case104","case105","case106","case107","case108","case56","case57"];
-%inputfiles = strcat(sweep,inputfiles,"Extended.m");
+%%% Or you can do them one at a time
+inputfiles = strcat("BLBcase50Extended.m");
+% Convergence typically happens faster is you use the mean of the states
+% from teh last half of the simulation as initial conditions for the
+% extension. But if you want you can make lasthalf false and then you'll
+% use the final state from the last sim as the ICs for the extension.
 lasthalf = true;
 
 extendedTspan = 0:0.2:3600;
@@ -32,13 +36,7 @@ for i=1:1:numel(inputfiles)
     end
     % make the position and orinetation of the vehicle the mean over the last half of the simualtion.  
     sim.vhcl.orientation = [mean(sim.states(startpt:end,4));mean(sim.states(startpt:end,5));mean(sim.states(startpt:end,6))];
-    sim.vhcl.position = [mean(sim.states(startpt:end,1));mean(sim.states(startpt:end,2));mean(sim.states(startpt:end,3))];
-
-    % ad hoc changing XB3case22Extended ICs to see if we have a second
-    % equilibrium
-%     sim.vhcl.position = [157.9;90;-90];
-%     sim.vhcl.orientation = [2.2597;-0.4363;0.3082];
-    
+    sim.vhcl.position = [mean(sim.states(startpt:end,1));mean(sim.states(startpt:end,2));mean(sim.states(startpt:end,3))];    
     sim.vhcl.rotors(1).angvel = [0;0;mean(sim.states(startpt:end,13))];
     sim.vhcl.rotors(2).angvel = [0;0;mean(sim.states(startpt:end,15))];
     sim.changeName([sim.name 'Extended'],'Sure');
