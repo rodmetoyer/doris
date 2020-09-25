@@ -16,7 +16,7 @@ reldensPlots = false;
 % makeplots("BLE","");  % This is the same as BLL Extended (just a rename)
 % makeplots("DBB","Extended");  % Radial distance of ballast is doubled
 % makeplots("DB2","ExtendedExtended");  % Radial distance of ballast is half 
-makeplots("XB2","Extended");  % Rerun of DB2
+% makeplots("XB2","Extended");  % Rerun of DB2
 % makeplots("DB3","Extended");  % Radial distance of ballast is trippled
 % makeplots("XB3","Extended");  % Rerun of DB3
 % makeplots("BLB","Extended");  % The baseline sweep
@@ -28,7 +28,7 @@ makeplots("XB2","Extended");  % Rerun of DB2
 % makeplots("DB2fine","Extended",false,2);
 
 %%% Equal flow factor sweeps
-% makeplots("EFF");             % Equal flow factors  
+makeplots("EFF");             % Equal flow factors  
 % makeplots("EF2");             % Ballast location double
 % makeplots("EF3");             % Ballast location half
 % makeplots("EFT");             % Ballast location three times

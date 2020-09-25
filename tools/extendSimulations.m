@@ -19,7 +19,7 @@ cd ..\ % Working from the top folder
 % inputfiles = strcat(sweep,inputfiles,"ExtendedExtended.m");
 
 %%% Or you can do them one at a time
-inputfiles = strcat("BLBcase50Extended.m");
+inputfiles = strcat("EFFcase61.m");
 % Convergence typically happens faster is you use the mean of the states
 % from teh last half of the simulation as initial conditions for the
 % extension. But if you want you can make lasthalf false and then you'll

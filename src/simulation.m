@@ -1024,6 +1024,7 @@ classdef simulation < handle
             defaultEvenAxes = false;
             defaultShowTension = false;
             defaultStartFrame = 1;
+            defaultView = 'side';
             p = inputParser;
             %validateOutput = @(x) isa(x,'function_handle');
             addParameter(p,'outfile',defaultOutfile,@ischar);
@@ -1033,9 +1034,10 @@ classdef simulation < handle
             addParameter(p,'showtension',defaultShowTension,@islogical);
             addParameter(p,'startframe',defaultStartFrame,@isnumeric);
             addParameter(p,'secondfile',defaultOutfile,@ischar);
+            addParameter(p,'view',defaultView,@ischar);
             parse(p,varargin{:});           
 
-            moviefile = ['products\videos\' p.Results.outfile '.avi'];
+            moviefile = ['products\videos\' p.Results.outfile '_' p.Results.view '.avi'];
             % get data
 %             try
 %                 dat = importdata(['products\data\' infn '.txt']);
@@ -1167,8 +1169,16 @@ classdef simulation < handle
                 axis equal                
                 %axis([-1 maxx -maxy maxy -maxz maxz]);
                 axis([-1 maxx -maxy maxy -maxz 0]);
-                view(-30,20)
-%                 view(-88,10)
+                switch p.Results.view
+                    case 'side'
+                        view(-30,20) % side
+                    case 'front'
+                        view(-90,10) % Front
+                    case 'top'
+                        view(-90,66) % Top
+                    otherwise
+                        error('Unknown view request');
+                end
                 
                 xlabel('x'); ylabel('y'); zlabel('z');
 %                 
